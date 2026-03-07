@@ -21,15 +21,15 @@ export default function ExportMembersPDFButton() {
         doc.setFontSize(11);
         doc.text(`Generated on: ${new Date().toLocaleString()}`, 14, 28);
 
-        const tableColumn = ["ID", "Full Name", "Contact (Phone/Email)", "Role", "Membership", "Status", "Joined Date"];
+        const tableColumn = ["ID", "Full Name", "Contact", "Role", "Professional Details", "Membership", "Status"];
         const tableRows = res.data.map((member: any) => [
           member.id,
           member.fullName,
           member.contact,
           member.role,
+          member.professionDetails,
           member.membership,
-          member.status,
-          member.date
+          member.status
         ]);
 
         autoTable(doc, {
@@ -37,7 +37,7 @@ export default function ExportMembersPDFButton() {
           head: [tableColumn],
           body: tableRows,
           theme: 'grid',
-          styles: { fontSize: 9, cellPadding: 3 },
+          styles: { fontSize: 8, cellPadding: 2, overflow: 'linebreak' },
           headStyles: { fillColor: [30, 58, 138], textColor: 255 }, // blue-900 theme
           alternateRowStyles: { fillColor: [249, 250, 251] },
         });

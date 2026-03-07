@@ -127,21 +127,41 @@ export async function exportMembersToCSV() {
 export async function exportMembersForPDF() {
   try {
     const db = getDb();
+    
+    // Fetch all records
     const allProfiles = await db.select().from(profiles);
+    const allDocs = await db.select().from(doctorDetails);
+    const allStudents = await db.select().from(studentDetails);
     
     if (allProfiles.length === 0) return { success: true, data: [] };
     
-    const tableData = allProfiles.map(r => ({
-      id: r.id.substring(0, 8),
-      fullName: r.fullName || 'N/A',
-      contact: `${r.mobile || 'No Mobile'}\n${r.email || 'No Email'}`,
-      role: r.role.toUpperCase(),
-      membership: r.membershipType.toUpperCase(),
-      status: r.paymentStatus.toUpperCase(),
-      date: r.createdAt ? new Date(r.createdAt).toLocaleDateString() : 'N/A'
-    }));
+    const formattedData = allProfiles.map(p => {
+      let extraInfo = '';
+      
+      if (p.role === 'doctor') {
+        const doc = allDocs.find(d => d.profileId === p.id);
+        if (doc) {
+          extraInfo = `${doc.degree || ''} ${doc.specialization ? '- '+doc.specialization : ''}\n${doc.hospitalName || doc.clinicAddress || ''}`;
+        }
+      } else if (p.role === 'student') {
+        const stu = allStudents.find(s => s.profileId === p.id);
+        if (stu) {
+          extraInfo = `${stu.course || ''} - ${stu.year || ''}\n${stu.college || ''}`;
+        }
+      }
+      
+      return {
+        id: p.id.substring(0, 8),
+        fullName: p.fullName || 'N/A',
+        contact: `${p.mobile || 'No Mobile'}\n${p.email || ''}`,
+        role: p.role.toUpperCase(),
+        professionDetails: extraInfo || 'N/A',
+        membership: p.membershipType.toUpperCase(),
+        date: p.createdAt ? new Date(p.createdAt).toLocaleDateString() : 'N/A'
+      };
+    });
     
-    return { success: true, data: tableData };
+    return { success: true, data: formattedData };
   } catch (error: any) {
     console.error('Error fetching data for PDF:', error);
     return { success: false, message: error.message || 'Failed to fetch data for PDF' };
