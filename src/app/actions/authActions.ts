@@ -62,6 +62,7 @@ export async function registerUser(formData: FormData) {
     }
 
     // Insert into Profiles
+    const dob = formData.get('dob') as string;
     const newProfile = {
       id: profileId,
       fullName,
@@ -69,6 +70,10 @@ export async function registerUser(formData: FormData) {
       mobile,
       passwordHash,
       role,
+      gender: formData.get('gender') as string || null,
+      maritalStatus: formData.get('maritalStatus') as string || null,
+      dob: dob ? new Date(dob) : null,
+      occupation: formData.get('occupation') as string || null,
       avatarUrl,
       membershipType: formData.get('membershipType') as string || 'member',
       paymentReceiptUrl: role !== 'guest' ? paymentReceiptUrl : null,
@@ -91,21 +96,39 @@ export async function registerUser(formData: FormData) {
         const docDetails = {
           id: randomUUID(),
           profileId,
-          degree: formData.get('degree') as string,
-          specialization: formData.get('specialization') as string,
-          registrationNo: formData.get('registrationNo') as string,
-          experience: Number(formData.get('experience')) || 0,
-          hospitalName: formData.get('hospitalName') as string,
+          degree: formData.get('degree') as string || null,
+          specialization: formData.get('specialization') as string || null,
+          registrationNo: formData.get('registrationNo') as string || null,
+          experience: Number(formData.get('experience')) || null,
+          hospitalName: formData.get('hospitalName') as string || null,
+          presentWorkingPlace: formData.get('presentWorkingPlace') as string || null,
+          clinicAddress: formData.get('clinicAddress') as string || null,
+          consultationFee: Number(formData.get('consultationFee')) || null,
+          availabilityTimings: formData.get('availabilityTimings') as string || null,
+          memberships: formData.get('memberships') as string || null,
+          awards: formData.get('awards') as string || null,
+          websiteSocialLinks: formData.get('websiteSocialLinks') as string || null,
         };
         await db.insert(doctorDetails).values(docDetails);
       } 
       else if (role === 'student') {
+        const collegeEntryYear = formData.get('collegeEntryYear') as string;
         const stuDetails = {
           id: randomUUID(),
           profileId,
-          college: formData.get('college') as string,
-          course: formData.get('course') as string,
-          year: formData.get('year') as string,
+          college: formData.get('college') as string || null,
+          university: formData.get('university') as string || null,
+          course: formData.get('course') as string || null,
+          year: formData.get('year') as string || null,
+          collegeEntryYear: collegeEntryYear ? Number(collegeEntryYear) : null,
+          gotraFather: formData.get('gotraFather') as string || null,
+          gotraMother: formData.get('gotraMother') as string || null,
+          gotraGrandmother: formData.get('gotraGrandmother') as string || null,
+          futureGoals: formData.get('futureGoals') as string || null,
+          internshipStatus: formData.get('internshipStatus') as string || null,
+          hobbiesInterests: formData.get('hobbiesInterests') as string || null,
+          linkedinProfile: formData.get('linkedinProfile') as string || null,
+          bloodDonationWillingness: formData.get('bloodDonationWillingness') as string || null,
         };
         await db.insert(studentDetails).values(stuDetails);
       }

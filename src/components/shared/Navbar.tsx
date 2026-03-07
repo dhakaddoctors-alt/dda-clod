@@ -1,7 +1,13 @@
+'use client';
+
 import Link from 'next/link';
-import { Menu, Search, Bell, User } from 'lucide-react';
+import { Menu, Search, Bell, User, LogOut, LayoutDashboard } from 'lucide-react';
+import { useSession, signOut } from 'next-auth/react';
 
 export default function Navbar() {
+  const { data: session } = useSession();
+  const isAdmin = session?.user && ((session.user as any).role === 'admin' || (session.user as any).role === 'super_admin');
+
   return (
     <nav className="fixed top-0 w-full bg-white border-b border-gray-200 z-50 h-16">
       <div className="flex items-center justify-between px-4 h-full">
@@ -33,12 +39,57 @@ export default function Navbar() {
             <span className="absolute top-1 right-1 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-white"></span>
           </button>
           
-          <Link href="/login" className="flex items-center gap-2 p-1 pr-3 hover:bg-gray-100 rounded-full transition-colors">
-            <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center overflow-hidden">
-              <User className="w-5 h-5 text-gray-500" />
+          {session ? (
+            <div className="flex items-center gap-2 sm:gap-4">
+              {isAdmin && (
+                <Link 
+                  href="/admin" 
+                  className="hidden md:flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                >
+                  <LayoutDashboard className="w-4 h-4" />
+                  <span>Admin Panel</span>
+                </Link>
+              )}
+              
+              <div className="group relative">
+                <button className="flex items-center gap-2 p-1 pr-3 hover:bg-gray-100 rounded-full transition-colors">
+                  <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center overflow-hidden border border-blue-200">
+                    <User className="w-5 h-5 text-blue-600" />
+                  </div>
+                  <span className="hidden sm:block text-sm font-medium">{session.user?.name?.split(' ')[0]}</span>
+                </button>
+                
+                {/* Dropdown Menu */}
+                <div className="absolute right-0 mt-1 w-48 bg-white rounded-xl shadow-lg border border-gray-100 py-1 opacity-0 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto transition-all duration-200 z-[60]">
+                  <Link href="/profile" className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">
+                    <User className="w-4 h-4" />
+                    <span>My Profile</span>
+                  </Link>
+                  {isAdmin && (
+                    <Link href="/admin" className="md:hidden flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">
+                      <LayoutDashboard className="w-4 h-4" />
+                      <span>Admin Panel</span>
+                    </Link>
+                  )}
+                  <hr className="my-1 border-gray-100" />
+                  <button 
+                    onClick={() => signOut()}
+                    className="flex w-full items-center gap-2 px-4 py-2 text-sm text-red-600 hover:bg-red-50"
+                  >
+                    <LogOut className="w-4 h-4" />
+                    <span>Sign Out</span>
+                  </button>
+                </div>
+              </div>
             </div>
-            <span className="hidden sm:block text-sm font-medium">Log In</span>
-          </Link>
+          ) : (
+            <Link href="/login" className="flex items-center gap-2 p-1 pr-3 hover:bg-gray-100 rounded-full transition-colors">
+              <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center overflow-hidden">
+                <User className="w-5 h-5 text-gray-500" />
+              </div>
+              <span className="hidden sm:block text-sm font-medium">Log In</span>
+            </Link>
+          )}
         </div>
       </div>
     </nav>

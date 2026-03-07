@@ -3,6 +3,7 @@ import { Inter } from 'next/font/google';
 import './globals.css';
 import AiChatbot from '@/components/ui/AiChatbot';
 import MobileTabBar from '@/components/shared/MobileTabBar';
+import SessionProvider from '@/components/shared/SessionProvider';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -36,9 +37,11 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${inter.className} bg-gray-50 text-gray-900 custom-scrollbar pb-16 lg:pb-0`}>
-        {children}
-        <MobileTabBar />
-        <AiChatbot />
+        <SessionProvider>
+          {children}
+          <MobileTabBar />
+          <AiChatbot />
+        </SessionProvider>
       </body>
     </html>
   );

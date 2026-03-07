@@ -2,6 +2,7 @@ import Navbar from '@/components/shared/Navbar';
 import Sidebar from '@/components/shared/Sidebar';
 import { Users, FileCheck, Database, Server, Activity, ShieldAlert } from 'lucide-react';
 import { fetchPendingApprovals, fetchDeletedUsers } from '@/app/actions/adminActions';
+import { fetchCommitteesWithMembers } from '@/app/actions/committeeActions';
 import { fetchLiveElectionAnalytics } from '@/app/actions/nominationActions';
 import ApproveRejectButtons from '@/components/ui/ApproveRejectButtons';
 import CommitteeBuilder from '@/components/ui/CommitteeBuilder';
@@ -23,6 +24,7 @@ export default async function AdminDashboardPage() {
   const pendingUsers = await fetchPendingApprovals();
   const deletedUsers = await fetchDeletedUsers();
   const electionAnalytics = await fetchLiveElectionAnalytics('election_1');
+  const committeeData = await fetchCommitteesWithMembers();
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
@@ -145,7 +147,7 @@ export default async function AdminDashboardPage() {
 
               {/* Committee Hierarchy Builder Section */}
               <div className="lg:col-span-2 space-y-6">
-                 <CommitteeBuilder />
+                 <CommitteeBuilder initialTiers={committeeData} />
               </div>
 
               {/* Sidebar Content Area - System Health & AI */}
