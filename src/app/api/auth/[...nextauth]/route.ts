@@ -10,27 +10,32 @@ export const authOptions: AuthOptions = {
     CredentialsProvider({
       name: "Credentials",
       credentials: {
-        email: { label: "Email", type: "email", placeholder: "your@email.com" },
+        email: { label: "Email or Mobile", type: "text", placeholder: "Email or Mobile Number" },
         password: { label: "Password", type: "password" }
       },
       async authorize(credentials) {
         if (!credentials?.email || !credentials?.password) return null;
 
+        const identifier = credentials.email.trim();
         const db = getDb();
-        const userResults = await db.select().from(profiles).where(eq(profiles.email, credentials.email));
-        const user = userResults.length > 0 ? userResults[0] : null;
+
+        // Try to find user by email first, then by mobile
+        let userResults = await db.select().from(profiles).where(eq(profiles.email, identifier));
+        if (userResults.length === 0) {
+          userResults = await db.select().from(profiles).where(eq(profiles.mobile, identifier));
+        }
+        const user = userResults.length > 0 ? (userResults[0] as any) : null;
 
         if (!user) {
-           throw new Error("No user found with this email");
+          return null;
         }
 
-        const isValid = await bcrypt.compare(credentials.password, user.passwordHash);
-        
-        if (!isValid) {
-           throw new Error("Invalid password");
-        }
-        
-        // Return object mapped to NextAuth User type
+        const storedHash = user.passwordHash;
+        if (!storedHash) return null;
+
+        const isValid = await bcrypt.compare(credentials.password, storedHash);
+        if (!isValid) return null;
+
         return { 
           id: user.id, 
           name: user.fullName, 

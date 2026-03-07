@@ -1,7 +1,8 @@
 import { drizzle } from 'drizzle-orm/sqlite-proxy';
 
-// A dynamic DB getter that uses D1 HTTP API. This works purely via fetch 
-// without needing Miniflare bindings, making it fully compatible with Vercel and local dev!
+// A dynamic DB getter that uses D1 HTTP API.
+// IMPORTANT: drizzle-orm/sqlite-proxy requires rows returned as ARRAYS of values,
+// not as objects. The column ORDER from the SQL result is used by Drizzle for mapping.
 export function getDb(_env?: any) {
   return drizzle(async (sql, params, method) => {
     const accountId = process.env.CLOUDFLARE_ACCOUNT_ID;
@@ -36,13 +37,14 @@ export function getDb(_env?: any) {
       const dbResult = data.result?.[0] || data.result || data;
 
       // Extract results safely based on Cloudflare's slightly varying API response structures
-      const rows = dbResult?.results || dbResult?.rows || (Array.isArray(dbResult) ? dbResult : []);
+      const rawRows = dbResult?.results || dbResult?.rows || (Array.isArray(dbResult) ? dbResult : []);
 
-      if (method === 'run') {
-        return { rows };
-      } else if (method === 'all' || method === 'values' || method === 'get') {
-        return { rows };
-      }
+      // drizzle-orm/sqlite-proxy REQUIRES rows as arrays of values, not objects.
+      // Drizzle uses the SELECT column order to map them back to camelCase properties.
+      const rows = Array.isArray(rawRows)
+        ? rawRows.map((row: Record<string, any>) => Object.values(row))
+        : rawRows;
+
       return { rows };
     } catch (e: any) {
       console.error('Error connecting to D1 HTTP API', e);
