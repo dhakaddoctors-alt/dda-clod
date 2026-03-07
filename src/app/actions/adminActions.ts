@@ -157,7 +157,8 @@ export async function exportMembersForPDF() {
         role: p.role.toUpperCase(),
         professionDetails: extraInfo || 'N/A',
         membership: p.membershipType.toUpperCase(),
-        date: p.createdAt ? new Date(p.createdAt).toLocaleDateString() : 'N/A'
+        date: p.createdAt ? new Date(p.createdAt).toLocaleDateString() : 'N/A',
+        avatarUrl: p.avatarUrl || null
       };
     });
     
