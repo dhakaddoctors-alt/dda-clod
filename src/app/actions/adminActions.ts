@@ -1,6 +1,6 @@
 'use server';
 
-import { profiles } from '@/db/schema';
+import { profiles, doctorDetails, studentDetails } from '@/db/schema';
 import { eq } from 'drizzle-orm';
 import { revalidatePath } from 'next/cache';
 import { getDb } from '@/db';
@@ -121,5 +121,31 @@ export async function exportMembersToCSV() {
   } catch (error: any) {
     console.error('Error exporting CSV:', error);
     return { success: false, message: error.message || 'Failed to export to CSV' };
+  }
+}
+
+export async function exportDatabaseSnapshot() {
+  try {
+    const db = getDb();
+    
+    // Fetch critical tables
+    const allProfiles = await db.select().from(profiles);
+    const allDoctorDetails = await db.select().from(doctorDetails);
+    const allStudentDetails = await db.select().from(studentDetails);
+    
+    const snapshot = {
+      timestamp: new Date().toISOString(),
+      version: '1.0',
+      data: {
+        profiles: allProfiles,
+        doctorDetails: allDoctorDetails,
+        studentDetails: allStudentDetails
+      }
+    };
+    
+    return { success: true, snapshot: JSON.stringify(snapshot, null, 2) };
+  } catch (error: any) {
+    console.error('Error generating database snapshot:', error);
+    return { success: false, message: error.message || 'Failed to generate database snapshot' };
   }
 }

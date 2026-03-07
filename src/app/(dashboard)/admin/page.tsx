@@ -8,6 +8,9 @@ import CommitteeBuilder from '@/components/ui/CommitteeBuilder';
 import AiAdminPanel from '@/components/ui/AiAdminPanel';
 import ElectionAnalyticsPanel from '@/components/ui/ElectionAnalyticsPanel';
 import ExportMembersButton from '@/components/ui/ExportMembersButton';
+import DatabaseBackupButton from '@/components/ui/DatabaseBackupButton';
+import Link from 'next/link';
+import DatabaseBackupButton from '@/components/ui/DatabaseBackupButton';
 
 export default async function AdminDashboardPage() {
   const stats = [
@@ -102,7 +105,6 @@ export default async function AdminDashboardPage() {
                     )}
                   </div>
                 </div>
-                </div>
 
                 {/* Soft Deleted Users Section */}
                 <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden mt-6">
@@ -179,10 +181,8 @@ export default async function AdminDashboardPage() {
                 <div className="bg-gradient-to-br from-blue-600 to-indigo-700 rounded-2xl shadow-sm p-6 text-white relative overflow-hidden">
                   <Database className="w-32 h-32 absolute -right-6 -bottom-6 opacity-10" />
                   <h3 className="font-bold text-lg mb-2 relative z-10">Database Backup</h3>
-                  <p className="text-blue-100 text-sm mb-4 relative z-10">Last auto-backup: 2 hours ago. You can trigger a manual D1 snapshot here.</p>
-                  <button className="w-full py-2 bg-white text-blue-700 rounded-lg text-sm font-bold shadow-sm hover:bg-gray-50 transition-colors relative z-10">
-                    Trigger Manual Backup
-                  </button>
+                  <p className="text-blue-100 text-sm mb-4 relative z-10">Download a full JSON snapshot of your current members, students, and doctors records.</p>
+                  <DatabaseBackupButton />
                 </div>
               </div>
 
