@@ -1,0 +1,9 @@
+name = "dda-portal"
+compatibility_date = "2024-03-20"
+pages_build_output_dir = ".vercel/output/static"
+
+[[d1_databases]]
+binding = "DB" # i.e. available in your Worker on env.DB
+database_name = "dda_clod"
+database_id = "e8e9b6a4-4372-4d27-954b-6cf73f1e5dc4" # placeholder for local dev
+migrations_dir = "drizzle/migrations"
