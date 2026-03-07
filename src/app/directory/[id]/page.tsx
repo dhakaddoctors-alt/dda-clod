@@ -35,7 +35,7 @@ export default async function ProfilePage({ params }: { params: Promise<{ id: st
 
   const isDoctor = profile.role === 'doctor';
   const isStudent = profile.role === 'student';
-  const details = profile.details || {};
+  const details: any = profile.details || {};
 
   const session = await getServerSession(authOptions) as any;
   const isAdmin = session?.user?.role === 'admin' || session?.user?.role === 'super_admin';
@@ -57,13 +57,13 @@ export default async function ProfilePage({ params }: { params: Promise<{ id: st
                  name={profile.fullName}
                  role={profile.role}
                  membershipType={profile.membershipType}
-                 avatarUrl={profile.avatarUrl}
+                 avatarUrl={profile.avatarUrl || undefined}
                  validUntil="Dec 2028" // Stubbed for now
                />
 
                {isAdmin && (
                  <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-200 mt-6">
-                    <AdminProfileControls profileId={profile.id} isDeleted={profile.isDeleted} />
+                    <AdminProfileControls profileId={profile.id} isDeleted={profile.isDeleted ?? 0} />
                  </div>
                )}
             </div>
@@ -78,7 +78,7 @@ export default async function ProfilePage({ params }: { params: Promise<{ id: st
                     <h1 className="text-3xl font-bold text-gray-900 mb-2">{profile.fullName}</h1>
                     <div className="flex items-center gap-3 text-sm text-gray-500 font-medium">
                       <span className="capitalize text-blue-600 bg-blue-50 px-3 py-1 rounded-full">{profile.role}</span>
-                      <span className="flex items-center gap-1"><Calendar className="w-4 h-4" /> Member since {new Date(profile.createdAt).getFullYear()}</span>
+                      <span className="flex items-center gap-1"><Calendar className="w-4 h-4" /> Member since {new Date(profile.createdAt || Date.now()).getFullYear()}</span>
                     </div>
                   </div>
                   {profile.paymentStatus === 'verified' ? (

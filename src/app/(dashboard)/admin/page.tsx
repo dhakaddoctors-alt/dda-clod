@@ -8,6 +8,7 @@ import CommitteeBuilder from '@/components/ui/CommitteeBuilder';
 import AiAdminPanel from '@/components/ui/AiAdminPanel';
 import ElectionAnalyticsPanel from '@/components/ui/ElectionAnalyticsPanel';
 import ExportMembersButton from '@/components/ui/ExportMembersButton';
+import ExportMembersPDFButton from '@/components/ui/ExportMembersPDFButton';
 import DatabaseBackupButton from '@/components/ui/DatabaseBackupButton';
 import Link from 'next/link';
 
@@ -39,7 +40,10 @@ export default async function AdminDashboardPage() {
                 <h1 className="text-2xl font-bold text-gray-900">Admin Dashboard</h1>
                 <p className="text-gray-600 mt-1">Manage portal users, verify payments, and monitor Cloudflare metrics.</p>
               </div>
-              <ExportMembersButton />
+              <div className="flex flex-col sm:flex-row items-center gap-3 mt-4 sm:mt-0">
+                <ExportMembersPDFButton />
+                <ExportMembersButton />
+              </div>
             </div>
 
             {/* Stats Grid */}

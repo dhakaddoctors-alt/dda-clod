@@ -124,6 +124,30 @@ export async function exportMembersToCSV() {
   }
 }
 
+export async function exportMembersForPDF() {
+  try {
+    const db = getDb();
+    const allProfiles = await db.select().from(profiles);
+    
+    if (allProfiles.length === 0) return { success: true, data: [] };
+    
+    const tableData = allProfiles.map(r => ({
+      id: r.id.substring(0, 8),
+      fullName: r.fullName || 'N/A',
+      contact: `${r.mobile || 'No Mobile'}\n${r.email || 'No Email'}`,
+      role: r.role.toUpperCase(),
+      membership: r.membershipType.toUpperCase(),
+      status: r.paymentStatus.toUpperCase(),
+      date: r.createdAt ? new Date(r.createdAt).toLocaleDateString() : 'N/A'
+    }));
+    
+    return { success: true, data: tableData };
+  } catch (error: any) {
+    console.error('Error fetching data for PDF:', error);
+    return { success: false, message: error.message || 'Failed to fetch data for PDF' };
+  }
+}
+
 export async function exportDatabaseSnapshot() {
   try {
     const db = getDb();
