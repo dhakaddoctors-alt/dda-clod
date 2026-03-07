@@ -73,6 +73,13 @@ export const comments = sqliteTable('comments', {
   createdAt: integer('created_at', { mode: 'timestamp' }).notNull(),
 });
 
+export const postLikes = sqliteTable('post_likes', {
+  id: text('id').primaryKey(),
+  postId: text('post_id').references(() => posts.id).notNull(),
+  profileId: text('profile_id').references(() => profiles.id).notNull(),
+  createdAt: integer('created_at', { mode: 'timestamp' }).notNull(),
+});
+
 export const stories = sqliteTable('stories', {
   id: text('id').primaryKey(),
   authorId: text('author_id').references(() => profiles.id).notNull(),

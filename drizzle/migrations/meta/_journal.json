@@ -15,6 +15,13 @@
       "when": 1772875629205,
       "tag": "0001_crazy_magneto",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1772902156928,
+      "tag": "0002_tricky_master_mold",
+      "breakpoints": true
     }
   ]
 }

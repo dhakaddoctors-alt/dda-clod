@@ -43,7 +43,8 @@ export default async function Home() {
               ) : (
                 feedPosts.map(post => (
                   <PostCard 
-                    key={post.id} 
+                    key={post.id}
+                    id={post.id}
                     authorName={post.authorName}
                     role={post.authorRole}
                     avatarUrl={post.authorAvatar || undefined}
@@ -51,7 +52,8 @@ export default async function Home() {
                     content={post.content || ''}
                     imageUrl={post.imageUrl || undefined}
                     likes={post.likesCount || 0}
-                    comments={0} // To be connected later
+                    hasLiked={post.hasLiked}
+                    commentsList={post.commentsList}
                   />
                 ))
               )}
