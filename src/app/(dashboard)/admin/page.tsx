@@ -10,7 +10,6 @@ import ElectionAnalyticsPanel from '@/components/ui/ElectionAnalyticsPanel';
 import ExportMembersButton from '@/components/ui/ExportMembersButton';
 import DatabaseBackupButton from '@/components/ui/DatabaseBackupButton';
 import Link from 'next/link';
-import DatabaseBackupButton from '@/components/ui/DatabaseBackupButton';
 
 export default async function AdminDashboardPage() {
   const stats = [
