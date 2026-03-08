@@ -1,4 +1,5 @@
 import Navbar from '@/components/shared/Navbar';
+import InstallPWA from '@/components/ui/InstallPWA';
 import Sidebar from '@/components/shared/Sidebar';
 import NewsSlider from '@/components/ui/NewsSlider';
 import CommitteeMarquee from '@/components/ui/CommitteeMarquee';
@@ -21,6 +22,9 @@ export default async function Home() {
         {/* Main Feed Content area */}
         <main className="flex-1 lg:ml-64 p-4 lg:p-8 max-w-4xl mx-auto w-full">
           {/* Dynamic Feature: News Slider */}
+          <div className="lg:hidden mb-4">
+            <InstallPWA />
+          </div>
           <NewsSlider />
           
           {/* Dynamic Feature: Committee Marquee */}

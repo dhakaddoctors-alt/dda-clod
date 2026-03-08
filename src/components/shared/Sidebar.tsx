@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { Home, Users, Building2, Vote, Calendar, Image as ImageIcon } from 'lucide-react';
+import InstallPWA from '@/components/ui/InstallPWA';
 
 export default function Sidebar() {
   const menuItems = [
@@ -26,6 +27,8 @@ export default function Sidebar() {
             </Link>
           ))}
         </div>
+        
+        <InstallPWA />
         
         <hr className="my-4 border-gray-200" />
         
