@@ -285,16 +285,17 @@ export default function RegisterPage() {
                   </div>
 
                   <div className="bg-blue-50 p-6 rounded-xl border border-blue-100 flex flex-col sm:flex-row items-start gap-6">
-                    <div className="bg-white p-2 rounded-lg shadow-sm w-32 h-32 flex-shrink-0 flex justify-center items-center border border-gray-200">
-                      <div className="text-center text-xs text-gray-400">Scan QR Code<br />(UPI Placeholder)</div>
+                    <div className="bg-white p-2 rounded-lg shadow-sm w-32 h-32 flex-shrink-0 flex flex-col justify-center items-center border border-gray-200">
+                      <img src="/qr-code.png" alt="Payment QR Code" className="w-full h-full object-contain" />
+                      <div className="text-[10px] text-gray-500 mt-1">Scan with UPI App</div>
                     </div>
                     <div className="flex-1">
                       <h4 className="font-semibold text-gray-900 mb-1">Bank Details for Transfer</h4>
                       <p className="text-sm text-gray-600 font-mono mb-4">
-                        Bank: State Bank of India<br />
-                        A/C: 1234567890<br />
-                        IFSC: SBIN0001234<br />
-                        Name: DDA Medical Association
+                        Bank: BANK OF BARODA<br />
+                        A/C: 36580100010383<br />
+                        IFSC: BARB0KESKOT<br />
+                        Name: DHAKAD DOCTORS ASSOCIATION
                       </p>
                       <div>
                         <label className={labelClass}>Upload Payment Receipt / Screenshot (Optional)</label>
