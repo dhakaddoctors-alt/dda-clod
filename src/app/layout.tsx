@@ -16,6 +16,9 @@ export const metadata: Metadata = {
     statusBarStyle: 'default',
     title: 'DDA Portal',
   },
+  icons: {
+    apple: '/icon-192x192.png',
+  },
   formatDetection: {
     telephone: false,
   },
