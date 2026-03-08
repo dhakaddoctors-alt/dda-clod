@@ -285,9 +285,9 @@ export default function RegisterPage() {
                   </div>
 
                   <div className="bg-blue-50 p-6 rounded-xl border border-blue-100 flex flex-col sm:flex-row items-start gap-6">
-                    <div className="bg-white p-2 rounded-lg shadow-sm w-32 h-32 flex-shrink-0 flex flex-col justify-center items-center border border-gray-200">
+                    <div className="bg-white p-3 rounded-lg shadow-sm w-56 h-56 flex-shrink-0 flex flex-col justify-center items-center border border-gray-200">
                       <img src="/qr-code.png" alt="Payment QR Code" className="w-full h-full object-contain" />
-                      <div className="text-[10px] text-gray-500 mt-1">Scan with UPI App</div>
+                      <div className="text-xs text-gray-500 mt-2 font-medium"></div>
                     </div>
                     <div className="flex-1">
                       <h4 className="font-semibold text-gray-900 mb-1">Bank Details for Transfer</h4>
