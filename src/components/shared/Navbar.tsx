@@ -83,12 +83,20 @@ export default function Navbar() {
               </div>
             </div>
           ) : (
-            <Link href="/login" className="flex items-center gap-2 p-1 pr-3 hover:bg-gray-100 rounded-full transition-colors">
-              <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center overflow-hidden">
-                <User className="w-5 h-5 text-gray-500" />
-              </div>
-              <span className="hidden sm:block text-sm font-medium">Log In</span>
-            </Link>
+            <div className="flex items-center gap-2 sm:gap-3">
+              <Link 
+                href="/register" 
+                className="hidden xs:flex items-center gap-1.5 px-4 py-2 text-sm font-semibold text-white bg-blue-600 hover:bg-blue-700 rounded-full shadow-sm transition-all"
+              >
+                <span>Become a Member</span>
+              </Link>
+              <Link href="/login" className="flex items-center gap-2 p-1 pr-3 hover:bg-gray-100 rounded-full transition-colors">
+                <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center overflow-hidden">
+                  <User className="w-5 h-5 text-gray-500" />
+                </div>
+                <span className="hidden sm:block text-sm font-medium">Log In</span>
+              </Link>
+            </div>
           )}
         </div>
       </div>
