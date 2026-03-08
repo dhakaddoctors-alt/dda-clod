@@ -2,11 +2,7 @@
 import { useState, useEffect } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 
-const DUMMY_NEWS = [
-  { id: 1, title: 'National Meeting 2026 Announced in Delhi', image: 'https://via.placeholder.com/800x400' },
-  { id: 2, title: 'New Hospital Inaugurated by President', image: 'https://via.placeholder.com/800x400' },
-  { id: 3, title: 'Medical Camp Successful in Jaipur', image: 'https://via.placeholder.com/800x400' },
-];
+const DUMMY_NEWS: any[] = [];
 
 export default function NewsSlider() {
   const [currentSlide, setCurrentSlide] = useState(0);
@@ -20,6 +16,16 @@ export default function NewsSlider() {
 
   const nextSlide = () => setCurrentSlide((prev) => (prev + 1) % DUMMY_NEWS.length);
   const prevSlide = () => setCurrentSlide((prev) => (prev - 1 + DUMMY_NEWS.length) % DUMMY_NEWS.length);
+
+  if (DUMMY_NEWS.length === 0) {
+    return (
+      <div className="relative w-full h-[250px] md:h-[400px] overflow-hidden rounded-xl bg-gray-100 flex flex-col items-center justify-center text-gray-400 border border-dashed border-gray-300 mb-6">
+        <div className="text-4xl mb-2">📢</div>
+        <p className="font-medium">No recent news or updates available.</p>
+        <p className="text-sm">Admin can add news from the dashboard.</p>
+      </div>
+    );
+  }
 
   return (
     <div className="relative w-full h-[250px] md:h-[400px] overflow-hidden rounded-xl bg-gray-900 group">

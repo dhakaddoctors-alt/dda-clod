@@ -1,16 +1,11 @@
 'use client';
 import { Building2 } from 'lucide-react';
 
-const DUMMY_COMMITTEES = [
-  { id: 1, name: 'Dr. A. Sharma', role: 'National President', level: 'National' },
-  { id: 2, name: 'Dr. V. Singh', role: 'State Secretary', level: 'Rajasthan' },
-  { id: 3, name: 'Dr. P. Patil', role: 'District Head', level: 'Jaipur' },
-  { id: 4, name: 'Dr. M. Khan', role: 'Joint Secretary', level: 'National' },
-  { id: 5, name: 'Dr. S. Verma', role: 'Vice President', level: 'Delhi' },
-  { id: 6, name: 'Dr. R. Gupta', role: 'Member', level: 'Mumbai' },
-];
+const DUMMY_COMMITTEES: any[] = [];
 
 export default function CommitteeMarquee() {
+  if (DUMMY_COMMITTEES.length === 0) return null;
+
   return (
     <div className="w-full bg-white border border-gray-200 rounded-xl overflow-hidden my-4 relative shadow-sm">
       <div className="bg-blue-600 text-white p-3 font-semibold flex items-center gap-2 absolute left-0 top-0 bottom-0 z-10 shadow-[4px_0_15px_rgba(0,0,0,0.1)]">
