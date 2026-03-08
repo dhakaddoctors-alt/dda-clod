@@ -274,8 +274,8 @@ export default function RegisterPage() {
                   </h3>
 
                   <div>
-                    <label className={labelClass}>Select Membership Tier *</label>
-                    <select name="membershipType" required className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 bg-white border p-3 font-medium text-gray-800">
+                    <label className={labelClass}>Select Membership Tier (Optional)</label>
+                    <select name="membershipType" className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 bg-white border p-3 font-medium text-gray-800">
                       <option value="member">Normal Member (Annual)</option>
                       <option value="2_year">2-Year Member</option>
                       <option value="aajivan">Aajivan Member (15 Years)</option>
