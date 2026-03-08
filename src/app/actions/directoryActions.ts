@@ -1,7 +1,7 @@
 'use server';
 
 import { profiles, doctorDetails, studentDetails } from '@/db/schema';
-import { eq, like, or } from 'drizzle-orm';
+import { eq, like, or, ne } from 'drizzle-orm';
 import { getDb } from '@/db'; 
 
 export async function fetchDirectoryMembers(queryString?: string, filterRole?: string) {
@@ -34,7 +34,8 @@ export async function fetchDirectoryMembers(queryString?: string, filterRole?: s
     // Base conditions: exclude soft-deleted and unverified accounts
     const conditions: any[] = [
         eq(profiles.isDeleted, 0),
-        eq(profiles.paymentStatus, 'verified')
+        eq(profiles.paymentStatus, 'verified'),
+        ne(profiles.role, 'super_admin')
     ];
 
     // 1. Keyword search (NLP basic LIKE implementation)
