@@ -45,6 +45,14 @@ export default function RegisterPage() {
             <form
               className="space-y-6"
               action={async (formData) => {
+                const password = formData.get('password') as string;
+                const confirmPassword = formData.get('confirmPassword') as string;
+
+                if (password !== confirmPassword) {
+                  setMessage('Passwords do not match');
+                  return;
+                }
+
                 formData.append('role', role);
                 const avatar = formData.get('avatar') as File;
                 if (avatar && avatar.size > 0 && avatar.type.startsWith('image/')) {
@@ -108,6 +116,10 @@ export default function RegisterPage() {
                   <div>
                     <label className={labelClass}>Password *</label>
                     <input type="password" name="password" required className={inputClass} />
+                  </div>
+                  <div>
+                    <label className={labelClass}>Confirm Password *</label>
+                    <input type="password" name="confirmPassword" required className={inputClass} />
                   </div>
                   <div>
                     <label className={labelClass}>Profile Photo (Optional)</label>
