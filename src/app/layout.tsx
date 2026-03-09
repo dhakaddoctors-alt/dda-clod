@@ -50,6 +50,7 @@ export default function RootLayout({
         <SessionProvider>
           {children}
           <AiChatbot />
+          <MobileTabBar />
         </SessionProvider>
       </body>
     </html>

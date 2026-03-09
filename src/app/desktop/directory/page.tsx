@@ -1,9 +1,10 @@
 import Link from 'next/link';
 import Navbar from '@/components/shared/Navbar';
-import Sidebar from '@/components/shared/Sidebar';
-import { Search, Filter, MapPin, Briefcase, GraduationCap, Sparkles } from 'lucide-react';
+import { Search, Filter, MapPin, Briefcase, GraduationCap, Sparkles, Lock } from 'lucide-react';
 import { fetchDirectoryMembers } from '@/app/actions/directoryActions';
 import { generateSmartRecommendations } from '@/app/actions/aiActions';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/app/api/auth/[...nextauth]/route';
 
 export default async function DirectoryPage(props: { searchParams?: Promise<{ q?: string, filter?: string }> }) {
   const searchParams = await props.searchParams;
@@ -13,9 +14,15 @@ export default async function DirectoryPage(props: { searchParams?: Promise<{ q?
   // 1. Fetch DB records directly on the Server
   const members = await fetchDirectoryMembers(q, filter);
   
-  // 2. Mock Session: Assume the logged-in user is Student 'profile_2' viewing the directory
-  const currentUserId = 'profile_2'; // In real app, fetch from Auth
-  const isStudent = true; 
+  // 2. Auth Session Check
+  const session = await getServerSession(authOptions);
+  const isAuthenticated = !!session;
+  
+  // Apply hard limit if guest
+  const displayMembers = isAuthenticated ? members : members.slice(0, 6);
+
+  const currentUserId = session?.user?.id || '';
+  const isStudent = (session?.user as any)?.role === 'student';
   let aiMatches = null;
 
   if (isStudent && filter === 'doctor') {
@@ -28,45 +35,78 @@ export default async function DirectoryPage(props: { searchParams?: Promise<{ q?
       <Navbar />
       
       <div className="flex flex-1 pt-16">
-        <Sidebar />
-        
-        <main className="flex-1 lg:ml-64 p-4 lg:p-8 w-full">
+        <main className="flex-1 p-4 lg:p-8 w-full">
           <div className="max-w-6xl mx-auto">
             {/* Header & Smart Search */}
             <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-200 mb-6">
               <h1 className="text-2xl font-bold text-gray-900 mb-4">Member Directory</h1>
               
-              <form method="GET" action="/directory" className="flex flex-col md:flex-row gap-4">
-                <div className="relative flex-1">
-                  <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
-                  <input 
-                    type="text" 
-                    name="q"
-                    defaultValue={q}
-                    placeholder="Smart Search: Try 'Delhi doctors' or 'Cardiologist'" 
-                    className="w-full pl-12 pr-4 py-3 bg-gray-50 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition-colors"
-                  />
-                  {/* Preserve the filter context if a user runs a new search */}
-                  {filter !== 'all' && <input type="hidden" name="filter" value={filter} />}
-                </div>
-                
-                <button type="submit" className="flex items-center justify-center gap-2 px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-xl transition-colors md:w-auto">
-                  Search
-                </button>
-              </form>
+              {isAuthenticated ? (
+                <>
+                  <form method="GET" action="/directory" className="flex flex-col md:flex-row gap-4">
+                    <div className="relative flex-1">
+                      <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
+                      <input 
+                        type="text" 
+                        name="q"
+                        defaultValue={q}
+                        placeholder="Smart Search: Try 'Delhi doctors' or 'Cardiologist'" 
+                        className="w-full pl-12 pr-4 py-3 bg-gray-50 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition-colors"
+                      />
+                      {filter !== 'all' && <input type="hidden" name="filter" value={filter} />}
+                    </div>
+                    
+                    <button type="submit" className="flex items-center justify-center gap-2 px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-xl transition-colors md:w-auto">
+                      Search
+                    </button>
+                  </form>
 
-              {/* Quick Filters */}
-              <div className="flex gap-2 mt-4 overflow-x-auto pb-2 custom-scrollbar">
-                <Link href="/directory?filter=all" className={`px-4 py-1.5 rounded-full text-sm font-medium whitespace-nowrap transition-colors ${filter === 'all' || !filter ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}>
-                  All Members
-                </Link>
-                <Link href="/directory?filter=doctor" className={`px-4 py-1.5 rounded-full text-sm font-medium whitespace-nowrap transition-colors ${filter === 'doctor' ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}>
-                  Doctors Only
-                </Link>
-                <Link href="/directory?filter=student" className={`px-4 py-1.5 rounded-full text-sm font-medium whitespace-nowrap transition-colors ${filter === 'student' ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}>
-                  Students
-                </Link>
-              </div>
+                  <div className="flex gap-2 mt-4 overflow-x-auto pb-2 custom-scrollbar">
+                    <Link href="/directory?filter=all" className={`px-4 py-1.5 rounded-full text-sm font-medium whitespace-nowrap transition-colors ${filter === 'all' || !filter ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}>
+                      All Members
+                    </Link>
+                    <Link href="/directory?filter=doctor" className={`px-4 py-1.5 rounded-full text-sm font-medium whitespace-nowrap transition-colors ${filter === 'doctor' ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}>
+                      Doctors Only
+                    </Link>
+                    <Link href="/directory?filter=student" className={`px-4 py-1.5 rounded-full text-sm font-medium whitespace-nowrap transition-colors ${filter === 'student' ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}>
+                      Students
+                    </Link>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div className="flex flex-col md:flex-row gap-4 mb-6">
+                    <Link href="/register" className="relative flex-1 group cursor-pointer block">
+                      <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5 group-hover:text-blue-500 transition-colors" />
+                      <input 
+                        type="text" 
+                        readOnly
+                        placeholder="Smart Search: Try 'Delhi doctors' or 'Cardiologist'" 
+                        className="w-full pl-12 pr-4 py-3 bg-gray-50 border border-gray-300 rounded-xl cursor-pointer group-hover:border-blue-300 transition-colors pointer-events-none"
+                      />
+                    </Link>
+                    
+                    <Link href="/register" className="flex items-center justify-center gap-2 px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-xl transition-colors md:w-auto">
+                      Search
+                    </Link>
+                  </div>
+
+                  <div className="bg-yellow-50 border border-yellow-200 p-4 rounded-xl flex items-start sm:items-center justify-between flex-col sm:flex-row gap-4">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 bg-yellow-100 text-yellow-600 rounded-full flex items-center justify-center shrink-0">
+                        <Lock className="w-5 h-5" />
+                      </div>
+                      <div>
+                        <h4 className="font-bold text-yellow-800">Login to Unlock Full Directory</h4>
+                        <p className="text-sm text-yellow-700">Guests can only preview 6 members. Search and filters are disabled.</p>
+                      </div>
+                    </div>
+                    <Link href="/login" className="px-5 py-2 whitespace-nowrap bg-yellow-600 hover:bg-yellow-700 text-white text-sm font-bold rounded-lg transition-colors w-full sm:w-auto text-center">
+                      Log In Now
+                    </Link>
+                  </div>
+                </>
+              )}
             </div>
 
             {/* Smart AI Matchmaking Banner (Visible only for Students browsing Doctors) */}
@@ -98,14 +138,14 @@ export default async function DirectoryPage(props: { searchParams?: Promise<{ q?
             )}
 
             {/* Directory Grid */}
-            {members.length === 0 ? (
+            {displayMembers.length === 0 ? (
                <div className="p-8 text-center bg-white rounded-2xl border border-gray-200">
                   <h3 className="text-lg font-medium text-gray-900">No members found matching your criteria.</h3>
                   <p className="text-gray-500 mt-2">Try adjusting your search filters.</p>
                </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                {members.map((member: any) => (
+                {displayMembers.map((member: any) => (
                   <div key={member.id} className="bg-white rounded-2xl p-6 border border-gray-200 shadow-sm hover:shadow-md transition-shadow flex flex-col items-center text-center">
                     <div className="w-24 h-24 rounded-full bg-gray-100 mb-4 overflow-hidden border-4 border-white shadow-sm flex-shrink-0">
                       {member.avatarUrl ? (
@@ -152,6 +192,15 @@ export default async function DirectoryPage(props: { searchParams?: Promise<{ q?
                     </Link>
                   </div>
                 ))}
+              </div>
+            )}
+            
+            {!isAuthenticated && members.length > 6 && (
+              <div className="mt-8 text-center">
+                 <p className="text-gray-600 mb-4">You are viewing a limited preview. There are <strong>{members.length - 6}</strong> more members hidden.</p>
+                 <Link href="/login" className="inline-flex items-center gap-2 px-8 py-3 bg-gray-900 hover:bg-black text-white font-bold rounded-xl shadow-sm transition-transform hover:scale-105">
+                   <Lock className="w-5 h-5" /> Log In to View All
+                 </Link>
               </div>
             )}
 

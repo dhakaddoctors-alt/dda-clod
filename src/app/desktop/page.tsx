@@ -1,6 +1,5 @@
 import Navbar from '@/components/shared/Navbar';
 import InstallPWA from '@/components/ui/InstallPWA';
-import Sidebar from '@/components/shared/Sidebar';
 import NewsSlider from '@/components/ui/NewsSlider';
 import CommitteeMarquee from '@/components/ui/CommitteeMarquee';
 import StoryCarousel from '@/components/ui/StoryCarousel';
@@ -9,6 +8,9 @@ import CreatePostModal from '@/components/ui/CreatePostModal';
 import { fetchFeedPosts } from '@/app/actions/postActions';
 import { fetchAllNews } from '@/app/actions/newsActions';
 import { fetchCommitteesWithMembers } from '@/app/actions/committeeActions';
+import GuestHeroBanner from '@/components/ui/GuestHeroBanner';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/app/api/auth/[...nextauth]/route';
 
 export default async function Home() {
   const feedPosts = await fetchFeedPosts();
@@ -22,15 +24,18 @@ export default async function Home() {
     level: c.level
   })));
 
+  const session = await getServerSession(authOptions);
+  const isAuthenticated = !!session;
+
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
       <Navbar />
       
       <div className="flex flex-1 pt-16">
-        <Sidebar />
-        
-        {/* Main Feed Content area */}
-        <main className="flex-1 lg:ml-64 p-4 lg:p-8 max-w-4xl mx-auto w-full">
+        {/* Main Feed Content area (Full Width now) */}
+        <main className="flex-1 p-4 lg:p-8 max-w-4xl mx-auto w-full">
+          {!isAuthenticated && <GuestHeroBanner />}
+
           {/* Dynamic Feature: News Slider */}
           <div className="lg:hidden mb-4">
             <InstallPWA />

@@ -4,7 +4,6 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { User, Lock, Loader2 } from 'lucide-react';
 import Navbar from '@/components/shared/Navbar';
-import Sidebar from '@/components/shared/Sidebar';
 import { signIn } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 
@@ -44,8 +43,7 @@ export default function LoginPage() {
     <div className="min-h-screen bg-gray-50 flex flex-col">
       <Navbar />
       <div className="flex flex-1 pt-16">
-        <Sidebar />
-        <main className="flex-1 lg:ml-64 p-4 lg:p-8 w-full flex justify-center items-center py-12">
+        <main className="flex-1 p-4 lg:p-8 w-full flex justify-center items-center py-12">
       <div className="max-w-md w-full space-y-8 bg-white p-8 rounded-2xl shadow-lg border border-gray-100">
         <div>
           <h2 className="mt-2 text-center text-3xl font-extrabold text-blue-600">

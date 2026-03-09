@@ -73,6 +73,8 @@ export async function registerUser(formData: FormData) {
       gender: formData.get('gender') as string || null,
       maritalStatus: formData.get('maritalStatus') as string || null,
       dob: dob ? new Date(dob) : null,
+      state: formData.get('state') as string || null,
+      district: formData.get('district') as string || null,
       occupation: formData.get('occupation') as string || null,
       avatarUrl,
       membershipType: formData.get('membershipType') as string || 'member',

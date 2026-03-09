@@ -1,5 +1,4 @@
 import Navbar from '@/components/shared/Navbar';
-import Sidebar from '@/components/shared/Sidebar';
 import { fetchUserProfile } from '@/app/actions/profileActions';
 import IdCard from '@/components/ui/IdCard';
 import { Mail, Phone, MapPin, Briefcase, GraduationCap, Award, Calendar } from 'lucide-react';
@@ -18,8 +17,7 @@ export default async function ProfilePage({ params }: { params: Promise<{ id: st
       <div className="min-h-screen bg-gray-50 flex flex-col">
         <Navbar />
         <div className="flex flex-1 pt-16">
-          <Sidebar />
-          <main className="flex-1 lg:ml-64 p-8 flex items-center justify-center w-full">
+          <main className="flex-1 p-8 flex items-center justify-center w-full">
             <div className="bg-white p-8 rounded-2xl shadow-sm text-center">
               <h2 className="text-2xl font-bold text-gray-900 mb-2">Profile Not Found</h2>
               <p className="text-gray-500 mb-6">The member you are looking for does not exist or has been removed.</p>
@@ -45,9 +43,7 @@ export default async function ProfilePage({ params }: { params: Promise<{ id: st
       <Navbar />
       
       <div className="flex flex-1 pt-16">
-        <Sidebar />
-        
-        <main className="flex-1 lg:ml-64 p-4 lg:p-8 w-full max-w-6xl mx-auto">
+        <main className="flex-1 p-4 lg:p-8 w-full max-w-6xl mx-auto">
           
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             {/* Left Column - ID Card & Actions */}
@@ -63,7 +59,11 @@ export default async function ProfilePage({ params }: { params: Promise<{ id: st
 
                {isAdmin && (
                  <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-200 mt-6">
-                    <AdminProfileControls profileId={profile.id} isDeleted={profile.isDeleted ?? 0} />
+                    <AdminProfileControls 
+                      profileId={profile.id} 
+                      isDeleted={profile.isDeleted ?? 0}
+                      currentRole={profile.role}
+                    />
                  </div>
                )}
             </div>

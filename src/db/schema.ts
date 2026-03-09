@@ -20,6 +20,8 @@ export const profiles = sqliteTable('profiles', {
   maritalStatus: text('marital_status'),
   dob: integer('dob', { mode: 'timestamp' }),
   role: text('role').default('guest').notNull(), // guest, student, doctor, editor, admin, super_admin
+  state: text('state'), // new field for location-based elections
+  district: text('district'), // new field for location-based elections
   avatarUrl: text('avatar_url'),
   occupation: text('occupation'), // specifically for guests
   membershipType: text('membership_type').default('member').notNull(), // member, 2_year, aajivan, patron, vishisht
@@ -119,7 +121,11 @@ export const elections = sqliteTable('elections', {
   id: text('id').primaryKey(),
   title: text('title').notNull(),
   description: text('description'),
+  level: text('level').default('national').notNull(), // national, state, district
+  locationName: text('location_name'), // e.g., 'Rajasthan', 'Indore'
   status: text('status').default('upcoming').notNull(), // upcoming, active, completed
+  nominationStartDate: integer('nomination_start_date', { mode: 'timestamp' }),
+  nominationEndDate: integer('nomination_end_date', { mode: 'timestamp' }),
   startDate: integer('start_date', { mode: 'timestamp' }),
   endDate: integer('end_date', { mode: 'timestamp' }),
 });

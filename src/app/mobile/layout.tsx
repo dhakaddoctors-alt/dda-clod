@@ -1,5 +1,3 @@
-import MobileTabBar from '@/components/shared/MobileTabBar';
-
 export default function MobileLayout({
   children,
 }: {
@@ -8,7 +6,6 @@ export default function MobileLayout({
   return (
     <>
       {children}
-      <MobileTabBar />
     </>
   );
 }

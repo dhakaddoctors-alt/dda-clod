@@ -3,7 +3,6 @@ import { useState, useTransition } from 'react';
 import Link from 'next/link';
 import { registerUser } from '@/app/actions/authActions';
 import Navbar from '@/components/shared/Navbar';
-import Sidebar from '@/components/shared/Sidebar';
 import { compressImageTo1MB } from '@/lib/imageCompression';
 import DynamicUPIQR from '@/components/ui/DynamicUPIQR';
 
@@ -21,8 +20,7 @@ export default function RegisterPage() {
     <div className="min-h-screen bg-gray-50 flex flex-col">
       <Navbar />
       <div className="flex flex-1 pt-16">
-        <Sidebar />
-        <main className="flex-1 lg:ml-64 p-4 lg:p-8 w-full flex justify-center py-12">
+        <main className="flex-1 p-4 lg:p-8 w-full flex justify-center py-12">
           <div className="max-w-2xl w-full space-y-8 bg-white p-8 rounded-2xl shadow-lg border border-gray-100">
             <div>
               <h2 className="mt-2 text-center text-3xl font-extrabold text-blue-600">Join DDA Portal</h2>
@@ -113,6 +111,48 @@ export default function RegisterPage() {
                       <option value="Widowed">Widowed</option>
                       <option value="Divorced">Divorced</option>
                     </select>
+                  </div>
+                  <div>
+                    <label className={labelClass}>State / UT <span className="text-red-500">*</span></label>
+                    <select name="state" required className={inputClass}>
+                      <option value="">Select State or Union Territory</option>
+                      <option value="Andhra Pradesh">Andhra Pradesh</option>
+                      <option value="Arunachal Pradesh">Arunachal Pradesh</option>
+                      <option value="Assam">Assam</option>
+                      <option value="Bihar">Bihar</option>
+                      <option value="Chhattisgarh">Chhattisgarh</option>
+                      <option value="Goa">Goa</option>
+                      <option value="Gujarat">Gujarat</option>
+                      <option value="Haryana">Haryana</option>
+                      <option value="Himachal Pradesh">Himachal Pradesh</option>
+                      <option value="Jharkhand">Jharkhand</option>
+                      <option value="Karnataka">Karnataka</option>
+                      <option value="Kerala">Kerala</option>
+                      <option value="Madhya Pradesh">Madhya Pradesh</option>
+                      <option value="Maharashtra">Maharashtra</option>
+                      <option value="Manipur">Manipur</option>
+                      <option value="Meghalaya">Meghalaya</option>
+                      <option value="Mizoram">Mizoram</option>
+                      <option value="Nagaland">Nagaland</option>
+                      <option value="Odisha">Odisha</option>
+                      <option value="Punjab">Punjab</option>
+                      <option value="Rajasthan">Rajasthan</option>
+                      <option value="Sikkim">Sikkim</option>
+                      <option value="Tamil Nadu">Tamil Nadu</option>
+                      <option value="Telangana">Telangana</option>
+                      <option value="Tripura">Tripura</option>
+                      <option value="Uttar Pradesh">Uttar Pradesh</option>
+                      <option value="Uttarakhand">Uttarakhand</option>
+                      <option value="West Bengal">West Bengal</option>
+                      <option value="Delhi">Delhi (NCT)</option>
+                      <option value="Chandigarh">Chandigarh (UT)</option>
+                      <option value="Jammu and Kashmir">Jammu & Kashmir (UT)</option>
+                      <option value="Ladakh">Ladakh (UT)</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className={labelClass}>District</label>
+                    <input type="text" name="district" placeholder="e.g. Indore, Jaipur, Kota" className={inputClass} />
                   </div>
                   <div>
                     <label className={labelClass}>Password *</label>

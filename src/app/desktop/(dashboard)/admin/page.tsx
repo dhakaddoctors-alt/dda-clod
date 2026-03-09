@@ -1,42 +1,52 @@
 import Navbar from '@/components/shared/Navbar';
-import Sidebar from '@/components/shared/Sidebar';
 import { Users, FileCheck, Database, Server, Activity, ShieldAlert } from 'lucide-react';
-import { fetchPendingApprovals, fetchDeletedUsers } from '@/app/actions/adminActions';
+import { fetchAllUsersForAdmin } from '@/app/actions/adminActions';
 import { fetchCommitteesWithMembers } from '@/app/actions/committeeActions';
 import { fetchLiveElectionAnalytics } from '@/app/actions/nominationActions';
 import { fetchAllNews } from '@/app/actions/newsActions';
-import ApproveRejectButtons from '@/components/ui/ApproveRejectButtons';
+import AdminMemberManager from '@/components/ui/AdminMemberManager';
 import CommitteeBuilder from '@/components/ui/CommitteeBuilder';
 import NewsManager from '@/components/ui/NewsManager';
 import AiAdminPanel from '@/components/ui/AiAdminPanel';
-import ElectionAnalyticsPanel from '@/components/ui/ElectionAnalyticsPanel';
+import AdminElectionManager from '@/components/ui/AdminElectionManager';
 import ExportMembersButton from '@/components/ui/ExportMembersButton';
 import ExportMembersPDFButton from '@/components/ui/ExportMembersPDFButton';
 import DatabaseBackupButton from '@/components/ui/DatabaseBackupButton';
+import { fetchActiveElections } from '@/app/actions/electionActions';
 import Link from 'next/link';
 
 export default async function AdminDashboardPage() {
+  const allUsers = await fetchAllUsersForAdmin();
+  const pendingCount = allUsers.filter(u => u.paymentStatus === 'pending' && u.isDeleted === 0).length;
+
+  const doctorsCount = allUsers.filter(u => u.role === 'doctor' && u.isDeleted === 0).length;
+  const newsList = await fetchAllNews();
+  const newsCount = newsList.length;
+
   const stats = [
-    { title: 'Total Members', value: '4,209', icon: Users, color: 'text-blue-600', bg: 'bg-blue-100' },
-    { title: 'Pending Approvals', value: '142', icon: FileCheck, color: 'text-yellow-600', bg: 'bg-yellow-100' },
-    { title: 'Database Reads', value: '1.2M / 5M', icon: Database, color: 'text-purple-600', bg: 'bg-purple-100' },
-    { title: 'Storage Used', value: '450MB / 10GB', icon: Server, color: 'text-green-600', bg: 'bg-green-100' },
+    { title: 'Total Members', value: allUsers.length.toString(), icon: Users, color: 'text-blue-600', bg: 'bg-blue-100' },
+    { title: 'Pending Approvals', value: pendingCount.toString(), icon: FileCheck, color: 'text-yellow-600', bg: 'bg-yellow-100' },
+    { title: 'Registered Doctors', value: doctorsCount.toString(), icon: Database, color: 'text-purple-600', bg: 'bg-purple-100' },
+    { title: 'News & Updates', value: newsCount.toString(), icon: Server, color: 'text-green-600', bg: 'bg-green-100' },
   ];
 
-  const pendingUsers = await fetchPendingApprovals();
-  const deletedUsers = await fetchDeletedUsers();
-  const electionAnalytics = await fetchLiveElectionAnalytics('election_1');
+  const activeElections = await fetchActiveElections();
   const committeeData = await fetchCommitteesWithMembers();
-  const newsList = await fetchAllNews();
+
+  // Pre-fetch all analytics for existing elections so the client switches are instant
+  const analyticsData: Record<string, any> = {};
+  await Promise.all(
+     activeElections.map(async (e) => {
+        analyticsData[e.id] = await fetchLiveElectionAnalytics(e.id);
+     })
+  );
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
       <Navbar />
       
       <div className="flex flex-1 pt-16">
-        <Sidebar />
-        
-        <main className="flex-1 lg:ml-64 p-4 lg:p-8 w-full">
+        <main className="flex-1 p-4 lg:p-8 w-full">
           <div className="max-w-6xl mx-auto">
             
             {/* Header */}
@@ -66,98 +76,28 @@ export default async function AdminDashboardPage() {
               ))}
             </div>
 
-            {/* Live Election Analytics */}
-            {electionAnalytics && (
-               <ElectionAnalyticsPanel data={electionAnalytics} />
-            )}
+            {/* Master Election Control Center */}
+            <AdminElectionManager 
+               elections={activeElections} 
+               analyticsData={analyticsData} 
+            />
 
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
               
-              {/* Main Content Area - Approvals */}
-              <div className="lg:col-span-2 space-y-6">
-                <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
-                  <div className="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
-                    <h2 className="text-lg font-bold text-gray-900">Pending Approvals</h2>
-                    <button className="text-sm text-blue-600 font-medium hover:text-blue-700">View All</button>
-                  </div>
-                  <div className="divide-y divide-gray-100 flex-1">
-                    {pendingUsers.length === 0 ? (
-                      <div className="p-8 text-center text-gray-500">
-                         No pending approvals.
-                      </div>
-                    ) : (
-                      pendingUsers.map((user: any) => (
-                        <div key={user.id} className="p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:bg-gray-50 transition-colors">
-                          <div className="flex items-center gap-4">
-                            <div className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center font-bold text-gray-500 flex-shrink-0">
-                              {user.fullName.charAt(0)}
-                            </div>
-                            <div>
-                              <h3 className="font-semibold text-gray-900 line-clamp-1">{user.fullName}</h3>
-                              <p className="text-sm text-gray-500 capitalize">{user.role} • Submitted {user.submitted || 'recently'}</p>
-                              {user.paymentReceiptUrl && (
-                                <a href={user.paymentReceiptUrl} target="_blank" className="text-xs text-blue-600 font-medium mt-1 inline-block hover:underline truncate max-w-[200px]" rel="noreferrer">
-                                  View Payment Receipt
-                                </a>
-                              )}
-                            </div>
-                          </div>
-                          <div className="flex flex-col sm:flex-row items-center gap-3 w-full sm:w-auto mt-2 sm:mt-0">
-                            <span className="text-xs font-medium text-yellow-700 bg-yellow-100 px-3 py-1 rounded-full w-full sm:w-auto text-center capitalize">
-                              {user.paymentStatus}
-                            </span>
-                            <ApproveRejectButtons profileId={user.id} />
-                          </div>
-                        </div>
-                      ))
-                    )}
-                  </div>
-                </div>
+              {/* Main Left Content Area */}
+              <div className="lg:col-span-2 space-y-6 min-w-0">
+                 
+                 <AdminMemberManager initialUsers={allUsers} />
 
                 {/* News Slider Management */}
                 <NewsManager initialNews={newsList} />
 
-                {/* Soft Deleted Users Section */}
-                <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden mt-6">
-                  <div className="px-6 py-4 border-b border-gray-200 flex justify-between items-center bg-red-50">
-                    <h2 className="text-lg font-bold text-red-900">Soft-Deleted Members</h2>
-                  </div>
-                  <div className="divide-y divide-gray-100 flex-1">
-                    {deletedUsers.length === 0 ? (
-                      <div className="p-8 text-center text-gray-500">
-                         No deleted members at this time.
-                      </div>
-                    ) : (
-                      deletedUsers.map((user: any) => (
-                        <div key={user.id} className="p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:bg-gray-50 transition-colors">
-                          <div className="flex items-center gap-4">
-                             <div className="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center font-bold text-red-700 flex-shrink-0">
-                                {user.fullName.charAt(0)}
-                             </div>
-                             <div>
-                                <h3 className="font-semibold text-gray-900 line-clamp-1">{user.fullName} <span className="text-xs ml-2 text-red-600 bg-red-100 px-2 rounded-full py-0.5 uppercase font-bold tracking-wide">Removed</span></h3>
-                                <p className="text-sm text-gray-500">{user.email}</p>
-                             </div>
-                          </div>
-                          <div>
-                            <Link href={`/directory/${user.id}`} className="text-sm font-medium bg-white text-gray-700 border border-gray-300 px-4 py-2 rounded-lg shadow-sm hover:bg-gray-50 transition">
-                              View Profile to Restore
-                            </Link>
-                          </div>
-                        </div>
-                      ))
-                    )}
-                  </div>
-                </div>
-              </div>
-
-              {/* Committee Hierarchy Builder Section */}
-              <div className="lg:col-span-2 space-y-6">
-                 <CommitteeBuilder initialTiers={committeeData} />
+                {/* Committee Hierarchy Builder Section */}
+                <CommitteeBuilder initialTiers={committeeData} />
               </div>
 
               {/* Sidebar Content Area - System Health & AI */}
-              <div className="space-y-6">
+              <div className="space-y-6 w-full min-w-0">
                  
                 {/* Embedded AI Control Panel */}
                 <AiAdminPanel />

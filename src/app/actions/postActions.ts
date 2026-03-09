@@ -8,7 +8,33 @@ import { uploadToSocialR2 } from '@/lib/storage';
 import { analyzePostContent } from '@/app/actions/aiActions';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/app/api/auth/[...nextauth]/route';
-import { revalidatePath } from 'next/cache';
+import { unstable_cache, revalidateTag, revalidatePath } from 'next/cache';
+
+const getRawFeedFromDB = async () => {
+  const db = getDb();
+  return await db.select({
+    id: posts.id,
+    content: posts.content,
+    imageUrl: posts.imageUrl,
+    createdAt: posts.createdAt,
+    likesCount: posts.likesCount,
+    authorId: posts.authorId,
+    authorName: profiles.fullName,
+    authorRole: profiles.role,
+    authorAvatar: profiles.avatarUrl,
+  })
+  .from(posts)
+  .innerJoin(profiles, eq(posts.authorId, profiles.id))
+  .orderBy(desc(posts.createdAt))
+  .limit(20);
+};
+
+// Cache the raw global feed, refreshed every 5 min or manually on new post
+const getCachedRawFeed = unstable_cache(
+  getRawFeedFromDB,
+  ['feed-posts'],
+  { tags: ['feed'], revalidate: 300 } 
+);
 
 export async function fetchFeedPosts() {
   try {
@@ -16,21 +42,8 @@ export async function fetchFeedPosts() {
     const session = await getServerSession(authOptions) as any;
     const currentUserId = session?.user?.id;
 
-    const feed = await db.select({
-      id: posts.id,
-      content: posts.content,
-      imageUrl: posts.imageUrl,
-      createdAt: posts.createdAt,
-      likesCount: posts.likesCount,
-      authorId: posts.authorId,
-      authorName: profiles.fullName,
-      authorRole: profiles.role,
-      authorAvatar: profiles.avatarUrl,
-    })
-    .from(posts)
-    .innerJoin(profiles, eq(posts.authorId, profiles.id))
-    .orderBy(desc(posts.createdAt))
-    .limit(20);
+    // Fetch the globally cached raw feed (No DB hit if cached)
+    const feed = await getCachedRawFeed();
 
     // Fetch comments and like status for each post
     const expandedFeed = await Promise.all(feed.map(async (post) => {
@@ -105,6 +118,8 @@ export async function createPost(formData: FormData) {
     console.log('Inserting new post into DB:', newPost);
     const db = getDb();
     await db.insert(posts).values(newPost);
+    
+    // Invalidate the globally cached feed
     revalidatePath('/'); // refresh homepage
 
     return { success: true, message: 'Posted successfully' };

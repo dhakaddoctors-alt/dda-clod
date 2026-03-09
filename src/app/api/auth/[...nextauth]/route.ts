@@ -41,7 +41,9 @@ export const authOptions: AuthOptions = {
           name: user.fullName, 
           email: user.email, 
           role: user.role,
-          avatarUrl: user.avatarUrl
+          avatarUrl: user.avatarUrl,
+          state: user.state,
+          district: user.district
         } as any;
       }
     })
@@ -58,6 +60,8 @@ export const authOptions: AuthOptions = {
       if (user) {
         token.id = (user as any).id;
         token.role = (user as any).role;
+        token.state = (user as any).state;
+        token.district = (user as any).district;
       }
       return token;
     },
@@ -65,6 +69,8 @@ export const authOptions: AuthOptions = {
       if (session?.user) {
         (session.user as any).id = token.id;
         (session.user as any).role = token.role;
+        (session.user as any).state = token.state;
+        (session.user as any).district = token.district;
       }
       return session;
     }

@@ -2,11 +2,11 @@
 
 import { useState, useTransition } from 'react';
 import { approveUser, rejectUser } from '@/app/actions/adminActions';
-import { Check, X } from 'lucide-react';
+import { Check, X, ShieldOff, Award } from 'lucide-react';
 
-export default function ApproveRejectButtons({ profileId }: { profileId: string }) {
+export default function ApproveRejectButtons({ profileId, currentStatus = 'pending' }: { profileId: string, currentStatus?: string }) {
   const [isPending, startTransition] = useTransition();
-  const [status, setStatus] = useState<null | 'approved' | 'rejected'>(null);
+  const [status, setStatus] = useState<null | 'approved' | 'rejected' | 'unverified'>(null);
 
   const handleApprove = () => {
     startTransition(async () => {
@@ -26,25 +26,48 @@ export default function ApproveRejectButtons({ profileId }: { profileId: string 
     }
   };
 
-  if (status === 'approved') return <span className="text-sm font-bold text-green-600">Approved</span>;
-  if (status === 'rejected') return <span className="text-sm font-bold text-red-600">Rejected</span>;
-  if (isPending) return <span className="text-sm text-gray-500 font-medium animate-pulse">Processing...</span>;
+  const handleUnverify = () => {
+    if (confirm('Are you sure you want to revoke verification and set this member to pending?')) {
+      startTransition(async () => {
+        const res = await rejectUser(profileId); // Using rejectUser which sets paymentStatus to 'pending'
+        if (res.success) setStatus('unverified');
+        else alert(res.message);
+      });
+    }
+  };
+
+  if (status === 'approved' || (status === null && currentStatus === 'verified')) {
+    return (
+      <button 
+        onClick={handleUnverify}
+        disabled={isPending}
+        className="bg-green-100 hover:bg-green-200 text-green-700 px-3 py-1.5 rounded-md text-xs font-bold uppercase tracking-wider flex items-center gap-1.5 transition-colors border border-green-200 active:scale-95"
+        title="Click to Unverify this member"
+      >
+        <Award className="w-4 h-4" /> 
+        {isPending ? 'Updating...' : 'Verified'}
+      </button>
+    );
+  }
 
   return (
-    <div className="flex gap-2 w-full sm:w-auto">
+    <div className="flex items-center gap-2">
+      <button 
+        onClick={handleApprove}
+        disabled={isPending}
+        className="bg-yellow-100 hover:bg-yellow-200 text-yellow-700 px-3 py-1.5 rounded-md text-xs font-bold uppercase tracking-wider flex items-center gap-1.5 transition-colors border border-yellow-200 shadow-sm active:scale-95"
+        title="Click to Approve this member"
+      >
+        {isPending ? <span className="animate-pulse">Processing...</span> : <>Approve</>}
+      </button>
+      
       <button 
         onClick={handleReject} 
         disabled={isPending}
-        className="flex-1 sm:flex-none flex items-center justify-center gap-1 px-4 py-1.5 bg-red-50 text-red-600 rounded-lg text-sm font-medium hover:bg-red-100 transition-colors"
+        className="p-1.5 bg-red-50 text-red-600 rounded-md hover:bg-red-100 transition-colors border border-red-100"
+        title="Reject Registration"
       >
-        <X className="w-4 h-4" /> Reject
-      </button>
-      <button 
-        onClick={handleApprove} 
-        disabled={isPending}
-        className="flex-1 sm:flex-none flex items-center justify-center gap-1 px-4 py-1.5 bg-green-600 text-white rounded-lg text-sm font-medium hover:bg-green-700 transition-colors shadow-sm"
-      >
-        <Check className="w-4 h-4" /> Approve
+        <X className="w-4 h-4" />
       </button>
     </div>
   );

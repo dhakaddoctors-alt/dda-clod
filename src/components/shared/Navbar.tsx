@@ -1,16 +1,25 @@
 'use client';
 
 import Link from 'next/link';
-import { Menu, Search, Bell, User, LogOut, LayoutDashboard } from 'lucide-react';
+import { Menu, Search, Bell, User, LogOut, LayoutDashboard, Home, Users, Building2, Vote, Calendar, Image as ImageIcon, ArrowLeft } from 'lucide-react';
 import { useSession, signOut } from 'next-auth/react';
 import { useState, useRef, useEffect } from 'react';
+import { usePathname, useRouter } from 'next/navigation';
 
 export default function Navbar() {
   const { data: session } = useSession();
   const isAdmin = session?.user && ((session.user as any).role === 'admin' || (session.user as any).role === 'super_admin');
+  const userState: string | null = (session?.user as any)?.state || null;
+  const userDistrict: string | null = (session?.user as any)?.district || null;
   
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  
+  const pathname = usePathname();
+  const router = useRouter();
+  
+  // Define top level routes where the hamburger menu should remain
+  const isTopLevelTab = ['/', '/directory', '/committees', '/elections', '/events', '/gallery', '/mobile', '/admin', '/profile'].includes(pathname);
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -30,23 +39,45 @@ export default function Navbar() {
       <div className="flex items-center justify-between px-4 h-full">
         {/* Left Side */}
         <div className="flex items-center gap-4">
-          <button className="p-2 hover:bg-gray-100 rounded-full lg:hidden">
-            <Menu className="w-6 h-6 text-gray-600" />
-          </button>
+          {!isTopLevelTab ? (
+            <button onClick={() => router.back()} className="p-2 hover:bg-gray-100 rounded-full lg:hidden transition-colors">
+              <ArrowLeft className="w-6 h-6 text-gray-700" />
+            </button>
+          ) : (
+            <button className="p-2 hover:bg-gray-100 rounded-full lg:hidden">
+              <Menu className="w-6 h-6 text-gray-600" />
+            </button>
+          )}
           <Link href="/" className="text-xl font-bold text-blue-600 flex items-center gap-2">
             <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center text-white">D</div>
             <span className="hidden sm:block">DDA Portal</span>
           </Link>
           
-          {/* Search Bar - Facebook Style */}
-          <div className="hidden md:flex items-center relative ml-4">
-            <Search className="w-4 h-4 text-gray-500 absolute left-3" />
-            <input 
-              type="text" 
-              placeholder="Search members, doctors, updates..." 
-              className="bg-gray-100 rounded-full py-2 pl-10 pr-4 w-[280px] focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
-            />
+          {/* Main Navigation Links (Moved from Sidebar) */}
+          <div className="hidden lg:flex items-center gap-6 ml-8">
+            <Link href="/" className="text-sm font-medium text-gray-600 hover:text-blue-600 flex items-center gap-1.5 transition-colors">
+              <Home className="w-4 h-4" /> Home
+            </Link>
+            <Link href="/directory" className="text-sm font-medium text-gray-600 hover:text-blue-600 flex items-center gap-1.5 transition-colors">
+              <Users className="w-4 h-4" /> Directory
+            </Link>
+            <Link href="/committees" className="text-sm font-medium text-gray-600 hover:text-blue-600 flex items-center gap-1.5 transition-colors">
+              <Building2 className="w-4 h-4" /> Committees
+            </Link>
+            {/* Elections Link: Visible only when user is logged in (location-filtered list is shown on the page) */}
+            {session && (
+              <Link href="/elections" className="text-sm font-medium text-gray-600 hover:text-blue-600 flex items-center gap-1.5 transition-colors">
+                <Vote className="w-4 h-4" /> Elections
+              </Link>
+            )}
+            <Link href="/events" className="text-sm font-medium text-gray-600 hover:text-blue-600 flex items-center gap-1.5 transition-colors">
+              <Calendar className="w-4 h-4" /> Events
+            </Link>
+            <Link href="/gallery" className="text-sm font-medium text-gray-600 hover:text-blue-600 flex items-center gap-1.5 transition-colors">
+              <ImageIcon className="w-4 h-4" /> Gallery
+            </Link>
           </div>
+          
         </div>
 
         {/* Right Side */}

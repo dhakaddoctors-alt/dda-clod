@@ -1,101 +1,119 @@
 import Navbar from '@/components/shared/Navbar';
-import Sidebar from '@/components/shared/Sidebar';
-import { Vote, CheckCircle2, AlertCircle, PlusCircle } from 'lucide-react';
-import { fetchActiveElections, fetchCandidates } from '@/app/actions/electionActions';
-import VoteButton from '@/components/ui/VoteButton';
+import { Vote, CalendarClock, ChevronRight, TrendingUp, AlertCircle, MapPin } from 'lucide-react';
+import { fetchActiveElections } from '@/app/actions/electionActions';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/app/api/auth/[...nextauth]/route';
 import Link from 'next/link';
 
-export default async function ElectionsPage() {
-  const activeElections = await fetchActiveElections();
-  const ongoingElection = activeElections[0] || null;
-  const candidatesList = ongoingElection ? await fetchCandidates(ongoingElection.id) : [];
+function isEligible(election: any, userState?: string | null, userDistrict?: string | null): boolean {
+  if (election.level === 'national') return true;
+  if (election.level === 'state') {
+    return !!(userState && userState.toLowerCase() === (election.locationName || '').toLowerCase());
+  }
+  if (election.level === 'district') {
+    return !!(userDistrict && userDistrict.toLowerCase() === (election.locationName || '').toLowerCase());
+  }
+  return false;
+}
+
+export default async function ElectionsHubPage() {
+  const allElections = await fetchActiveElections();
+  const session = await getServerSession(authOptions) as any;
+  const userState = session?.user?.state as string | null | undefined;
+  const userDistrict = session?.user?.district as string | null | undefined;
+
+  // Filter to only elections the logged-in user is eligible for
+  const eligibleElections = allElections.filter(e => isEligible(e, userState, userDistrict));
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
       <Navbar />
       
       <div className="flex flex-1 pt-16">
-        <Sidebar />
-        
-        <main className="flex-1 lg:ml-64 p-4 lg:p-8 w-full">
-          <div className="max-w-4xl mx-auto">
+        <main className="flex-1 p-4 lg:p-8 w-full">
+          <div className="max-w-6xl mx-auto">
             
-            {ongoingElection ? (
-              <div className="bg-gradient-to-r from-blue-700 to-indigo-800 rounded-2xl p-8 text-white shadow-lg mb-8 relative overflow-hidden">
-                <Vote className="w-48 h-48 absolute -right-10 -bottom-10 opacity-10 text-white" />
-                <div className="relative z-10">
-                  <span className="bg-red-500 text-white text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider mb-4 inline-block animate-pulse">
-                    Live Voting Open
-                  </span>
-                  <h1 className="text-3xl md:text-4xl font-bold mb-2">{ongoingElection.title}</h1>
-                  <p className="text-blue-100 text-lg mb-6">{ongoingElection.description}</p>
-                  
-                  <div className="flex flex-col sm:flex-row gap-4 mb-6">
-                     <Link href="/elections/nominate" className="inline-flex items-center justify-center gap-2 px-6 py-2.5 bg-white text-blue-800 rounded-xl font-bold shadow-sm hover:bg-gray-100 transition-colors">
-                       <PlusCircle className="w-5 h-5" /> File Nomination
-                     </Link>
-                  </div>
-                  
-                  <div className="bg-white/10 border border-white/20 p-4 rounded-xl flex items-start gap-3 backdrop-blur-sm">
-                    <AlertCircle className="w-6 h-6 shrink-0 text-yellow-300" />
-                    <p className="text-sm text-blue-50 leading-relaxed">
-                      <strong>1 Member = 1 Vote.</strong> Your vote is completely anonymous. The database only records that you have voted, not who you voted for, ensuring full electoral integrity.
-                    </p>
-                  </div>
-                </div>
-              </div>
-            ) : (
-               <div className="bg-white rounded-2xl p-12 text-center shadow-sm border border-gray-200 mb-8">
-                 <Vote className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-                 <h2 className="text-2xl font-bold text-gray-900 mb-2">No Active Elections</h2>
-                 <p className="text-gray-500">There are currently no live elections. You will be notified when nominations or voting begins.</p>
+            <div className="mb-8 border-b border-gray-200 pb-6 flex flex-col md:flex-row md:items-end justify-between gap-4">
+               <div>
+                  <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
+                     <Vote className="w-8 h-8 text-blue-600" />
+                     Elections Hub
+                  </h1>
+                  <p className="text-gray-600 mt-2">Your eligible elections based on your registered address.</p>
                </div>
-            )}
-
-            {ongoingElection && (
-               <>
-                  <h2 className="text-2xl font-bold text-gray-900 mb-6">Candidates for President</h2>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    {candidatesList.length === 0 ? (
-                      <p className="text-gray-500">No approved candidates available yet.</p>
-                    ) : (
-                      candidatesList.map((candidate: any) => (
-                        <div key={candidate.id} className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden flex flex-col">
-                          {/* Poster Image */}
-                          <div className="w-full h-64 bg-gray-100 relative">
-                            <img src={candidate.posterUrl} alt={`${candidate.name} Poster`} className="w-full h-full object-cover" />
-                            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent"></div>
-                            <div className="absolute top-4 right-4">
-                                <span className="bg-black/50 backdrop-blur-sm text-white text-xs px-3 py-1 rounded-full font-medium border border-white/20 shadow-sm">
-                                  {candidate.designation}
-                                </span>
-                            </div>
-                            <div className="absolute bottom-4 left-4 right-4 flex items-center gap-4">
-                              <div className="w-16 h-16 rounded-full border-2 border-white overflow-hidden shadow-lg shrink-0 bg-white">
-                                <img src={candidate.avatarUrl} alt={candidate.name} className="w-full h-full object-cover"/>
-                              </div>
-                              <h3 className="text-2xl font-bold text-white shadow-sm">{candidate.name}</h3>
-                            </div>
-                          </div>
-                          
-                          {/* Manifesto */}
-                          <div className="p-6 flex-1 flex flex-col relative pb-0">
-                            <h4 className="font-semibold text-gray-900 mb-2">Key Manifesto Promises:</h4>
-                            <p className="text-gray-600 text-sm flex-1 leading-relaxed">{candidate.manifesto}</p>
-                            
-                            {/* Interactive Voting Component */}
-                            <VoteButton 
-                               candidateId={candidate.id} 
-                               electionId={ongoingElection.id}
-                               candidateName={candidate.name}
-                            />
-                            <div className="h-6"></div> {/* Padding spacer */}
-                          </div>
-                        </div>
-                      ))
-                    )}
+               
+               {(userState || userDistrict) && (
+                  <div className="bg-blue-50 text-blue-800 text-sm font-semibold px-4 py-2 rounded-xl border border-blue-100 flex items-center gap-2">
+                     <MapPin className="w-4 h-4" />
+                     {userDistrict ? `${userDistrict}, ` : ''}{userState || 'India'}
                   </div>
-               </>
+               )}
+            </div>
+
+            {eligibleElections.length === 0 ? (
+               <div className="bg-white rounded-2xl p-12 text-center shadow-sm border border-gray-200 mb-8">
+                 <CalendarClock className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+                 <h2 className="text-2xl font-bold text-gray-900 mb-2">No Elections Available</h2>
+                 <p className="text-gray-500 max-w-md mx-auto">
+                    There are currently no scheduled elections for your region or nationally. You will be notified when nominations or voting begins.
+                 </p>
+               </div>
+            ) : (
+               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {eligibleElections.map((election) => {
+                     const now = new Date();
+                     const voteStart = election.startDate ? new Date(election.startDate) : null;
+                     const voteEnd = election.endDate ? new Date(election.endDate) : null;
+                     
+                     let statusTag = null;
+                     let isActive = false;
+
+                     if (!voteStart || !voteEnd) {
+                        statusTag = <span className="bg-gray-100 text-gray-600 text-xs font-bold px-2.5 py-1 rounded-md">Dates Pending</span>;
+                     } else if (now < voteStart) {
+                        statusTag = <span className="bg-yellow-100 text-yellow-700 text-xs font-bold px-2.5 py-1 rounded-md">Upcoming</span>;
+                     } else if (now >= voteStart && now <= voteEnd) {
+                        isActive = true;
+                        statusTag = <span className="bg-red-100 text-red-600 border border-red-200 text-xs font-bold px-2.5 py-1 rounded-md animate-pulse">Live Voting</span>;
+                     } else {
+                        statusTag = <span className="bg-green-100 text-green-700 text-xs font-bold px-2.5 py-1 rounded-md">Completed</span>;
+                     }
+
+                     return (
+                        <Link 
+                           href={`/elections/${election.id}`} 
+                           key={election.id}
+                           className="group block bg-white rounded-2xl border border-gray-200 shadow-sm hover:shadow-md transition-shadow overflow-hidden flex flex-col"
+                        >
+                           <div className={`h-2 w-full ${isActive ? 'bg-blue-600' : 'bg-gray-200'}`}></div>
+                           <div className="p-6 flex-1 flex flex-col">
+                              <div className="flex justify-between items-start mb-4">
+                                 <div className="flex flex-wrap gap-2">
+                                    {statusTag}
+                                    <span className={`text-xs font-bold px-2.5 py-1 rounded-md ${election.level === 'national' ? 'bg-purple-100 text-purple-700' : 'bg-amber-100 text-amber-700'}`}>
+                                       {election.level === 'national' ? 'National' : election.locationName}
+                                    </span>
+                                 </div>
+                              </div>
+                              
+                              <h3 className="text-xl font-bold text-gray-900 mb-2 group-hover:text-blue-600 transition-colors">
+                                 {election.title}
+                              </h3>
+                              <p className="text-sm text-gray-600 line-clamp-2 mb-6 flex-1">
+                                 {election.description}
+                              </p>
+
+                              <div className="mt-auto pt-4 border-t border-gray-100 flex items-center justify-between text-sm font-medium">
+                                 <div className="flex items-center gap-1.5 text-gray-500">
+                                    <TrendingUp className="w-4 h-4" /> View Candidates
+                                 </div>
+                                 <ChevronRight className="w-5 h-5 text-gray-400 group-hover:text-blue-600 transition-colors" />
+                              </div>
+                           </div>
+                        </Link>
+                     );
+                  })}
+               </div>
             )}
 
           </div>

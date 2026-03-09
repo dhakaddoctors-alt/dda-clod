@@ -1,5 +1,4 @@
 import Navbar from '@/components/shared/Navbar';
-import Sidebar from '@/components/shared/Sidebar';
 import { Layers, Users, Search } from 'lucide-react';
 import { fetchCommitteesWithMembers } from '@/app/actions/committeeActions';
 import Link from 'next/link';
@@ -12,9 +11,7 @@ export default async function CommitteesPage() {
       <Navbar />
       
       <div className="flex flex-1 pt-16">
-        <Sidebar />
-        
-        <main className="flex-1 lg:ml-64 p-4 lg:p-8 w-full">
+        <main className="flex-1 p-4 lg:p-8 w-full">
           <div className="max-w-5xl mx-auto">
             
             {/* Header */}

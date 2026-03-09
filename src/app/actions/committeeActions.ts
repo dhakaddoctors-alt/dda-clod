@@ -3,10 +3,10 @@
 import { getDb } from '@/db';
 import { committees, committeeMembers, profiles } from '@/db/schema';
 import { eq } from 'drizzle-orm';
-import { revalidatePath } from 'next/cache';
+import { unstable_cache, revalidateTag, revalidatePath } from 'next/cache';
 import { randomUUID } from 'crypto';
 
-export async function fetchCommitteesWithMembers() {
+const getCommitteesFromDB = async () => {
   const db = getDb();
   const allCommittees = await db.select().from(committees).orderBy(committees.level);
   
@@ -31,7 +31,13 @@ export async function fetchCommitteesWithMembers() {
   );
   
   return result;
-}
+};
+
+export const fetchCommitteesWithMembers = unstable_cache(
+  getCommitteesFromDB,
+  ['all-committees'],
+  { tags: ['committees'], revalidate: 3600 } // Cache for 1 hour
+);
 
 export async function addCommittee(level: string, locationName: string) {
   const db = getDb();

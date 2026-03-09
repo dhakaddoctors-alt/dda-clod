@@ -15,6 +15,17 @@ export async function fetchPendingApprovals() {
   }
 }
 
+export async function fetchAllUsersForAdmin() {
+  try {
+    const db = getDb();
+    // Return all users regardless of status
+    return await db.select().from(profiles);
+  } catch (error) {
+    console.error('Error fetching all users:', error);
+    return [];
+  }
+}
+
 export async function approveUser(profileId: string) {
   try {
     const db = getDb();
@@ -81,6 +92,30 @@ export async function restoreUser(profileId: string) {
     return { success: true, message: 'User restored successfully.' };
   } catch(error: any) {
     return { success: false, message: error.message || 'Failed to restore user.' };
+  }
+}
+
+export async function changeUserRole(profileId: string, newRole: string) {
+  try {
+    const db = getDb();
+    
+    // Ensure the newRole is one of the allowed ENUM values from the schema
+    const allowedRoles = ['guest', 'student', 'doctor', 'editor', 'admin', 'super_admin'];
+    if (!allowedRoles.includes(newRole)) {
+      throw new Error('Invalid role specified.');
+    }
+
+    await db.update(profiles)
+      .set({ role: newRole })
+      .where(eq(profiles.id, profileId));
+
+    console.log(`[DB] Changed user role: ${profileId} to ${newRole}`);
+    revalidatePath('/admin');
+    revalidatePath('/directory');
+    revalidatePath(`/directory/${profileId}`);
+    return { success: true, message: `User role updated to ${newRole}.` };
+  } catch(error: any) {
+    return { success: false, message: error.message || 'Failed to update user role.' };
   }
 }
 
