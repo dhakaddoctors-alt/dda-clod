@@ -76,24 +76,25 @@ export default async function AdminDashboardPage() {
               ))}
             </div>
 
-            {/* Master Election Control Center */}
-            <AdminElectionManager 
-               elections={activeElections} 
-               analyticsData={analyticsData} 
-            />
+            {/* Master Member Manager - TOP */}
+            <AdminMemberManager initialUsers={allUsers} />
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
               
               {/* Main Left Content Area */}
               <div className="lg:col-span-2 space-y-6 min-w-0">
-                 
-                 <AdminMemberManager initialUsers={allUsers} />
 
                 {/* News Slider Management */}
                 <NewsManager initialNews={newsList} />
 
                 {/* Committee Hierarchy Builder Section */}
                 <CommitteeBuilder initialTiers={committeeData} />
+
+                {/* Election Control Center - BOTTOM */}
+                <AdminElectionManager 
+                   elections={activeElections} 
+                   analyticsData={analyticsData} 
+                />
               </div>
 
               {/* Sidebar Content Area - System Health & AI */}
