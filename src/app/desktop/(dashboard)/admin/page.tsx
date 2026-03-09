@@ -13,7 +13,9 @@ import ExportMembersButton from '@/components/ui/ExportMembersButton';
 import ExportMembersPDFButton from '@/components/ui/ExportMembersPDFButton';
 import DatabaseBackupButton from '@/components/ui/DatabaseBackupButton';
 import { fetchActiveElections } from '@/app/actions/electionActions';
+import { adminFetchAllPosts } from '@/app/actions/postActions';
 import Link from 'next/link';
+import AdminFeedManager from '@/components/ui/AdminFeedManager';
 
 export default async function AdminDashboardPage() {
   const allUsers = await fetchAllUsersForAdmin();
@@ -31,6 +33,7 @@ export default async function AdminDashboardPage() {
   ];
 
   const activeElections = await fetchActiveElections();
+  const allPosts = await adminFetchAllPosts();
   const committeeData = await fetchCommitteesWithMembers();
 
   // Pre-fetch all analytics for existing elections so the client switches are instant
@@ -89,6 +92,9 @@ export default async function AdminDashboardPage() {
 
                 {/* Committee Hierarchy Builder Section */}
                 <CommitteeBuilder initialTiers={committeeData} />
+
+                {/* Social Feed Manager */}
+                <AdminFeedManager initialPosts={allPosts as any} />
 
                 {/* Election Control Center - BOTTOM */}
                 <AdminElectionManager 

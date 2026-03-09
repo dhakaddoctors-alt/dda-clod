@@ -139,7 +139,6 @@ export async function toggleLike(postId: string) {
       await db.run(sql`UPDATE posts SET likes_count = likes_count + 1 WHERE id = ${postId}`);
     }
 
-    revalidateTag('feed');
     revalidatePath('/');
     return { success: true };
   } catch (err: any) {
@@ -170,11 +169,58 @@ export async function addComment(postId: string, content: string) {
       createdAt: new Date()
     });
 
-    revalidateTag('feed');
     revalidatePath('/');
     return { success: true };
   } catch (err: any) {
     console.error('Add comment error', err);
     return { success: false, message: 'Failed to post comment' };
+  }
+}
+
+// ===== ADMIN CONTROLS =====
+
+export async function adminFetchAllPosts() {
+  try {
+    const session = await getServerSession(authOptions) as any;
+    if (!session?.user || (session.user.role !== 'admin' && session.user.role !== 'super_admin')) {
+      throw new Error('Unauthorized');
+    }
+    const db = getDb();
+    return await db.select({
+      id: posts.id,
+      content: posts.content,
+      imageUrl: posts.imageUrl,
+      createdAt: posts.createdAt,
+      likesCount: posts.likesCount,
+      authorName: profiles.fullName,
+      authorRole: profiles.role,
+      authorAvatar: profiles.avatarUrl,
+    })
+    .from(posts)
+    .innerJoin(profiles, eq(posts.authorId, profiles.id))
+    .orderBy(desc(posts.createdAt))
+    .limit(50);
+  } catch(error) {
+    console.error('Admin fetch posts error:', error);
+    return [];
+  }
+}
+
+export async function adminDeletePost(postId: string) {
+  try {
+    const session = await getServerSession(authOptions) as any;
+    if (!session?.user || (session.user.role !== 'admin' && session.user.role !== 'super_admin')) {
+      return { success: false, message: 'Unauthorized' };
+    }
+    const db = getDb();
+    // Delete comments, likes, then post
+    await db.delete(comments).where(eq(comments.postId, postId));
+    await db.delete(postLikes).where(eq(postLikes.postId, postId));
+    await db.delete(posts).where(eq(posts.id, postId));
+    revalidatePath('/');
+    return { success: true, message: 'Post deleted successfully.' };
+  } catch(error: any) {
+    console.error('Admin delete post error:', error);
+    return { success: false, message: error.message || 'Failed to delete post.' };
   }
 }
