@@ -4,10 +4,10 @@ import { news } from '@/db/schema';
 import { randomUUID } from 'crypto';
 import { desc, eq } from 'drizzle-orm';
 import { getDb } from '@/db';
-import { unstable_cache, revalidateTag, revalidatePath } from 'next/cache';
+import { revalidatePath } from 'next/cache';
 import { uploadToSocialR2 } from '@/lib/storage';
 
-const getNewsFromDB = async () => {
+export async function fetchAllNews() {
   try {
     const db = getDb();
     return await db.select().from(news).orderBy(desc(news.createdAt));
@@ -15,13 +15,7 @@ const getNewsFromDB = async () => {
     console.error('Error fetching news:', error);
     return [];
   }
-};
-
-export const fetchAllNews = unstable_cache(
-  getNewsFromDB,
-  ['all-news'],
-  { tags: ['news'], revalidate: 3600 } // Cache for 1 hour
-);
+}
 
 export async function createNews(formData: FormData) {
   try {

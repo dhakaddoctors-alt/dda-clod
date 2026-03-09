@@ -3,13 +3,13 @@
 import { getDb } from '@/db';
 import { committees, committeeMembers, profiles } from '@/db/schema';
 import { eq } from 'drizzle-orm';
-import { unstable_cache, revalidateTag, revalidatePath } from 'next/cache';
+import { revalidateTag, revalidatePath } from 'next/cache';
 import { randomUUID } from 'crypto';
 
-const getCommitteesFromDB = async () => {
+export async function fetchCommitteesWithMembers() {
   const db = getDb();
   const allCommittees = await db.select().from(committees).orderBy(committees.level);
-  
+
   const result = await Promise.all(
     allCommittees.map(async (committee) => {
       const members = await db
@@ -25,19 +25,13 @@ const getCommitteesFromDB = async () => {
         .leftJoin(profiles, eq(committeeMembers.profileId, profiles.id))
         .where(eq(committeeMembers.committeeId, committee.id))
         .orderBy(committeeMembers.rankOrder);
-      
+
       return { ...committee, members };
     })
   );
-  
-  return result;
-};
 
-export const fetchCommitteesWithMembers = unstable_cache(
-  getCommitteesFromDB,
-  ['all-committees'],
-  { tags: ['committees'], revalidate: 3600 } // Cache for 1 hour
-);
+  return result;
+}
 
 export async function addCommittee(level: string, locationName: string) {
   const db = getDb();
@@ -91,7 +85,7 @@ export async function searchProfiles(query: string) {
     .select({ id: profiles.id, fullName: profiles.fullName, role: profiles.role, avatarUrl: profiles.avatarUrl })
     .from(profiles)
     .limit(20);
-  
+
   // Filter in memory since SQLite via D1 doesn't support LIKE easily in all drivers
   if (!query) return allProfiles.slice(0, 10);
   const q = query.toLowerCase();
