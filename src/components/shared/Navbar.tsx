@@ -36,6 +36,7 @@ export default function Navbar() {
   }, [dropdownRef]);
 
   return (
+    <>
     <nav className="fixed top-0 w-full bg-white border-b border-gray-200 z-50 h-16">
       <div className="flex items-center justify-between px-4 h-full">
         {/* Left Side */}
@@ -119,20 +120,16 @@ export default function Navbar() {
                       <span>My Profile</span>
                     </Link>
                     {isAdmin && (
-                      <Link 
+                       <Link 
                         href="/admin" 
-                        className="md:hidden flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
+                        className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
                         onClick={() => setIsDropdownOpen(false)}
                       >
-                        <LayoutDashboard className="w-4 h-4" />
-                        <span>Admin Panel</span>
+                        <LayoutDashboard className="w-4 h-4 text-blue-600" />
+                        <span className="font-medium">Admin Panel</span>
                       </Link>
                     )}
-                    <hr className="my-1 border-gray-100" />
-                    {/* Install PWA Button */}
-                    <div className="px-3 pb-1">
-                      <InstallPWA />
-                    </div>
+
                     <hr className="my-1 border-gray-100" />
                     <button 
                       onClick={() => {
@@ -167,5 +164,13 @@ export default function Navbar() {
         </div>
       </div>
     </nav>
+
+    {/* Mobile-only: Fixed bottom Install App bar */}
+    {session && (
+      <div className="lg:hidden fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-gray-100 px-4 py-2 shadow-md">
+        <InstallPWA />
+      </div>
+    )}
+  </>
   );
 }
