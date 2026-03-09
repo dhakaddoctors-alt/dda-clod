@@ -14,8 +14,10 @@ import ExportMembersPDFButton from '@/components/ui/ExportMembersPDFButton';
 import DatabaseBackupButton from '@/components/ui/DatabaseBackupButton';
 import { fetchActiveElections } from '@/app/actions/electionActions';
 import { adminFetchAllPosts } from '@/app/actions/postActions';
+import { adminFetchAllStories } from '@/app/actions/storyActions';
 import Link from 'next/link';
 import AdminFeedManager from '@/components/ui/AdminFeedManager';
+import AdminStoryManager from '@/components/ui/AdminStoryManager';
 
 export default async function AdminDashboardPage() {
   const allUsers = await fetchAllUsersForAdmin();
@@ -34,6 +36,7 @@ export default async function AdminDashboardPage() {
 
   const activeElections = await fetchActiveElections();
   const allPosts = await adminFetchAllPosts();
+  const allStories = await adminFetchAllStories();
   const committeeData = await fetchCommitteesWithMembers();
 
   // Pre-fetch all analytics for existing elections so the client switches are instant
@@ -93,8 +96,14 @@ export default async function AdminDashboardPage() {
                 {/* Committee Hierarchy Builder Section */}
                 <CommitteeBuilder initialTiers={committeeData} />
 
-                {/* Social Feed Manager */}
-                <AdminFeedManager initialPosts={allPosts as any} />
+                {/* Content Moderation Section */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full">
+                  {/* Social Feed Manager */}
+                  <AdminFeedManager initialPosts={allPosts as any} />
+                  
+                  {/* Story Manager */}
+                  <AdminStoryManager initialStories={allStories as any} />
+                </div>
 
                 {/* Election Control Center - BOTTOM */}
                 <AdminElectionManager 
