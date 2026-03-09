@@ -21,7 +21,7 @@ export default async function DirectoryPage(props: { searchParams?: Promise<{ q?
   // Apply hard limit if guest
   const displayMembers = isAuthenticated ? members : members.slice(0, 6);
 
-  const currentUserId = session?.user?.id || '';
+  const currentUserId = (session?.user as any)?.id || '';
   const isStudent = (session?.user as any)?.role === 'student';
   let aiMatches = null;
 
