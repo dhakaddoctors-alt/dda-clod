@@ -14,6 +14,7 @@ export async function fetchActiveStories() {
     const activeStories = await db.select({
       id: stories.id,
       imageUrl: stories.imageUrl,
+      caption: stories.caption,
       createdAt: stories.createdAt,
       expiresAt: stories.expiresAt,
       authorId: stories.authorId,
@@ -33,17 +34,23 @@ export async function fetchActiveStories() {
   }
 }
 
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/app/api/auth/[...nextauth]/route';
+
 export async function createStory(formData: FormData) {
   try {
-    // In actual implementation, fetch logged in user from session
-    // const session = await getServerSession(authOptions);
-    // const authorId = session.user.id;
-    const authorId = 'test_user_id'; // Mock ID
-
+    const session = await getServerSession(authOptions);
+    if (!session || !session.user || !(session.user as any).id) {
+       return { success: false, message: 'You must be logged in to post a story' };
+    }
+    
+    const authorId = (session.user as any).id;
     const imageFile = formData.get('imageFile') as File | null;
     if (!imageFile || imageFile.size === 0) {
        throw new Error('An image must be uploaded for a Story');
     }
+
+    const caption = formData.get('caption') as string | null;
 
     const imageUrl = await uploadToSocialR2(imageFile);
 
@@ -54,6 +61,7 @@ export async function createStory(formData: FormData) {
       id: randomUUID(),
       authorId,
       imageUrl,
+      caption, // Insert caption
       createdAt: now,
       expiresAt
     };

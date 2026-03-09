@@ -1,10 +1,15 @@
 'use client';
 import { Building2 } from 'lucide-react';
 
-const DUMMY_COMMITTEES: any[] = [];
+interface CommitteeMember {
+  id: string;
+  name: string | null;
+  designation: string;
+  level: string;
+}
 
-export default function CommitteeMarquee() {
-  if (DUMMY_COMMITTEES.length === 0) return null;
+export default function CommitteeMarquee({ members }: { members: CommitteeMember[] }) {
+  if (members.length === 0) return null;
 
   return (
     <div className="w-full bg-white border border-gray-200 rounded-xl overflow-hidden my-4 relative shadow-sm">
@@ -17,11 +22,11 @@ export default function CommitteeMarquee() {
       <div className="flex overflow-hidden group py-3 ml-12 sm:ml-40 bg-gray-50/50">
         <div className="flex animate-[marquee_25s_linear_infinite] whitespace-nowrap items-center hover:[animation-play-state:paused]">
           {/* We duplicate the array to create a seamless infinite loop */}
-          {[...DUMMY_COMMITTEES, ...DUMMY_COMMITTEES].map((member, index) => (
+          {[...members, ...members].map((member, index) => (
             <div key={`${member.id}-${index}`} className="flex flex-col mx-4 px-4 border-l-2 border-l-gray-300">
               <span className="font-bold text-gray-800 text-sm whitespace-nowrap">{member.name}</span>
               <div className="flex items-center gap-1 mt-0.5">
-                <span className="text-xs bg-blue-100 text-blue-700 font-medium px-2 rounded-full">{member.role}</span>
+                <span className="text-xs bg-blue-100 text-blue-700 font-medium px-2 rounded-full">{member.designation}</span>
                 <span className="text-xs text-gray-500 font-medium">({member.level})</span>
               </div>
             </div>

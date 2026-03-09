@@ -1,5 +1,15 @@
 import { sqliteTable, text, integer } from 'drizzle-orm/sqlite-core';
 
+// News & Announcements (Slider) - Moved to top to ensure export initialization
+export const news = sqliteTable('news', {
+  id: text('id').primaryKey(),
+  title: text('title').notNull(),
+  imageUrl: text('image_url').notNull(),
+  linkUrl: text('link_url'), // Optional link when clicked
+  isActive: integer('is_active').default(1), // 1 for shown, 0 for hidden
+  createdAt: integer('created_at', { mode: 'timestamp' }).notNull(),
+});
+
 export const profiles = sqliteTable('profiles', {
   id: text('id').primaryKey(), // We can use UUID or standard strings
   fullName: text('full_name').notNull(),
@@ -84,6 +94,7 @@ export const stories = sqliteTable('stories', {
   id: text('id').primaryKey(),
   authorId: text('author_id').references(() => profiles.id).notNull(),
   imageUrl: text('image_url').notNull(),
+  caption: text('caption'), // New column for text/comments on the story
   createdAt: integer('created_at', { mode: 'timestamp' }).notNull(),
   expiresAt: integer('expires_at', { mode: 'timestamp' }).notNull(),
 });

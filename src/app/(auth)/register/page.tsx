@@ -5,6 +5,7 @@ import { registerUser } from '@/app/actions/authActions';
 import Navbar from '@/components/shared/Navbar';
 import Sidebar from '@/components/shared/Sidebar';
 import { compressImageTo1MB } from '@/lib/imageCompression';
+import DynamicUPIQR from '@/components/ui/DynamicUPIQR';
 
 const inputClass = "mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 bg-gray-50 border p-2 text-sm";
 const labelClass = "block text-sm font-medium text-gray-700";
@@ -285,9 +286,12 @@ export default function RegisterPage() {
                   </div>
 
                   <div className="bg-blue-50 p-6 rounded-xl border border-blue-100 flex flex-col sm:flex-row items-start gap-6">
-                    <div className="bg-white p-3 rounded-lg shadow-sm w-56 h-56 flex-shrink-0 flex flex-col justify-center items-center border border-gray-200">
-                      <img src="/qr-code.png" alt="Payment QR Code" className="w-full h-full object-contain" />
-                      <div className="text-xs text-gray-500 mt-2 font-medium"></div>
+                    <div className="flex-shrink-0">
+                      <DynamicUPIQR
+                        upiId="dhak9660383@barodampay"
+                        name="DHAKAD DOCTORS ASSOCIATION"
+                        className="w-48 h-48 sm:w-56 sm:h-56"
+                      />
                     </div>
                     <div className="flex-1">
                       <h4 className="font-semibold text-gray-900 mb-1">Bank Details for Transfer</h4>

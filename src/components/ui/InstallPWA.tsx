@@ -14,9 +14,17 @@ export default function InstallPWA() {
     const checkStandalone = window.matchMedia('(display-mode: standalone)').matches || (navigator as any).standalone;
     setIsStandalone(!!checkStandalone);
 
-    // Detect iOS
+    // Detect iOS and Safari
     const userAgent = window.navigator.userAgent.toLowerCase();
-    setIsIOS(/iphone|ipad|ipod/.test(userAgent));
+    const isIOSDevice = /iphone|ipad|ipod/.test(userAgent);
+    
+    // Check for Safari (excluding Chrome/Edge on iOS)
+    const isSafari = /^((?!chrome|android).)*safari/i.test(userAgent);
+    
+    // iPadOS 13+ reports as Macintosh but has touch points
+    const isIPadOS = navigator.maxTouchPoints > 0 && /macintosh/.test(userAgent);
+    
+    setIsIOS(isIOSDevice || isIPadOS || isSafari);
 
     // Handle Android install prompt
     const handleBeforeInstallPrompt = (e: any) => {
@@ -46,7 +54,10 @@ export default function InstallPWA() {
     }
   };
 
-  if (isStandalone || (!deferredPrompt && !isIOS)) return null;
+  // On Safari/iOS, we always want to show the manual install button if not standalone
+  // On other browsers, we show it only if deferredPrompt is available
+  if (isStandalone) return null;
+  if (!isIOS && !deferredPrompt) return null;
 
   return (
     <>

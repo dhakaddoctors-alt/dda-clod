@@ -1,6 +1,7 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useTransition, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea/dnd';
 import { GripVertical, PlusCircle, X, UserPlus, Trash2, Check, Loader2 } from 'lucide-react';
 import {
@@ -33,9 +34,16 @@ interface Props {
 }
 
 export default function CommitteeBuilder({ initialTiers }: Props) {
+  const router = useRouter();
   const [tiers, setTiers] = useState<CommitteeTier[]>(initialTiers);
+  const [isPending, startTransition] = useTransition();
   const [saving, setSaving] = useState(false);
   const [saveMsg, setSaveMsg] = useState('');
+
+  // Sync state if initialTiers changes
+  useEffect(() => {
+    setTiers(initialTiers);
+  }, [initialTiers]);
 
   // Add Tier modal state
   const [addTierOpen, setAddTierOpen] = useState(false);
@@ -78,26 +86,38 @@ export default function CommitteeBuilder({ initialTiers }: Props) {
       committeeId: tier.id,
       members: tier.members.map((m, i) => ({ memberId: m.id, rankOrder: i })),
     }));
-    await saveCommitteeHierarchy(payload);
-    setSaving(false);
-    setSaveMsg('Saved!');
-    setTimeout(() => setSaveMsg(''), 2500);
+    
+    startTransition(async () => {
+      await saveCommitteeHierarchy(payload);
+      setSaving(false);
+      setSaveMsg('Saved!');
+      router.refresh();
+      setTimeout(() => setSaveMsg(''), 2500);
+    });
   };
 
   // ─── Add Tier ────────────────────────────────────────────────────────────────
   const handleAddTier = async () => {
     if (!newLevel.trim()) return;
     setAddingTier(true);
-    await addCommittee(newLevel.trim(), newLocation.trim());
-    // Refresh the page data by reloading
-    window.location.reload();
+    startTransition(async () => {
+      await addCommittee(newLevel.trim(), newLocation.trim());
+      setAddingTier(false);
+      setAddTierOpen(false);
+      setNewLevel('');
+      setNewLocation('');
+      router.refresh();
+    });
   };
 
   // ─── Delete Tier ─────────────────────────────────────────────────────────────
   const handleDeleteTier = async (tierId: string) => {
     if (!confirm('Delete this committee and all its members?')) return;
-    await deleteCommittee(tierId);
-    setTiers(prev => prev.filter(t => t.id !== tierId));
+    startTransition(async () => {
+      await deleteCommittee(tierId);
+      setTiers(prev => prev.filter(t => t.id !== tierId));
+      router.refresh();
+    });
   };
 
   // ─── Member Search ───────────────────────────────────────────────────────────
@@ -114,16 +134,26 @@ export default function CommitteeBuilder({ initialTiers }: Props) {
     if (!selectedProfile || !designation.trim() || !addMemberTierId) return;
     setAddingMember(true);
     const tier = tiers.find(t => t.id === addMemberTierId)!;
-    await addCommitteeMember(addMemberTierId, selectedProfile.id, designation.trim(), tier.members.length);
-    window.location.reload();
+    
+    startTransition(async () => {
+      await addCommitteeMember(addMemberTierId, selectedProfile.id, designation.trim(), tier.members.length);
+      setAddingMember(false);
+      setAddMemberTierId(null);
+      setSelectedProfile(null);
+      setDesignation('');
+      router.refresh();
+    });
   };
 
   // ─── Remove Member ───────────────────────────────────────────────────────────
   const handleRemoveMember = async (memberId: string, tierId: string) => {
-    await removeCommitteeMember(memberId);
-    setTiers(prev => prev.map(t =>
-      t.id === tierId ? { ...t, members: t.members.filter(m => m.id !== memberId) } : t
-    ));
+    startTransition(async () => {
+      await removeCommitteeMember(memberId);
+      setTiers(prev => prev.map(t =>
+        t.id === tierId ? { ...t, members: t.members.filter(m => m.id !== memberId) } : t
+      ));
+      router.refresh();
+    });
   };
 
   return (

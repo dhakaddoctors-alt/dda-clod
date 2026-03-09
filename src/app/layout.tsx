@@ -15,13 +15,20 @@ export const metadata: Metadata = {
     capable: true,
     statusBarStyle: 'default',
     title: 'DDA Portal',
+    startupImage: [
+      '/icon-512x512.png',
+    ],
   },
   icons: {
+    icon: '/icon-192x192.png',
     apple: '/icon-192x192.png',
   },
-  formatDetection: {
-    telephone: false,
-  },
+  other: {
+    'mobile-web-app-capable': 'yes',
+    'apple-mobile-web-app-capable': 'yes',
+    'apple-mobile-web-app-status-bar-style': 'default',
+    'apple-mobile-web-app-title': 'DDA Portal',
+  }
 };
 
 export const viewport = {
@@ -42,7 +49,6 @@ export default function RootLayout({
       <body className={`${inter.className} bg-gray-50 text-gray-900 custom-scrollbar pb-16 lg:pb-0`}>
         <SessionProvider>
           {children}
-          <MobileTabBar />
           <AiChatbot />
         </SessionProvider>
       </body>

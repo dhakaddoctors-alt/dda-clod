@@ -22,6 +22,20 @@
       "when": 1772902156928,
       "tag": "0002_tricky_master_mold",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "6",
+      "when": 1773039761313,
+      "tag": "0003_foamy_rockslide",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "6",
+      "when": 1773049625371,
+      "tag": "0004_faithful_sprite",
+      "breakpoints": true
     }
   ]
 }

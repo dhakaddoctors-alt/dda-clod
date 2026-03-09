@@ -4,8 +4,10 @@ import { Users, FileCheck, Database, Server, Activity, ShieldAlert } from 'lucid
 import { fetchPendingApprovals, fetchDeletedUsers } from '@/app/actions/adminActions';
 import { fetchCommitteesWithMembers } from '@/app/actions/committeeActions';
 import { fetchLiveElectionAnalytics } from '@/app/actions/nominationActions';
+import { fetchAllNews } from '@/app/actions/newsActions';
 import ApproveRejectButtons from '@/components/ui/ApproveRejectButtons';
 import CommitteeBuilder from '@/components/ui/CommitteeBuilder';
+import NewsManager from '@/components/ui/NewsManager';
 import AiAdminPanel from '@/components/ui/AiAdminPanel';
 import ElectionAnalyticsPanel from '@/components/ui/ElectionAnalyticsPanel';
 import ExportMembersButton from '@/components/ui/ExportMembersButton';
@@ -25,6 +27,7 @@ export default async function AdminDashboardPage() {
   const deletedUsers = await fetchDeletedUsers();
   const electionAnalytics = await fetchLiveElectionAnalytics('election_1');
   const committeeData = await fetchCommitteesWithMembers();
+  const newsList = await fetchAllNews();
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
@@ -110,6 +113,9 @@ export default async function AdminDashboardPage() {
                     )}
                   </div>
                 </div>
+
+                {/* News Slider Management */}
+                <NewsManager initialNews={newsList} />
 
                 {/* Soft Deleted Users Section */}
                 <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden mt-6">

@@ -132,7 +132,7 @@ export default function CreatePostModal() {
                 <button 
                   type="submit" 
                   disabled={isPending}
-                  className="px-6 py-2bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl transition shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl transition shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {isPending ? 'Posting...' : 'Post'}
                 </button>

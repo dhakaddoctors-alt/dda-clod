@@ -6,11 +6,21 @@ import CommitteeMarquee from '@/components/ui/CommitteeMarquee';
 import StoryCarousel from '@/components/ui/StoryCarousel';
 import PostCard from '@/components/ui/PostCard';
 import CreatePostModal from '@/components/ui/CreatePostModal';
-// Removed import { db } from '@/db/schema'
 import { fetchFeedPosts } from '@/app/actions/postActions';
+import { fetchAllNews } from '@/app/actions/newsActions';
+import { fetchCommitteesWithMembers } from '@/app/actions/committeeActions';
 
 export default async function Home() {
   const feedPosts = await fetchFeedPosts();
+  const allNews = await fetchAllNews();
+  const activeNews = allNews.filter(n => n.isActive === 1);
+  const committees = await fetchCommitteesWithMembers();
+  const marqueeMembers = committees.flatMap(c => c.members.map(m => ({
+    id: m.id,
+    name: m.name,
+    designation: m.designation,
+    level: c.level
+  })));
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
@@ -25,10 +35,10 @@ export default async function Home() {
           <div className="lg:hidden mb-4">
             <InstallPWA />
           </div>
-          <NewsSlider />
+          <NewsSlider news={activeNews} />
           
           {/* Dynamic Feature: Committee Marquee */}
-          <CommitteeMarquee />
+          <CommitteeMarquee members={marqueeMembers} />
 
             <div className="mt-8">
             {/* Facebook-style Stories */}
