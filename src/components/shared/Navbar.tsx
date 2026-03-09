@@ -5,6 +5,7 @@ import { Menu, Search, Bell, User, LogOut, LayoutDashboard, Home, Users, Buildin
 import { useSession, signOut } from 'next-auth/react';
 import { useState, useRef, useEffect } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
+import InstallPWA from '@/components/ui/InstallPWA';
 
 export default function Navbar() {
   const { data: session } = useSession();
@@ -131,6 +132,11 @@ export default function Navbar() {
                         <span>Admin Panel</span>
                       </Link>
                     )}
+                    <hr className="my-1 border-gray-100" />
+                    {/* Install PWA Button */}
+                    <div className="px-3 pb-1">
+                      <InstallPWA />
+                    </div>
                     <hr className="my-1 border-gray-100" />
                     <button 
                       onClick={() => {
