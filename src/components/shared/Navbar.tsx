@@ -40,13 +40,9 @@ export default function Navbar() {
       <div className="flex items-center justify-between px-4 h-full">
         {/* Left Side */}
         <div className="flex items-center gap-4">
-          {!isTopLevelTab ? (
+          {!isTopLevelTab && (
             <button onClick={() => router.back()} className="p-2 hover:bg-gray-100 rounded-full lg:hidden transition-colors">
               <ArrowLeft className="w-6 h-6 text-gray-700" />
-            </button>
-          ) : (
-            <button className="p-2 hover:bg-gray-100 rounded-full lg:hidden">
-              <Menu className="w-6 h-6 text-gray-600" />
             </button>
           )}
           <Link href="/" className="text-xl font-bold text-blue-600 flex items-center gap-2">
