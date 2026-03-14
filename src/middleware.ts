@@ -1,8 +1,25 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
+import { getToken } from 'next-auth/jwt';
 
-export function middleware(request: NextRequest) {
+export async function middleware(request: NextRequest) {
   const url = request.nextUrl.clone();
+
+  // Admin Route Protection
+  if (url.pathname.startsWith('/admin')) {
+    const token = await getToken({ req: request });
+    
+    if (!token) {
+      const loginUrl = new URL('/login', request.url);
+      loginUrl.searchParams.set('callbackUrl', url.pathname);
+      return NextResponse.redirect(loginUrl);
+    }
+
+    const userRole = (token as any).role;
+    if (userRole !== 'admin' && userRole !== 'super_admin') {
+      return NextResponse.redirect(new URL('/', request.url));
+    }
+  }
   
   // Exclude static files, API routes, Next.js internals, Auth assets, and Login/Register pages
   if (

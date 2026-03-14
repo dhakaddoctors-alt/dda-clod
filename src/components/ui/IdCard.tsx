@@ -68,10 +68,8 @@ export default function IdCard({ id, name, role, membershipType, avatarUrl, bloo
 
           <h3 className="text-xl font-bold text-gray-900 mb-1 line-clamp-1">{name}</h3>
           
-          <div className="flex items-center gap-2 mb-4">
-             <span className="bg-blue-100 text-blue-800 text-xs px-3 py-1 rounded-full font-bold uppercase tracking-wide">
-               {role}
-             </span>
+          <div className="flex items-center gap-2 mb-4 min-h-[1.5rem]">
+             {/* Role display removed */}
              {membershipType === 'aajivan' && (
                 <span className="bg-yellow-100 text-yellow-800 flex items-center gap-1 text-xs px-2 py-1 rounded-full font-bold leading-none">
                   <Award className="w-3 h-3" /> Life Member

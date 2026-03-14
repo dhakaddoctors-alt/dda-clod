@@ -1,12 +1,13 @@
 'use client';
 
 import Link from 'next/link';
-import { Search, Bell, User, LogOut } from 'lucide-react';
+import { Search, Bell, User, LogOut, LayoutDashboard } from 'lucide-react';
 import { useSession, signOut } from 'next-auth/react';
 import { useState, useRef, useEffect } from 'react';
 
 export default function MobileNavbar() {
   const { data: session } = useSession();
+  const isAdmin = session?.user && ((session.user as any).role === 'admin' || (session.user as any).role === 'super_admin');
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 

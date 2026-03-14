@@ -76,8 +76,8 @@ export default async function ProfilePage({ params }: { params: Promise<{ id: st
                 <div className="mb-6 pb-6 border-b border-gray-100 flex justify-between items-start gap-4 flex-wrap">
                   <div>
                     <h1 className="text-3xl font-bold text-gray-900 mb-2">{profile.fullName}</h1>
-                    <div className="flex items-center gap-3 text-sm text-gray-500 font-medium">
-                      <span className="capitalize text-blue-600 bg-blue-50 px-3 py-1 rounded-full">{profile.role}</span>
+                    <div className="flex items-center gap-3 text-sm text-gray-500 font-medium pt-1">
+                      {/* Role badge removed from here */}
                       <span className="flex items-center gap-1"><Calendar className="w-4 h-4" /> Member since {new Date(profile.createdAt || Date.now()).getFullYear()}</span>
                     </div>
                   </div>

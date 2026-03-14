@@ -158,13 +158,7 @@ export default async function DirectoryPage(props: { searchParams?: Promise<{ q?
                     </div>
                     
                     <h3 className="text-lg font-bold text-gray-900 line-clamp-1">{member.name}</h3>
-                    <span className={`px-3 py-1 rounded-full text-xs font-semibold mt-2 capitalize ${
-                      member.role === 'doctor' ? 'bg-green-100 text-green-700' :
-                      member.role === 'student' ? 'bg-purple-100 text-purple-700' :
-                      'bg-gray-100 text-gray-700'
-                    }`}>
-                      {member.role}
-                    </span>
+                    {/* Role badge removed as per user request */}
 
                     <div className="mt-4 w-full space-y-2 text-sm text-gray-600 flex-1 flex flex-col items-center">
                       {member.specialty && (

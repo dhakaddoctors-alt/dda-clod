@@ -77,9 +77,8 @@ export default function PostCard({
           </div>
           <div>
             <h4 className="font-semibold text-gray-900 leading-tight">{authorName}</h4>
-            <div className="flex items-center gap-1 text-xs text-gray-500">
-              <span className="font-medium capitalize">{role.replace('_', ' ')}</span>
-              <span>•</span>
+            <div className="flex items-center gap-1 text-xs text-gray-500 pt-0.5">
+              {/* Role display removed */}
               <span>{timeAgo}</span>
             </div>
           </div>
