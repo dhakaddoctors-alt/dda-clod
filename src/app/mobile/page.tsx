@@ -9,6 +9,7 @@ import { fetchAllNews } from '@/app/actions/newsActions';
 import GuestHeroBanner from '@/components/ui/GuestHeroBanner';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/app/api/auth/[...nextauth]/route';
+import AdWall from '@/components/ui/AdWall';
 
 export default async function MobileHome() {
   const feedPosts = await fetchFeedPosts();
@@ -37,6 +38,9 @@ export default async function MobileHome() {
         <div className="mb-6">
           <StoryCarousel />
         </div>
+
+        {/* Advertisement Wall */}
+        <AdWall />
 
         {/* Create Post Action */}
         <CreatePostModal />

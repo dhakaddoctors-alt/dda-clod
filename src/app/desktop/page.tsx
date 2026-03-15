@@ -11,6 +11,7 @@ import { fetchCommitteesWithMembers } from '@/app/actions/committeeActions';
 import GuestHeroBanner from '@/components/ui/GuestHeroBanner';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/app/api/auth/[...nextauth]/route';
+import AdWall from '@/components/ui/AdWall';
 
 export default async function Home() {
   const feedPosts = await fetchFeedPosts();
@@ -44,6 +45,11 @@ export default async function Home() {
           
           {/* Dynamic Feature: Committee Marquee */}
           <CommitteeMarquee members={marqueeMembers} />
+
+          {/* Advertisement Wall */}
+          <div className="mt-8">
+            <AdWall />
+          </div>
 
             <div className="mt-8">
             {/* Facebook-style Stories */}

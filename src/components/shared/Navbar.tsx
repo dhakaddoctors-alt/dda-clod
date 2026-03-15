@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { Menu, Search, Bell, User, LogOut, LayoutDashboard, Home, Users, Building2, Vote, Calendar, Image as ImageIcon, ArrowLeft } from 'lucide-react';
+import { Menu, Search, Bell, User, LogOut, LayoutDashboard, Home, Users, Building2, Vote, Calendar, Image as ImageIcon, ArrowLeft, Megaphone } from 'lucide-react';
 import { useSession, signOut } from 'next-auth/react';
 import { useState, useRef, useEffect } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
@@ -73,6 +73,9 @@ export default function Navbar() {
             </Link>
             <Link href="/gallery" className="text-sm font-medium text-gray-600 hover:text-blue-600 flex items-center gap-1.5 transition-colors">
               <ImageIcon className="w-4 h-4" /> Gallery
+            </Link>
+            <Link href="/desktop/ads/submit" className="text-sm font-medium text-blue-600 hover:text-blue-700 flex items-center gap-1.5 transition-colors">
+              <Megaphone className="w-4 h-4" /> Advertise
             </Link>
           </div>
           
