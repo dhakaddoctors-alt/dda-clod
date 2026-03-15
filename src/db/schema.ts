@@ -155,3 +155,15 @@ export const votingRecords = sqliteTable('voting_records', {
   profileId: text('profile_id').references(() => profiles.id).notNull(),
   votedAt: integer('voted_at', { mode: 'timestamp' }).notNull(),
 });
+
+// Advertisement Management
+export const advertisements = sqliteTable('advertisements', {
+  id: text('id').primaryKey(),
+  businessName: text('business_name').notNull(),
+  contactPerson: text('contact_person').notNull(),
+  mobile: text('mobile').notNull(),
+  imageUrls: text('image_urls').notNull(), // JSON array of strings
+  linkUrl: text('link_url'),
+  status: text('status').default('pending').notNull(), // pending, approved, rejected, expired
+  createdAt: integer('created_at', { mode: 'timestamp' }).notNull(),
+});

@@ -18,6 +18,8 @@ import { adminFetchAllStories } from '@/app/actions/storyActions';
 import Link from 'next/link';
 import AdminFeedManager from '@/components/ui/AdminFeedManager';
 import AdminStoryManager from '@/components/ui/AdminStoryManager';
+import { fetchAdsForAdmin } from '@/app/actions/adActions';
+import AdminAdManager from '@/components/ui/AdminAdManager';
 
 export default async function AdminDashboardPage() {
   const allUsers = await fetchAllUsersForAdmin();
@@ -27,11 +29,15 @@ export default async function AdminDashboardPage() {
   const newsList = await fetchAllNews();
   const newsCount = newsList.length;
 
+  const adsList = await fetchAdsForAdmin();
+  const pendingAdsCount = adsList.filter(a => a.status === 'pending').length;
+
   const stats = [
     { title: 'Total Members', value: allUsers.length.toString(), icon: Users, color: 'text-blue-600', bg: 'bg-blue-100' },
     { title: 'Pending Approvals', value: pendingCount.toString(), icon: FileCheck, color: 'text-yellow-600', bg: 'bg-yellow-100' },
     { title: 'Registered Doctors', value: doctorsCount.toString(), icon: Database, color: 'text-purple-600', bg: 'bg-purple-100' },
     { title: 'News & Updates', value: newsCount.toString(), icon: Server, color: 'text-green-600', bg: 'bg-green-100' },
+    { title: 'Ad Requests', value: pendingAdsCount.toString(), icon: FileCheck, color: 'text-orange-600', bg: 'bg-orange-100' },
   ];
 
   const activeElections = await fetchActiveElections();
@@ -95,6 +101,9 @@ export default async function AdminDashboardPage() {
 
                 {/* Committee Hierarchy Builder Section */}
                 <CommitteeBuilder initialTiers={committeeData} />
+
+                {/* Advertisement Management Section */}
+                <AdminAdManager initialAds={adsList as any} />
 
                 {/* Content Moderation Section */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full">
