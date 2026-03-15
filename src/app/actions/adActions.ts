@@ -6,10 +6,32 @@ import { revalidatePath } from 'next/cache';
 import { getDb } from '@/db';
 import { randomUUID } from 'crypto';
 
+import { sql } from 'drizzle-orm';
 import { uploadToSocialR2 } from '@/lib/storage';
+
+export async function ensureAdTableExists() {
+    try {
+        const db = getDb();
+        await db.run(sql`
+            CREATE TABLE IF NOT EXISTS advertisements (
+                id TEXT PRIMARY KEY,
+                business_name TEXT NOT NULL,
+                contact_person TEXT NOT NULL,
+                mobile TEXT NOT NULL,
+                image_urls TEXT NOT NULL,
+                link_url TEXT,
+                status TEXT NOT NULL DEFAULT 'pending',
+                created_at INTEGER NOT NULL
+            )
+        `);
+    } catch (e) {
+        console.error('[DB] Failed to ensure advertisements table exists:', e);
+    }
+}
 
 export async function submitAdRequest(formData: FormData) {
   try {
+    await ensureAdTableExists();
     const db = getDb();
     const id = `ad_${randomUUID()}`;
 
@@ -79,6 +101,7 @@ export async function submitAdRequest(formData: FormData) {
 
 export async function fetchAdsForAdmin() {
   try {
+    await ensureAdTableExists();
     const db = getDb();
     const ads = await db.select().from(advertisements).orderBy(desc(advertisements.createdAt));
     console.log(`[DB] Fetched ${ads.length} ads for admin review.`);

@@ -1,4 +1,5 @@
 import Navbar from '@/components/shared/Navbar';
+export const dynamic = 'force-dynamic';
 import { Users, FileCheck, Database, Server, Activity, ShieldAlert } from 'lucide-react';
 import { fetchAllUsersForAdmin } from '@/app/actions/adminActions';
 import { fetchCommitteesWithMembers } from '@/app/actions/committeeActions';
