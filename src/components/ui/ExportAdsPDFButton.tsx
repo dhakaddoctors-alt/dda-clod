@@ -16,10 +16,11 @@ interface Ad {
   createdAt: Date;
 }
 
-export default function ExportAdsPDFButton({ ads }: { ads: Ad[] }) {
+export default function ExportAdsPDFButton({ ads, variant = 'full' }: { ads: Ad[], variant?: 'full' | 'icon' }) {
   const [isPending, setIsPending] = useState(false);
 
-  const handleExport = () => {
+  const handleExport = (e: React.MouseEvent) => {
+    e.stopPropagation(); // Prevent row click if any
     setIsPending(true);
     console.log('[PDF] Starting export for', ads.length, 'records');
     try {
@@ -28,7 +29,8 @@ export default function ExportAdsPDFButton({ ads }: { ads: Ad[] }) {
       // Header
       doc.setFontSize(18);
       doc.setTextColor(30, 58, 138); // blue-900
-      doc.text('Advertisement Requests Report', 14, 22);
+      const title = ads.length === 1 ? `Ad Report: ${ads[0].businessName}` : 'Advertisement Requests Report';
+      doc.text(title, 14, 22);
       
       doc.setFontSize(10);
       doc.setTextColor(100, 100, 100);
@@ -59,7 +61,8 @@ export default function ExportAdsPDFButton({ ads }: { ads: Ad[] }) {
       });
 
       console.log('[PDF] Generation successful, saving...');
-      doc.save(`Ad_Requests_${new Date().toISOString().split('T')[0]}.pdf`);
+      const fileName = ads.length === 1 ? `Ad_${ads[0].businessName.replace(/\s+/g, '_')}.pdf` : `Ad_Requests_${new Date().toISOString().split('T')[0]}.pdf`;
+      doc.save(fileName);
     } catch (error) {
       console.error('PDF Export Error:', error);
       alert('Failed to generate PDF report. Check console for details.');
@@ -67,6 +70,19 @@ export default function ExportAdsPDFButton({ ads }: { ads: Ad[] }) {
       setIsPending(false);
     }
   };
+
+  if (variant === 'icon') {
+    return (
+      <button
+        onClick={handleExport}
+        disabled={isPending || ads.length === 0}
+        className="bg-blue-50 text-blue-600 p-2 rounded-lg hover:bg-blue-100 transition-colors disabled:opacity-50"
+        title="Download PDF"
+      >
+        {isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <FileDown className="w-4 h-4" />}
+      </button>
+    );
+  }
 
   return (
     <button

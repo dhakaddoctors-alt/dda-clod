@@ -153,6 +153,7 @@ export default function AdminAdManager({ initialAds }: { initialAds: Ad[] }) {
                     </td>
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-2">
+                        <ExportAdsPDFButton ads={[ad]} variant="icon" />
                         {ad.status !== 'approved' && (
                           <button 
                             onClick={() => handleUpdateStatus(ad.id, 'approved')}
