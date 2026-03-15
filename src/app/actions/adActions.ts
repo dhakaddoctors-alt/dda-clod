@@ -10,7 +10,7 @@ export async function submitAdRequest(data: {
   businessName: string;
   contactPerson: string;
   mobile: string;
-  imageUrls: string[];
+  imageUrls: { url: string; description: string }[];
   linkUrl?: string;
 }) {
   try {

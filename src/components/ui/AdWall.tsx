@@ -39,17 +39,27 @@ export default function AdWall() {
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         {ads.map((ad) => {
-          const images = JSON.parse(ad.imageUrls) as string[];
+          const images = JSON.parse(ad.imageUrls) as {url: string, description: string}[];
           return (
             <div key={ad.id} className="bg-white rounded-2xl border border-gray-200 overflow-hidden shadow-sm hover:shadow-md transition-shadow group">
               <div className="relative aspect-video bg-gray-100 overflow-hidden">
                 <img 
-                  src={images[0]} 
+                  src={images[0].url} 
                   alt={ad.businessName} 
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                 />
+                
+                {/* Image Description Overlay */}
+                {images[0].description && (
+                  <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent p-4 pt-10 translate-y-2 group-hover:translate-y-0 transition-transform">
+                    <p className="text-white text-xs font-medium line-clamp-2">
+                      {images[0].description}
+                    </p>
+                  </div>
+                )}
+
                 {images.length > 1 && (
-                  <div className="absolute bottom-2 right-2 bg-black/60 text-white text-[10px] px-2 py-0.5 rounded-full backdrop-blur-sm">
+                  <div className="absolute top-2 right-2 bg-black/60 text-white text-[10px] px-2 py-0.5 rounded-full backdrop-blur-sm">
                     1/{images.length}
                   </div>
                 )}

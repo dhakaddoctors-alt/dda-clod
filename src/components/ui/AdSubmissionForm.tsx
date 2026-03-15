@@ -10,6 +10,7 @@ export default function AdSubmissionForm() {
   const [isPending, startTransition] = useTransition();
   const [files, setFiles] = useState<File[]>([]);
   const [previews, setPreviews] = useState<string[]>([]);
+  const [descriptions, setDescriptions] = useState<string[]>([]);
   const [formData, setFormData] = useState({
     businessName: '',
     contactPerson: '',
@@ -24,6 +25,7 @@ export default function AdSubmissionForm() {
       
       const newPreviews = selectedFiles.map(file => URL.createObjectURL(file));
       setPreviews(prev => [...prev, ...newPreviews]);
+      setDescriptions(prev => [...prev, ...selectedFiles.map(() => '')]);
     }
   };
 
@@ -31,6 +33,15 @@ export default function AdSubmissionForm() {
     setFiles(prev => prev.filter((_, i) => i !== index));
     URL.revokeObjectURL(previews[index]);
     setPreviews(prev => prev.filter((_, i) => i !== index));
+    setDescriptions(prev => prev.filter((_, i) => i !== index));
+  };
+
+  const handleDescriptionChange = (index: number, val: string) => {
+    setDescriptions(prev => {
+        const next = [...prev];
+        next[index] = val;
+        return next;
+    });
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -44,17 +55,21 @@ export default function AdSubmissionForm() {
       try {
         // 1. Upload all files to R2
         const uploadPromises = files.map(file => uploadToSocialR2(file));
-        const imageUrls = await Promise.all(uploadPromises);
+        const uploadedUrls = await Promise.all(uploadPromises);
         
-        const filteredUrls = imageUrls.filter(url => url !== '');
-        if (filteredUrls.length === 0) {
+        const adItems = uploadedUrls.map((url, i) => ({
+            url,
+            description: descriptions[i]
+        })).filter(item => item.url !== '');
+
+        if (adItems.length === 0) {
           throw new Error('Failed to upload files. Please try again.');
         }
 
         // 2. Submit data to DB
         const res = await submitAdRequest({
           ...formData,
-          imageUrls: filteredUrls,
+          imageUrls: adItems,
         });
 
         if (res.success) {
@@ -62,6 +77,7 @@ export default function AdSubmissionForm() {
           // Reset form
           setFiles([]);
           setPreviews([]);
+          setDescriptions([]);
           setFormData({
             businessName: '',
             contactPerson: '',
@@ -134,29 +150,42 @@ export default function AdSubmissionForm() {
           </div>
         </div>
 
-        {/* Multi-File Upload Section */}
-        <div>
-          <label className="block text-sm font-semibold text-gray-700 mb-2">Upload Ad Imagery (Multiple allowed) *</label>
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+        {/* Multi-File Upload Section with Descriptions */}
+        <div className="space-y-4">
+          <label className="block text-sm font-semibold text-gray-700 mb-2">Upload Ad Imagery & Descriptions *</label>
+          <div className="grid grid-cols-1 gap-4">
             {previews.map((preview, index) => (
-              <div key={index} className="relative aspect-video rounded-xl overflow-hidden border border-gray-200 group">
-                <img src={preview} alt="Preview" className="w-full h-full object-cover" />
-                <button 
-                  type="button" 
-                  onClick={() => removeFile(index)}
-                  className="absolute top-1 right-1 bg-red-500 text-white p-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
-                >
-                  <X className="w-4 h-4" />
-                </button>
+              <div key={index} className="flex gap-4 p-3 bg-gray-50 rounded-2xl border border-gray-200">
+                <div className="relative w-24 h-24 rounded-xl overflow-hidden border border-gray-200 shrink-0">
+                  <img src={preview} alt="Preview" className="w-full h-full object-cover" />
+                  <button 
+                    type="button" 
+                    onClick={() => removeFile(index)}
+                    className="absolute top-1 right-1 bg-red-500 text-white p-1 rounded-full transition-colors hover:bg-red-600"
+                  >
+                    <X className="w-3 h-3" />
+                  </button>
+                </div>
+                <div className="flex-1">
+                    <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Photo Description</label>
+                    <textarea 
+                        placeholder="Add a short description for this photo..."
+                        className="w-full h-16 p-2 text-sm bg-white border border-gray-200 rounded-lg outline-none focus:ring-1 focus:ring-blue-500 resize-none"
+                        value={descriptions[index]}
+                        onChange={(e) => handleDescriptionChange(index, e.target.value)}
+                    />
+                </div>
               </div>
             ))}
-            <label className="cursor-pointer aspect-video rounded-xl border-2 border-dashed border-gray-300 flex flex-col items-center justify-center hover:border-blue-500 hover:bg-blue-50 transition-all text-gray-400 hover:text-blue-500">
+            <label className="cursor-pointer w-full py-6 rounded-2xl border-2 border-dashed border-gray-300 flex flex-col items-center justify-center hover:border-blue-500 hover:bg-blue-50 transition-all text-gray-400 hover:text-blue-500">
               <input type="file" multiple accept="image/*,.jpg,.jpeg,.png" className="hidden" onChange={handleFileChange} />
-              <Plus className="w-6 h-6 mb-1" />
-              <span className="text-[10px] font-medium uppercase">Add Photo</span>
+              <div className="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center mb-2 group-hover:bg-blue-100 transition-colors">
+                <Plus className="w-6 h-6" />
+              </div>
+              <span className="text-xs font-bold uppercase tracking-wide">Add Another Photo</span>
             </label>
           </div>
-          <p className="mt-2 text-xs text-gray-500 italic">Supports JPG, PNG and other imagery formats.</p>
+          <p className="text-xs text-gray-500 italic">Supports multiple JPG/PNG imagery formats.</p>
         </div>
 
         <button 
