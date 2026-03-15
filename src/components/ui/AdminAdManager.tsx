@@ -6,6 +6,7 @@ import { Check, X, Trash2, Eye, ExternalLink, Clock, Image as ImageIcon, Briefca
 import toast from 'react-hot-toast';
 
 import ExportAdsPDFButton from './ExportAdsPDFButton';
+import ExportAdsImageButton from './ExportAdsImageButton';
 
 interface Ad {
   id: string;
@@ -153,6 +154,7 @@ export default function AdminAdManager({ initialAds }: { initialAds: Ad[] }) {
                     </td>
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-2">
+                        <ExportAdsImageButton ad={ad} variant="icon" />
                         <ExportAdsPDFButton ads={[ad]} variant="icon" />
                         {ad.status !== 'approved' && (
                           <button 
