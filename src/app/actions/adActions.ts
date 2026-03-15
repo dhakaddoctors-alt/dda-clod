@@ -26,36 +26,53 @@ export async function submitAdRequest(formData: FormData) {
 
     // 1. Upload files to R2 on the SERVER
     const uploadPromises = files.map(async (file, i) => {
-      const url = await uploadToSocialR2(file);
-      return {
-        url,
-        description: descriptions[i] || ''
-      };
+      try {
+        const url = await uploadToSocialR2(file);
+        console.log(`[Ad] Successfully uploaded image ${i+1}: ${url}`);
+        return {
+          url,
+          description: descriptions[i] || ''
+        };
+      } catch (uploadErr) {
+        console.error(`[Ad] Failed to upload image ${i+1}:`, uploadErr);
+        return { url: '', description: '' };
+      }
     });
 
     const adItems = (await Promise.all(uploadPromises)).filter(item => item.url !== '');
 
     if (adItems.length === 0) {
+      console.warn('[Ad] No images were successfully uploaded.');
       return { success: false, message: 'Failed to upload images. Please check your connection.' };
     }
 
     // 2. Insert into DB
-    await db.insert(advertisements).values({
-      id,
-      businessName,
-      contactPerson,
-      mobile,
-      imageUrls: JSON.stringify(adItems),
-      linkUrl: linkUrl || null,
-      status: 'pending',
-      createdAt: new Date(),
-    });
+    try {
+        await db.insert(advertisements).values({
+          id,
+          businessName,
+          contactPerson,
+          mobile,
+          imageUrls: JSON.stringify(adItems),
+          linkUrl: linkUrl || null,
+          status: 'pending',
+          createdAt: new Date(),
+        });
+        console.log(`[DB] Ad request successfully inserted: ${id}`);
+    } catch (dbErr: any) {
+        console.error('[DB] Failed to insert ad request:', dbErr);
+        if (dbErr.message?.includes('no such table')) {
+            console.log('[DB] Attempting to create advertisements table...');
+            // Optional: Run a manual create if really needed, but let's see the error first
+        }
+        throw dbErr;
+    }
 
-    console.log(`[DB] Ad request submitted: ${id}`);
     revalidatePath('/admin');
+    revalidatePath('/desktop/admin');
     return { success: true, message: 'Ad request submitted successfully. Waiting for approval.' };
   } catch (error: any) {
-    console.error('Error submitting ad request:', error);
+    console.error('Final Error submitting ad request:', error);
     return { success: false, message: error.message || 'Failed to submit ad request.' };
   }
 }
@@ -63,7 +80,9 @@ export async function submitAdRequest(formData: FormData) {
 export async function fetchAdsForAdmin() {
   try {
     const db = getDb();
-    return await db.select().from(advertisements).orderBy(desc(advertisements.createdAt));
+    const ads = await db.select().from(advertisements).orderBy(desc(advertisements.createdAt));
+    console.log(`[DB] Fetched ${ads.length} ads for admin review.`);
+    return ads;
   } catch (error) {
     console.error('Error fetching ads for admin:', error);
     return [];
@@ -80,7 +99,9 @@ export async function updateAdStatus(adId: string, newStatus: 'pending' | 'appro
 
     console.log(`[DB] Updated ad status: ${adId} to ${newStatus}`);
     revalidatePath('/admin');
-    revalidatePath('/'); // Assuming ads show on home page
+    revalidatePath('/desktop/admin');
+    revalidatePath('/'); 
+// Assuming ads show on home page
     return { success: true, message: `Ad ${newStatus} successfully.` };
   } catch (error: any) {
     console.error('Error updating ad status:', error);
