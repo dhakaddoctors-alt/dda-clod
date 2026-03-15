@@ -74,7 +74,7 @@ export default function Navbar() {
             <Link href="/gallery" className="text-sm font-medium text-gray-600 hover:text-blue-600 flex items-center gap-1.5 transition-colors">
               <ImageIcon className="w-4 h-4" /> Gallery
             </Link>
-            <Link href="/desktop/ads/submit" className="text-sm font-medium text-blue-600 hover:text-blue-700 flex items-center gap-1.5 transition-colors">
+            <Link href="/ads/submit" className="text-sm font-medium text-blue-600 hover:text-blue-700 flex items-center gap-1.5 transition-colors">
               <Megaphone className="w-4 h-4" /> Advertise
             </Link>
           </div>
