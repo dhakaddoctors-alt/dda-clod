@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { FileDown, Loader2 } from 'lucide-react';
 import jsPDF from 'jspdf';
-import 'jspdf-autotable';
+import autoTable from 'jspdf-autotable';
 
 interface Ad {
   id: string;
@@ -21,6 +21,7 @@ export default function ExportAdsPDFButton({ ads }: { ads: Ad[] }) {
 
   const handleExport = () => {
     setIsPending(true);
+    console.log('[PDF] Starting export for', ads.length, 'records');
     try {
       const doc = new jsPDF();
       
@@ -44,23 +45,24 @@ export default function ExportAdsPDFButton({ ads }: { ads: Ad[] }) {
         ad.linkUrl || 'N/A'
       ]);
 
-      (doc as any).autoTable({
+      autoTable(doc, {
         startY: 45,
         head: [['#', 'Business', 'Contact', 'Mobile', 'Status', 'Date', 'Link']],
         body: tableData,
         theme: 'grid',
         headStyles: { fillColor: [30, 58, 138], textColor: [255, 255, 255], fontStyle: 'bold' },
-        styles: { fontSize: 8 },
+        styles: { fontSize: 8, font: 'helvetica' },
         columnStyles: {
             0: { cellWidth: 10 },
             4: { fontStyle: 'bold' }
         }
       });
 
+      console.log('[PDF] Generation successful, saving...');
       doc.save(`Ad_Requests_${new Date().toISOString().split('T')[0]}.pdf`);
     } catch (error) {
       console.error('PDF Export Error:', error);
-      alert('Failed to generate PDF report.');
+      alert('Failed to generate PDF report. Check console for details.');
     } finally {
       setIsPending(false);
     }
