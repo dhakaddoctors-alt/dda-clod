@@ -5,6 +5,7 @@ import { registerUser } from '@/app/actions/authActions';
 import Navbar from '@/components/shared/Navbar';
 import { compressImageTo1MB } from '@/lib/imageCompression';
 import DynamicUPIQR from '@/components/ui/DynamicUPIQR';
+import { User, Stethoscope, GraduationCap, CheckCircle2 } from 'lucide-react';
 
 const inputClass = "mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 bg-gray-50 border p-2 text-sm";
 const labelClass = "block text-sm font-medium text-gray-700";
@@ -16,6 +17,12 @@ export default function RegisterPage() {
   const [isPending, startTransition] = useTransition();
   const [message, setMessage] = useState('');
 
+  const roles = [
+    { id: 'guest', label: 'Guest / Member', icon: User, color: 'blue' },
+    { id: 'doctor', label: 'Doctor', icon: Stethoscope, color: 'emerald' },
+    { id: 'student', label: 'Medical Student', icon: GraduationCap, color: 'purple' },
+  ];
+
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
       <Navbar />
@@ -24,21 +31,44 @@ export default function RegisterPage() {
           <div className="max-w-2xl w-full space-y-8 bg-white p-8 rounded-2xl shadow-lg border border-gray-100">
             <div>
               <h2 className="mt-2 text-center text-3xl font-extrabold text-blue-600">Join DDA Portal</h2>
-              <p className="mt-2 text-center text-sm text-gray-600">Fill in all details to complete your registration</p>
+              <p className="mt-1 text-center text-sm text-gray-500">Select your registration type below</p>
             </div>
 
-            {/* Role Selector */}
-            <div>
-              <label className={labelClass}>Register As *</label>
-              <select
-                value={role}
-                onChange={(e) => setRole(e.target.value as 'guest' | 'doctor' | 'student')}
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 bg-gray-50 border p-3 font-medium text-gray-800"
-              >
-                <option value="guest">Guest</option>
-                <option value="doctor">Doctor</option>
-                <option value="student">Student</option>
-              </select>
+            {/* Segmented Role Selector */}
+            <div className="space-y-3">
+              <label className="text-xs font-bold text-gray-400 uppercase tracking-widest ml-1">I am a...</label>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                {roles.map((r) => {
+                  const Icon = r.icon;
+                  const isActive = role === r.id;
+                  return (
+                    <button
+                      key={r.id}
+                      type="button"
+                      onClick={() => setRole(r.id as any)}
+                      className={`relative flex flex-col items-center justify-center p-4 rounded-2xl border-2 transition-all duration-200 group ${
+                        isActive 
+                          ? 'border-blue-600 bg-blue-50/50 shadow-md ring-4 ring-blue-50' 
+                          : 'border-gray-100 bg-white hover:border-gray-200 hover:bg-gray-50'
+                      }`}
+                    >
+                      <div className={`w-12 h-12 rounded-full flex items-center justify-center mb-3 transition-colors ${
+                        isActive ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-400 group-hover:bg-gray-200'
+                      }`}>
+                        <Icon className="w-6 h-6" />
+                      </div>
+                      <span className={`text-sm font-bold transition-colors ${isActive ? 'text-blue-900' : 'text-gray-600'}`}>
+                        {r.label}
+                      </span>
+                      {isActive && (
+                        <div className="absolute top-3 right-3 text-blue-600">
+                          <CheckCircle2 className="w-5 h-5 fill-white" />
+                        </div>
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
             </div>
 
             <form
