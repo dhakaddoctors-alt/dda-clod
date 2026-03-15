@@ -5,6 +5,8 @@ import { updateAdStatus, deleteAd } from '@/app/actions/adActions';
 import { Check, X, Trash2, Eye, ExternalLink, Clock, Image as ImageIcon, Briefcase, Phone, User as UserIcon } from 'lucide-react';
 import toast from 'react-hot-toast';
 
+import ExportAdsPDFButton from './ExportAdsPDFButton';
+
 interface Ad {
   id: string;
   businessName: string;
@@ -55,16 +57,19 @@ export default function AdminAdManager({ initialAds }: { initialAds: Ad[] }) {
           <h2 className="text-xl font-bold text-gray-900">Advertisement Requests</h2>
           <p className="text-sm text-gray-500">Manage business ads and sponsorships.</p>
         </div>
-        <div className="flex bg-gray-50 p-1 rounded-xl border border-gray-200">
-          {['all', 'pending', 'approved', 'rejected'].map(s => (
-            <button
-              key={s}
-              onClick={() => setFilter(s)}
-              className={`px-4 py-1.5 rounded-lg text-xs font-semibold capitalize transition-all ${filter === s ? 'bg-white text-blue-600 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
-            >
-              {s}
-            </button>
-          ))}
+        <div className="flex flex-wrap items-center gap-3">
+          <ExportAdsPDFButton ads={filteredAds} />
+          <div className="flex bg-gray-50 p-1 rounded-xl border border-gray-200">
+            {['all', 'pending', 'approved', 'rejected'].map(s => (
+              <button
+                key={s}
+                onClick={() => setFilter(s)}
+                className={`px-4 py-1.5 rounded-lg text-xs font-semibold capitalize transition-all ${filter === s ? 'bg-white text-blue-600 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+              >
+                {s}
+              </button>
+            ))}
+          </div>
         </div>
       </div>
 
