@@ -373,6 +373,7 @@ export default function RegisterPage() {
                         Bank: BANK OF BARODA<br />
                         A/C: 36580100010383<br />
                         IFSC: BARB0KESKOT<br />
+                        UPI ID:dhak9660383@barodampay<br />
                         Name: DHAKAD DOCTORS ASSOCIATION
                       </p>
                       <div>
