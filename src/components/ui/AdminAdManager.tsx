@@ -85,7 +85,6 @@ export default function AdminAdManager({ initialAds }: { initialAds: Ad[] }) {
               </tr>
             ) : (
               filteredAds.map(ad => {
-                const urls = JSON.parse(ad.imageUrls) as string[];
                 return (
                   <tr key={ad.id} className="hover:bg-gray-50 transition-colors">
                     <td className="px-6 py-4">
@@ -111,16 +110,32 @@ export default function AdminAdManager({ initialAds }: { initialAds: Ad[] }) {
                     </td>
                     <td className="px-6 py-4">
                       <div className="flex flex-wrap gap-2 max-w-[200px]">
-                        {urls.map((url, i) => (
-                          <a key={i} href={url} target="_blank" className="relative w-10 h-10 rounded-lg overflow-hidden border border-gray-200 group">
-                            <img src={url} alt="" className="w-full h-full object-cover" />
-                            <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
-                              <Eye className="w-3 h-3 text-white" />
+                        {(() => {
+                          const raw = JSON.parse(ad.imageUrls);
+                          const items = Array.isArray(raw) ? raw.map((item: any) => typeof item === 'string' ? { url: item, description: '' } : item) : [];
+                          return items.map((img: any, i: number) => (
+                            <div key={i} className="space-y-1">
+                                <a href={img.url} target="_blank" className="relative block w-10 h-10 rounded-lg overflow-hidden border border-gray-200 group">
+                                    <img src={img.url} alt="" className="w-full h-full object-cover" />
+                                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
+                                        <Eye className="w-3 h-3 text-white" />
+                                    </div>
+                                </a>
+                                {img.description && (
+                                    <p className="text-[10px] text-gray-500 italic leading-tight px-1 truncate w-10" title={img.description}>
+                                        {img.description}
+                                    </p>
+                                )}
                             </div>
-                          </a>
-                        ))}
+                          ));
+                        })()}
                       </div>
-                      <span className="text-[10px] text-gray-500 block mt-1">{urls.length} images uploaded</span>
+                      <span className="text-[10px] text-gray-500 block mt-1">
+                        {(() => {
+                          const raw = JSON.parse(ad.imageUrls);
+                          return Array.isArray(raw) ? raw.length : 0;
+                        })()} images uploaded
+                      </span>
                     </td>
                     <td className="px-6 py-4">
                       <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${

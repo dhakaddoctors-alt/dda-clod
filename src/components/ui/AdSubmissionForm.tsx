@@ -53,24 +53,18 @@ export default function AdSubmissionForm() {
 
     startTransition(async () => {
       try {
-        // 1. Upload all files to R2
-        const uploadPromises = files.map(file => uploadToSocialR2(file));
-        const uploadedUrls = await Promise.all(uploadPromises);
-        
-        const adItems = uploadedUrls.map((url, i) => ({
-            url,
-            description: descriptions[i]
-        })).filter(item => item.url !== '');
+        const data = new FormData();
+        data.append('businessName', formData.businessName);
+        data.append('contactPerson', formData.contactPerson);
+        data.append('mobile', formData.mobile);
+        data.append('linkUrl', formData.linkUrl);
 
-        if (adItems.length === 0) {
-          throw new Error('Failed to upload files. Please try again.');
-        }
-
-        // 2. Submit data to DB
-        const res = await submitAdRequest({
-          ...formData,
-          imageUrls: adItems,
+        files.forEach((file, i) => {
+          data.append('files', file);
+          data.append('descriptions', descriptions[i]);
         });
+
+        const res = await submitAdRequest(data);
 
         if (res.success) {
           toast.success(res.message);

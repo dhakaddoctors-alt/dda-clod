@@ -6,24 +6,47 @@ import { revalidatePath } from 'next/cache';
 import { getDb } from '@/db';
 import { randomUUID } from 'crypto';
 
-export async function submitAdRequest(data: {
-  businessName: string;
-  contactPerson: string;
-  mobile: string;
-  imageUrls: { url: string; description: string }[];
-  linkUrl?: string;
-}) {
+import { uploadToSocialR2 } from '@/lib/storage';
+
+export async function submitAdRequest(formData: FormData) {
   try {
     const db = getDb();
     const id = `ad_${randomUUID()}`;
 
+    const businessName = formData.get('businessName') as string;
+    const contactPerson = formData.get('contactPerson') as string;
+    const mobile = formData.get('mobile') as string;
+    const linkUrl = formData.get('linkUrl') as string;
+    
+    // Get all files and their corresponding descriptions
+    const files = formData.getAll('files') as File[];
+    const descriptions = formData.getAll('descriptions') as string[];
+
+    console.log(`[Ad] Processing submission for ${businessName} with ${files.length} images.`);
+
+    // 1. Upload files to R2 on the SERVER
+    const uploadPromises = files.map(async (file, i) => {
+      const url = await uploadToSocialR2(file);
+      return {
+        url,
+        description: descriptions[i] || ''
+      };
+    });
+
+    const adItems = (await Promise.all(uploadPromises)).filter(item => item.url !== '');
+
+    if (adItems.length === 0) {
+      return { success: false, message: 'Failed to upload images. Please check your connection.' };
+    }
+
+    // 2. Insert into DB
     await db.insert(advertisements).values({
       id,
-      businessName: data.businessName,
-      contactPerson: data.contactPerson,
-      mobile: data.mobile,
-      imageUrls: JSON.stringify(data.imageUrls),
-      linkUrl: data.linkUrl || null,
+      businessName,
+      contactPerson,
+      mobile,
+      imageUrls: JSON.stringify(adItems),
+      linkUrl: linkUrl || null,
       status: 'pending',
       createdAt: new Date(),
     });

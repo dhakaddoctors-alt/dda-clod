@@ -39,7 +39,13 @@ export default function AdWall() {
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         {ads.map((ad) => {
-          const images = JSON.parse(ad.imageUrls) as {url: string, description: string}[];
+          const rawImages = JSON.parse(ad.imageUrls);
+          const images = Array.isArray(rawImages) 
+            ? rawImages.map((img: any) => typeof img === 'string' ? { url: img, description: '' } : img)
+            : [];
+          
+          if (images.length === 0) return null;
+
           return (
             <div key={ad.id} className="bg-white rounded-2xl border border-gray-200 overflow-hidden shadow-sm hover:shadow-md transition-shadow group">
               <div className="relative aspect-video bg-gray-100 overflow-hidden">
