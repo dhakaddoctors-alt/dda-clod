@@ -46,15 +46,13 @@ export default function RegisterPage() {
                       key={r.id}
                       type="button"
                       onClick={() => setRole(r.id as any)}
-                      className={`relative flex flex-col items-center justify-center p-4 rounded-2xl border-2 transition-all duration-200 group ${
-                        isActive 
-                          ? 'border-blue-600 bg-blue-50/50 shadow-md ring-4 ring-blue-50' 
-                          : 'border-gray-100 bg-white hover:border-gray-200 hover:bg-gray-50'
-                      }`}
+                      className={`relative flex flex-col items-center justify-center p-4 rounded-2xl border-2 transition-all duration-200 group ${isActive
+                        ? 'border-blue-600 bg-blue-50/50 shadow-md ring-4 ring-blue-50'
+                        : 'border-gray-100 bg-white hover:border-gray-200 hover:bg-gray-50'
+                        }`}
                     >
-                      <div className={`w-12 h-12 rounded-full flex items-center justify-center mb-3 transition-colors ${
-                        isActive ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-400 group-hover:bg-gray-200'
-                      }`}>
+                      <div className={`w-12 h-12 rounded-full flex items-center justify-center mb-3 transition-colors ${isActive ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-400 group-hover:bg-gray-200'
+                        }`}>
                         <Icon className="w-6 h-6" />
                       </div>
                       <span className={`text-sm font-bold transition-colors ${isActive ? 'text-blue-900' : 'text-gray-600'}`}>
@@ -356,12 +354,18 @@ export default function RegisterPage() {
                   </div>
 
                   <div className="bg-blue-50 p-6 rounded-xl border border-blue-100 flex flex-col sm:flex-row items-start gap-6">
-                    <div className="flex-shrink-0">
+                    <div className="flex-shrink-0 flex flex-col items-center">
                       <DynamicUPIQR
                         upiId="dhak9660383@barodampay"
                         name="DHAKAD DOCTORS ASSOCIATION"
-                        className="w-48 h-48 sm:w-56 sm:h-56"
+                        className="w-48 h-48 sm:w-56 sm:h-56 mb-4"
                       />
+                      <a
+                        href="upi://pay?pa=dhak9660383@barodampay&pn=DHAKAD DOCTORS ASSOCIATION&cu=INR"
+                        className="flex items-center gap-2 px-4 py-2 bg-white border-2 border-blue-600 text-blue-600 rounded-full font-bold text-sm hover:bg-blue-600 hover:text-white transition-all active:scale-95 shadow-sm"
+                      >
+                        <span>📱 Open in UPI App</span>
+                      </a>
                     </div>
                     <div className="flex-1">
                       <h4 className="font-semibold text-gray-900 mb-1">Bank Details for Transfer</h4>
