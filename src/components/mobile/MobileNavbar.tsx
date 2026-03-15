@@ -42,6 +42,10 @@ export default function MobileNavbar() {
             <Bell className="w-5 h-5 text-gray-600" />
             <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full border-2 border-white"></span>
           </button>
+
+          <Link href="/ads/submit" className="p-2 hover:bg-gray-100 rounded-full bg-blue-50 text-blue-600">
+            <Megaphone className="w-5 h-5" />
+          </Link>
           
           {session ? (
              <div className="relative" ref={dropdownRef}>

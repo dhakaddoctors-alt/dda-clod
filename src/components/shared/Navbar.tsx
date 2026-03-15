@@ -122,7 +122,16 @@ export default function Navbar() {
                       <User className="w-4 h-4" />
                       <span>My Profile</span>
                     </Link>
-                    {isAdmin && (
+                      <Link 
+                        href="/ads/submit" 
+                        className="flex items-center gap-2 px-4 py-2 text-sm text-blue-600 hover:bg-blue-50 lg:hidden"
+                        onClick={() => setIsDropdownOpen(false)}
+                      >
+                        <Megaphone className="w-4 h-4" />
+                        <span className="font-medium">Advertise</span>
+                      </Link>
+
+                      {isAdmin && (
                        <Link 
                         href="/admin" 
                         className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
