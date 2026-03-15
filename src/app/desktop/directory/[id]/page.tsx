@@ -1,7 +1,7 @@
 import Navbar from '@/components/shared/Navbar';
 import { fetchUserProfile } from '@/app/actions/profileActions';
 import IdCard from '@/components/ui/IdCard';
-import { Mail, Phone, MapPin, Briefcase, GraduationCap, Award, Calendar } from 'lucide-react';
+import { Mail, Phone, MapPin, Briefcase, GraduationCap, Award, Calendar, Edit, User as UserIcon } from 'lucide-react';
 import Link from 'next/link';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/app/api/auth/[...nextauth]/route';
@@ -37,6 +37,8 @@ export default async function ProfilePage({ params }: { params: Promise<{ id: st
 
   const session = await getServerSession(authOptions) as any;
   const isAdmin = session?.user?.role === 'admin' || session?.user?.role === 'super_admin';
+  const isOwner = session?.user?.id === profileId;
+  const canEdit = isAdmin || isOwner;
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
@@ -76,9 +78,17 @@ export default async function ProfilePage({ params }: { params: Promise<{ id: st
                 <div className="mb-6 pb-6 border-b border-gray-100 flex justify-between items-start gap-4 flex-wrap">
                   <div>
                     <h1 className="text-3xl font-bold text-gray-900 mb-2">{profile.fullName}</h1>
-                    <div className="flex items-center gap-3 text-sm text-gray-500 font-medium pt-1">
-                      {/* Role badge removed from here */}
+                    <div className="flex flex-wrap items-center gap-3 text-sm text-gray-500 font-medium pt-1">
                       <span className="flex items-center gap-1"><Calendar className="w-4 h-4" /> Member since {new Date(profile.createdAt || Date.now()).getFullYear()}</span>
+                      {canEdit && (
+                        <Link 
+                          href={`/directory/${profile.id}/edit`}
+                          className="flex items-center gap-1.5 px-3 py-1 bg-blue-50 text-blue-600 rounded-full hover:bg-blue-100 transition-colors"
+                        >
+                          <Edit className="w-3.5 h-3.5" />
+                          <span>Edit Profile</span>
+                        </Link>
+                      )}
                     </div>
                   </div>
                   {profile.paymentStatus === 'verified' ? (
@@ -182,6 +192,16 @@ export default async function ProfilePage({ params }: { params: Promise<{ id: st
           </div>
         </main>
       </div>
+      {/* Mobile Floating Edit Button */}
+      {canEdit && (
+        <Link 
+          href={`/directory/${profile.id}/edit`}
+          className="lg:hidden fixed bottom-24 right-6 w-14 h-14 bg-blue-600 text-white rounded-full shadow-2xl flex items-center justify-center z-40 active:scale-90 transition-transform"
+          aria-label="Edit Profile"
+        >
+          <Edit className="w-6 h-6" />
+        </Link>
+      )}
     </div>
   );
 }
