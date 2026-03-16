@@ -13,11 +13,11 @@ const sectionClass = "space-y-4 pt-4";
 const sectionTitle = "text-lg font-semibold text-gray-900 border-b pb-2 mb-4";
 
 export default function RegisterPage() {
-  const [role, setRole] = useState<'guest' | 'doctor' | 'student'>('guest');
+  const [category, setCategory] = useState<'guest' | 'doctor' | 'student'>('guest');
   const [isPending, startTransition] = useTransition();
   const [message, setMessage] = useState('');
 
-  const roles = [
+  const identities = [
     { id: 'guest', label: 'Guest / Member', icon: User, color: 'blue' },
     { id: 'doctor', label: 'Doctor', icon: Stethoscope, color: 'emerald' },
     { id: 'student', label: 'Medical Student', icon: GraduationCap, color: 'purple' },
@@ -34,18 +34,18 @@ export default function RegisterPage() {
               <p className="mt-1 text-center text-sm text-gray-500">Select your registration type below</p>
             </div>
 
-            {/* Segmented Role Selector */}
+            {/* Segmented Identity Selector */}
             <div className="space-y-3">
               <label className="text-xs font-bold text-gray-400 uppercase tracking-widest ml-1">I am a...</label>
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                {roles.map((r) => {
+                {identities.map((r) => {
                   const Icon = r.icon;
-                  const isActive = role === r.id;
+                  const isActive = category === r.id;
                   return (
                     <button
                       key={r.id}
                       type="button"
-                      onClick={() => setRole(r.id as any)}
+                      onClick={() => setCategory(r.id as any)}
                       className={`relative flex flex-col items-center justify-center p-4 rounded-2xl border-2 transition-all duration-200 group ${isActive
                         ? 'border-blue-600 bg-blue-50/50 shadow-md ring-4 ring-blue-50'
                         : 'border-gray-100 bg-white hover:border-gray-200 hover:bg-gray-50'
@@ -80,7 +80,7 @@ export default function RegisterPage() {
                   return;
                 }
 
-                formData.append('role', role);
+                formData.append('category', category);
                 const avatar = formData.get('avatar') as File;
                 if (avatar && avatar.size > 0 && avatar.type.startsWith('image/')) {
                   formData.set('avatar', await compressImageTo1MB(avatar));
@@ -198,7 +198,7 @@ export default function RegisterPage() {
               </div>
 
               {/* ── GUEST SPECIFIC ───────────────────────────────── */}
-              {role === 'guest' && (
+              {category === 'guest' && (
                 <div className={sectionClass}>
                   <h3 className={sectionTitle}>Guest Details</h3>
                   <div>
@@ -209,7 +209,7 @@ export default function RegisterPage() {
               )}
 
               {/* ── DOCTOR SPECIFIC ──────────────────────────────── */}
-              {role === 'doctor' && (
+              {category === 'doctor' && (
                 <div className={sectionClass}>
                   <h3 className={sectionTitle}>Professional Details (Doctor)</h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -266,7 +266,7 @@ export default function RegisterPage() {
               )}
 
               {/* ── STUDENT SPECIFIC ─────────────────────────────── */}
-              {role === 'student' && (
+              {category === 'student' && (
                 <div className={sectionClass}>
                   <h3 className={sectionTitle}>Academic Details (Student)</h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -336,7 +336,7 @@ export default function RegisterPage() {
               )}
 
               {/* ── PAYMENT SECTION (non-guests) ─────────────────── */}
-              {role !== 'guest' && (
+              {category !== 'guest' && (
                 <div className="space-y-4 pt-6 mt-6 border-t-2 border-dashed border-gray-200">
                   <h3 className="text-lg font-semibold text-blue-800 flex items-center gap-2">
                     <span>💳</span> Membership Payment & Verification

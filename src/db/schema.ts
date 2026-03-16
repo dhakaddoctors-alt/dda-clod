@@ -19,7 +19,8 @@ export const profiles = sqliteTable('profiles', {
   gender: text('gender'),
   maritalStatus: text('marital_status'),
   dob: integer('dob', { mode: 'timestamp' }),
-  role: text('role').default('guest').notNull(), // guest, student, doctor, editor, admin, super_admin
+  role: text('role').default('member').notNull(), // member, editor, admin, super_admin
+  category: text('category').default('guest').notNull(), // guest, doctor, student
   state: text('state'), // new field for location-based elections
   district: text('district'), // new field for location-based elections
   avatarUrl: text('avatar_url'),

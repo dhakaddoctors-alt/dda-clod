@@ -21,12 +21,18 @@ import AdminFeedManager from '@/components/ui/AdminFeedManager';
 import AdminStoryManager from '@/components/ui/AdminStoryManager';
 import { fetchAdsForAdmin } from '@/app/actions/adActions';
 import AdminAdManager from '@/components/ui/AdminAdManager';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/app/api/auth/[...nextauth]/route';
 
 export default async function AdminDashboardPage() {
+  const session = await getServerSession(authOptions) as any;
+  const viewerRole = session?.user?.role || 'member';
+  
   const allUsers = await fetchAllUsersForAdmin();
   const pendingCount = allUsers.filter(u => u.paymentStatus === 'pending' && u.isDeleted === 0).length;
 
-  const doctorsCount = allUsers.filter(u => u.role === 'doctor' && u.isDeleted === 0).length;
+  const doctorsCount = allUsers.filter(u => u.category === 'doctor' && u.isDeleted === 0).length;
+  const studentsCount = allUsers.filter(u => u.category === 'student' && u.isDeleted === 0).length;
   const newsList = await fetchAllNews();
   const newsCount = newsList.length;
 
@@ -90,7 +96,7 @@ export default async function AdminDashboardPage() {
             </div>
 
             {/* Master Member Manager - TOP */}
-            <AdminMemberManager initialUsers={allUsers} />
+            <AdminMemberManager initialUsers={allUsers} viewerRole={viewerRole} />
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
               

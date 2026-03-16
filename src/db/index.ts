@@ -36,13 +36,18 @@ export function getDb(_env?: any) {
 
       const dbResult = data.result?.[0] || data.result || data;
 
-      // Extract results safely based on Cloudflare's slightly varying API response structures
       const rawRows = dbResult?.results || dbResult?.rows || (Array.isArray(dbResult) ? dbResult : []);
+      const columns = dbResult?.columns || [];
 
-      // drizzle-orm/sqlite-proxy REQUIRES rows as arrays of values, not objects.
-      // Drizzle uses the SELECT column order to map them back to camelCase properties.
+      // drizzle-orm/sqlite-proxy requires rows as arrays of values.
+      // We must use the 'columns' array to ensure the values are picked in the correct order.
       const rows = Array.isArray(rawRows)
-        ? rawRows.map((row: Record<string, any>) => Object.values(row))
+        ? rawRows.map((row: Record<string, any>) => {
+            if (columns.length > 0) {
+              return columns.map((col: string) => row[col]);
+            }
+            return Object.values(row);
+          })
         : rawRows;
 
       return { rows };

@@ -4,10 +4,11 @@ export default defineConfig({
   schema: './src/db/schema.ts',
   out: './drizzle/migrations',
   dialect: 'sqlite',
-  driver: 'd1-http', // using HTTP for local/cloudflare d1 connections
+  driver: 'd1-http',
   dbCredentials: {
     accountId: process.env.CLOUDFLARE_ACCOUNT_ID!,
     databaseId: process.env.CLOUDFLARE_DATABASE_ID!,
     token: process.env.CLOUDFLARE_D1_TOKEN!,
   },
+  tablesFilter: ["!__drizzle_migrations", "!d1_migrations"],
 });

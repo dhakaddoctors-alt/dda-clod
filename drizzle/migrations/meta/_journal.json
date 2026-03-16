@@ -57,6 +57,13 @@
       "when": 1773088459685,
       "tag": "0007_peaceful_rafael_vega",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "6",
+      "when": 1773679303101,
+      "tag": "0008_powerful_klaw",
+      "breakpoints": true
     }
   ]
 }

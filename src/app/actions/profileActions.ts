@@ -20,10 +20,10 @@ export async function fetchUserProfile(profileId: string) {
 
     let extraDetails = null;
 
-    if (baseProfile.role === 'doctor') {
+    if (baseProfile.category === 'doctor') {
       const docRaw = await db.select().from(doctorDetails).where(eq(doctorDetails.profileId, profileId)).limit(1);
       extraDetails = docRaw[0] || null;
-    } else if (baseProfile.role === 'student') {
+    } else if (baseProfile.category === 'student') {
       const stuRaw = await db.select().from(studentDetails).where(eq(studentDetails.profileId, profileId)).limit(1);
       extraDetails = stuRaw[0] || null;
     }
@@ -63,6 +63,7 @@ export async function updateUserProfile(formData: FormData) {
       state: formData.get('state') as string,
       district: formData.get('district') as string,
       occupation: formData.get('occupation') as string,
+      category: formData.get('category') as string,
     };
 
     // Handle optional avatar upload
@@ -79,9 +80,9 @@ export async function updateUserProfile(formData: FormData) {
       .set(updateData)
       .where(eq(profiles.id, profileId));
 
-    // 2. Prepare Role-Specific Update
-    const role = formData.get('role') as string;
-    if (role === 'doctor') {
+    // 2. Prepare Category-Specific Update
+    const category = formData.get('category') as string;
+    if (category === 'doctor') {
       const docData = {
         degree: formData.get('degree') as string,
         specialization: formData.get('specialization') as string,
@@ -99,7 +100,7 @@ export async function updateUserProfile(formData: FormData) {
         await db.insert(doctorDetails).values({ id: randomUUID(), profileId, ...docData });
       }
     } 
-    else if (role === 'student') {
+    else if (category === 'student') {
       const stuData = {
         college: formData.get('college') as string,
         university: formData.get('university') as string,

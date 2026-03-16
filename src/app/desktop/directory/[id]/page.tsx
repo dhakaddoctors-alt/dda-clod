@@ -31,12 +31,12 @@ export default async function ProfilePage({ params }: { params: Promise<{ id: st
     );
   }
 
-  const isDoctor = profile.role === 'doctor';
-  const isStudent = profile.role === 'student';
+  const isDoctor = profile.category === 'doctor';
+  const isStudent = profile.category === 'student';
   const details: any = profile.details || {};
 
   const session = await getServerSession(authOptions) as any;
-  const isAdmin = session?.user?.role === 'admin' || session?.user?.role === 'super_admin';
+  const isAdmin = session?.user?.role === 'admin' || session?.user?.role === 'super_admin' || session?.user?.role === 'editor';
   const isOwner = session?.user?.id === profileId;
   const canEdit = isAdmin || isOwner;
 
@@ -54,6 +54,7 @@ export default async function ProfilePage({ params }: { params: Promise<{ id: st
                  id={profile.id}
                  name={profile.fullName}
                  role={profile.role}
+                 category={profile.category}
                  membershipType={profile.membershipType}
                  avatarUrl={profile.avatarUrl || undefined}
                  validUntil="Dec 2028" // Stubbed for now
@@ -65,6 +66,7 @@ export default async function ProfilePage({ params }: { params: Promise<{ id: st
                       profileId={profile.id} 
                       isDeleted={profile.isDeleted ?? 0}
                       currentRole={profile.role}
+                      currentCategory={profile.category}
                     />
                  </div>
                )}

@@ -4,6 +4,22 @@ import { profiles, doctorDetails, studentDetails } from '@/db/schema';
 import { eq } from 'drizzle-orm';
 import { revalidatePath } from 'next/cache';
 import { getDb } from '@/db';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/app/api/auth/[...nextauth]/route';
+
+async function checkAdminAccess() {
+  const session = await getServerSession(authOptions) as any;
+  if (!session) return false;
+  const role = session.user.role;
+  return role === 'admin' || role === 'super_admin' || role === 'editor';
+}
+
+async function checkStrictAdminAccess() {
+  const session = await getServerSession(authOptions) as any;
+  if (!session) return false;
+  const role = session.user.role;
+  return role === 'admin' || role === 'super_admin';
+}
 
 export async function fetchPendingApprovals() {
   try {
@@ -18,8 +34,26 @@ export async function fetchPendingApprovals() {
 export async function fetchAllUsersForAdmin() {
   try {
     const db = getDb();
-    // Return all users regardless of status
-    return await db.select().from(profiles);
+    // Return all users regardless of status, with professional details joined for filtering
+    const results = await db.select({
+      id: profiles.id,
+      fullName: profiles.fullName,
+      email: profiles.email,
+      mobile: profiles.mobile,
+      role: profiles.role,
+      category: profiles.category,
+      paymentStatus: profiles.paymentStatus,
+      paymentReceiptUrl: profiles.paymentReceiptUrl,
+      isDeleted: profiles.isDeleted,
+      createdAt: profiles.createdAt,
+      // NOTE: We avoid selecting doctorDetails.id or studentDetails.id here
+      // because duplicate column names ('id') cause mapping shifts in the D1 HTTP API.
+    })
+    .from(profiles)
+    .leftJoin(doctorDetails, eq(profiles.id, doctorDetails.profileId))
+    .leftJoin(studentDetails, eq(profiles.id, studentDetails.profileId));
+
+    return results;
   } catch (error) {
     console.error('Error fetching all users:', error);
     return [];
@@ -28,6 +62,7 @@ export async function fetchAllUsersForAdmin() {
 
 export async function approveUser(profileId: string) {
   try {
+    if (!await checkAdminAccess()) throw new Error('Unauthorized');
     const db = getDb();
 
     await db.update(profiles)
@@ -47,6 +82,7 @@ export async function approveUser(profileId: string) {
 
 export async function rejectUser(profileId: string) {
   try {
+    if (!await checkAdminAccess()) throw new Error('Unauthorized');
     const db = getDb();
 
     await db.update(profiles)
@@ -63,6 +99,7 @@ export async function rejectUser(profileId: string) {
 
 export async function softDeleteUser(profileId: string) {
   try {
+    if (!await checkAdminAccess()) throw new Error('Unauthorized');
     const db = getDb();
     
     await db.update(profiles)
@@ -80,6 +117,7 @@ export async function softDeleteUser(profileId: string) {
 
 export async function restoreUser(profileId: string) {
   try {
+    if (!await checkAdminAccess()) throw new Error('Unauthorized');
     const db = getDb();
     
     await db.update(profiles)
@@ -97,10 +135,18 @@ export async function restoreUser(profileId: string) {
 
 export async function changeUserRole(profileId: string, newRole: string) {
   try {
+    const session = await getServerSession(authOptions) as any;
+    if (!session) throw new Error('Unauthorized');
+    
+    // Changing administrative roles should probably be limited to super_admin or admin
+    if (session.user.role !== 'admin' && session.user.role !== 'super_admin') {
+       throw new Error('Only Admins can change user roles.');
+    }
+
     const db = getDb();
     
-    // Ensure the newRole is one of the allowed ENUM values from the schema
-    const allowedRoles = ['guest', 'student', 'doctor', 'editor', 'admin', 'super_admin'];
+    // Ensure the newRole is one of the allowed admin ENUM values
+    const allowedRoles = ['member', 'editor', 'admin', 'super_admin'];
     if (!allowedRoles.includes(newRole)) {
       throw new Error('Invalid role specified.');
     }
@@ -116,6 +162,31 @@ export async function changeUserRole(profileId: string, newRole: string) {
     return { success: true, message: `User role updated to ${newRole}.` };
   } catch(error: any) {
     return { success: false, message: error.message || 'Failed to update user role.' };
+  }
+}
+
+export async function changeUserCategory(profileId: string, newCategory: string) {
+  try {
+    if (!await checkStrictAdminAccess()) throw new Error('Unauthorized: Only Admins can change identity categories.');
+    const db = getDb();
+    
+    // Ensure the newCategory is one of the allowed professional labels
+    const allowedCategories = ['guest', 'student', 'doctor'];
+    if (!allowedCategories.includes(newCategory)) {
+      throw new Error('Invalid category specified.');
+    }
+
+    await db.update(profiles)
+      .set({ category: newCategory })
+      .where(eq(profiles.id, profileId));
+
+    console.log(`[DB] Changed user category: ${profileId} to ${newCategory}`);
+    revalidatePath('/admin');
+    revalidatePath('/directory');
+    revalidatePath(`/directory/${profileId}`);
+    return { success: true, message: `User identity category updated to ${newCategory}.` };
+  } catch(error: any) {
+    return { success: false, message: error.message || 'Failed to update user category.' };
   }
 }
 
@@ -173,24 +244,29 @@ export async function exportMembersForPDF() {
     const formattedData = allProfiles.map(p => {
       let extraInfo = '';
       
-      if (p.role === 'doctor') {
-        const doc = allDocs.find(d => d.profileId === p.id);
-        if (doc) {
-          extraInfo = `${doc.degree || ''} ${doc.specialization ? '- '+doc.specialization : ''}\n${doc.hospitalName || doc.clinicAddress || ''}`;
-        }
-      } else if (p.role === 'student') {
-        const stu = allStudents.find(s => s.profileId === p.id);
-        if (stu) {
-          extraInfo = `${stu.course || ''} - ${stu.year || ''}\n${stu.college || ''}`;
-        }
+      // Use presence of joined details (not role string) to support dual identities
+      // e.g. an admin who is also a doctor will have a doctorDetails row
+      const doc = allDocs.find(d => d.profileId === p.id);
+      const stu = allStudents.find(s => s.profileId === p.id);
+
+      if (doc) {
+        extraInfo = `${doc.degree || ''} ${doc.specialization ? '- ' + doc.specialization : ''}\n${doc.hospitalName || doc.clinicAddress || ''}`;
+      } else if (stu) {
+        extraInfo = `${stu.course || ''} - ${stu.year || ''}\n${stu.college || ''}`;
+      }
+
+      // Build a readable role label using Category (and ignoring base role if it's just 'member')
+      let displayLabel = (p.category || 'GUEST').toUpperCase();
+      if (p.role !== 'member') {
+        displayLabel += ` (${p.role.toUpperCase()})`;
       }
       
       return {
         id: p.id.substring(0, 8),
         fullName: p.fullName || 'N/A',
         contact: `${p.mobile || 'No Mobile'}\n${p.email || ''}`,
-        role: p.role.toUpperCase(),
-        professionDetails: extraInfo || 'N/A',
+        role: displayLabel,
+        professionDetails: extraInfo.trim() || 'N/A',
         membership: p.membershipType.toUpperCase(),
         date: p.createdAt ? new Date(p.createdAt).toLocaleDateString() : 'N/A',
         avatarUrl: p.avatarUrl || null

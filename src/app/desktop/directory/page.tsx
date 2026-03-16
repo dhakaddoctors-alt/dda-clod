@@ -22,7 +22,7 @@ export default async function DirectoryPage(props: { searchParams?: Promise<{ q?
   const displayMembers = isAuthenticated ? members : members.slice(0, 6);
 
   const currentUserId = (session?.user as any)?.id || '';
-  const isStudent = (session?.user as any)?.role === 'student';
+  const isStudent = (session?.user as any)?.category === 'student';
   let aiMatches = null;
 
   if (isStudent && filter === 'doctor') {
@@ -40,6 +40,7 @@ export default async function DirectoryPage(props: { searchParams?: Promise<{ q?
             {/* Header & Smart Search */}
             <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-200 mb-6">
               <h1 className="text-2xl font-bold text-gray-900 mb-4">Member Directory</h1>
+              <p className="text-sm text-gray-500 mb-6">Search and browse our verified network of Doctors and Students.</p>
               
               {isAuthenticated ? (
                 <>
@@ -158,7 +159,15 @@ export default async function DirectoryPage(props: { searchParams?: Promise<{ q?
                     </div>
                     
                     <h3 className="text-lg font-bold text-gray-900 line-clamp-1">{member.name}</h3>
-                    {/* Role badge removed as per user request */}
+                    <div className="flex items-center gap-1 mt-1">
+                      <span className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full border ${
+                        member.category === 'doctor' ? 'bg-blue-50 text-blue-600 border-blue-100' :
+                        member.category === 'student' ? 'bg-emerald-50 text-emerald-600 border-emerald-100' :
+                        'bg-gray-50 text-gray-500 border-gray-100'
+                      }`}>
+                        {member.category || 'Guest'}
+                      </span>
+                    </div>
 
                     <div className="mt-4 w-full space-y-2 text-sm text-gray-600 flex-1 flex flex-col items-center">
                       {member.specialty && (

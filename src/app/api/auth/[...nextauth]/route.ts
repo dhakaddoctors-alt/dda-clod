@@ -41,6 +41,7 @@ export const authOptions: AuthOptions = {
           name: user.fullName, 
           email: user.email, 
           role: user.role,
+          category: user.category,
           avatarUrl: user.avatarUrl,
           state: user.state,
           district: user.district
@@ -60,6 +61,7 @@ export const authOptions: AuthOptions = {
       if (user) {
         token.id = (user as any).id;
         token.role = (user as any).role;
+        token.category = (user as any).category;
         token.state = (user as any).state;
         token.district = (user as any).district;
       }
@@ -69,6 +71,7 @@ export const authOptions: AuthOptions = {
       if (session?.user) {
         (session.user as any).id = token.id;
         (session.user as any).role = token.role;
+        (session.user as any).category = token.category;
         (session.user as any).state = token.state;
         (session.user as any).district = token.district;
       }

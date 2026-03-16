@@ -8,11 +8,13 @@ import Link from 'next/link';
 
 interface AdminMemberManagerProps {
   initialUsers: any[];
+  viewerRole: string;
 }
 
-export default function AdminMemberManager({ initialUsers }: AdminMemberManagerProps) {
+export default function AdminMemberManager({ initialUsers, viewerRole }: AdminMemberManagerProps) {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterRole, setFilterRole] = useState('all');
+  const [filterCategory, setFilterCategory] = useState('all');
   const [filterStatus, setFilterStatus] = useState('all');
   const [displayLimit, setDisplayLimit] = useState(10);
 
@@ -23,7 +25,13 @@ export default function AdminMemberManager({ initialUsers }: AdminMemberManagerP
       user.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       user.mobile?.includes(searchTerm.toLowerCase());
     
-    // Role Filter
+    // Category Filter (Professional Identity)
+    const matchesCategory = filterCategory === 'all' || 
+                            user.category === filterCategory ||
+                            (filterCategory === 'doctor' && !!user.doctorId) ||
+                            (filterCategory === 'student' && !!user.studentId);
+
+    // Role Filter (Admin Access)
     const matchesRole = filterRole === 'all' || user.role === filterRole;
     
     // Status Filter (includes payment and deleted status)
@@ -33,7 +41,7 @@ export default function AdminMemberManager({ initialUsers }: AdminMemberManagerP
     else if (filterStatus === 'pending') matchesStatus = user.paymentStatus === 'pending' && user.isDeleted === 0;
     else if (filterStatus === 'verified') matchesStatus = user.paymentStatus === 'verified' && user.isDeleted === 0;
 
-    return matchesSearch && matchesRole && matchesStatus;
+    return matchesSearch && matchesCategory && matchesRole && matchesStatus;
   }).sort((a, b) => {
     // Sort by createdAt descending (newest first)
     const dateA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
@@ -57,12 +65,12 @@ export default function AdminMemberManager({ initialUsers }: AdminMemberManagerP
           </span>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="relative">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div className="relative md:col-span-1">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
             <input 
               type="text" 
-              placeholder="Search by name, email, or mobile..." 
+              placeholder="Search..." 
               value={searchTerm}
               onChange={(e) => {
                 setSearchTerm(e.target.value);
@@ -72,24 +80,37 @@ export default function AdminMemberManager({ initialUsers }: AdminMemberManagerP
             />
           </div>
           <select 
-            value={filterRole}
+            value={filterCategory}
             onChange={(e) => {
-              setFilterRole(e.target.value);
-              setDisplayLimit(10); // Reset limit on filter
+              setFilterCategory(e.target.value);
+              setDisplayLimit(10); 
             }}
             className="w-full px-4 py-2 bg-white border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none"
           >
-            <option value="all">All Roles</option>
-            <option value="admin">Admins</option>
+            <option value="all">All Identities</option>
             <option value="doctor">Doctors</option>
             <option value="student">Students</option>
-            <option value="guest">Guests</option>
+            <option value="guest">Guests / Members</option>
+          </select>
+          <select 
+            value={filterRole}
+            onChange={(e) => {
+              setFilterRole(e.target.value);
+              setDisplayLimit(10); 
+            }}
+            className="w-full px-4 py-2 bg-white border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none"
+          >
+            <option value="all">All Access levels</option>
+            <option value="member">Members</option>
+            <option value="editor">Editors</option>
+            <option value="admin">Admins</option>
+            <option value="super_admin">Super Admins</option>
           </select>
           <select 
             value={filterStatus}
             onChange={(e) => {
               setFilterStatus(e.target.value);
-              setDisplayLimit(10); // Reset limit on filter
+              setDisplayLimit(10); 
             }}
             className="w-full px-4 py-2 bg-white border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none"
           >
@@ -125,7 +146,7 @@ export default function AdminMemberManager({ initialUsers }: AdminMemberManagerP
               </tr>
             ) : (
               displayedUsers.map((user) => (
-                <MemberTableRow key={user.id} user={user} />
+                <MemberTableRow key={user.id} user={user} viewerRole={viewerRole} />
               ))
             )}
           </tbody>
@@ -146,7 +167,7 @@ export default function AdminMemberManager({ initialUsers }: AdminMemberManagerP
   );
 }
 
-function MemberTableRow({ user }: { user: any }) {
+function MemberTableRow({ user, viewerRole }: { user: any, viewerRole: string }) {
   const [isExpanded, setIsExpanded] = useState(false);
 
   return (
@@ -161,21 +182,38 @@ function MemberTableRow({ user }: { user: any }) {
               {user.fullName?.charAt(0) || 'U'}
             </div>
             <div>
-              <div className="font-bold text-gray-900 flex items-center gap-1.5">
+              <div className="font-bold text-gray-900 flex items-center gap-1.5 line-clamp-1">
                 <Link href={`/directory/${user.id}`} className="hover:text-blue-600 hover:underline">
                   {user.fullName}
                 </Link>
                 {user.role === 'admin' && <ShieldAlert className="w-3.5 h-3.5 text-purple-600" />}
+                {user.role === 'super_admin' && <ShieldAlert className="w-3.5 h-3.5 text-red-600" />}
               </div>
-              <span className="text-xs font-medium text-gray-500 capitalize">{user.role}</span>
+              <div className="flex items-center gap-1 mt-0.5">
+                <span className={`text-[9px] px-1.5 py-0.5 rounded font-bold uppercase tracking-wider ${
+                   user.category === 'doctor' ? 'bg-blue-50 text-blue-600 border border-blue-100' :
+                   user.category === 'student' ? 'bg-emerald-50 text-emerald-600 border border-emerald-100' :
+                   'bg-gray-50 text-gray-500 border border-gray-100'
+                }`}>
+                  {user.category || 'Guest'}
+                </span>
+                {user.role !== 'member' && (
+                  <>
+                    <span className="text-[10px] text-gray-300 mx-1">•</span>
+                    <span className="text-[9px] font-bold text-purple-600 uppercase tracking-tighter bg-purple-50 px-1.5 py-0.5 rounded border border-purple-100">
+                      {user.role}
+                    </span>
+                  </>
+                )}
+              </div>
             </div>
           </div>
         </td>
 
         {/* Contact */}
         <td className="p-4 align-top min-w-[150px]">
-          <div className="text-gray-900 font-medium">{user.mobile || 'No Mobile'}</div>
-          <div className="text-gray-500 text-xs mt-0.5">{user.email || 'No Email'}</div>
+          <div className="text-gray-900 font-medium truncate max-w-[150px]">{user.mobile || 'No Mobile'}</div>
+          <div className="text-gray-500 text-xs mt-0.5 truncate max-w-[180px]">{user.email || 'No Email'}</div>
         </td>
 
         {/* Status & Quick Actions */}
@@ -203,10 +241,10 @@ function MemberTableRow({ user }: { user: any }) {
         <td className="p-4 align-top text-right">
           <button 
             onClick={() => setIsExpanded(!isExpanded)}
-            className={`px-3 py-1.5 border text-xs font-semibold rounded-lg transition-colors ${
+            className={`px-3 py-1.5 border text-xs font-semibold rounded-lg transition-all ${
               isExpanded 
-                ? 'bg-gray-800 text-white border-gray-800' 
-                : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
+                ? 'bg-gray-800 text-white border-gray-800 shadow-md' 
+                : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50 hover:border-gray-400'
             }`}
           >
             {isExpanded ? 'Close' : 'Manage'}
@@ -216,15 +254,16 @@ function MemberTableRow({ user }: { user: any }) {
 
       {/* Expanded Row */}
       {isExpanded && (
-        <tr className="bg-slate-50 border-b border-gray-200 shadow-inner">
+        <tr className="bg-slate-50 border-b border-gray-200">
           <td colSpan={4} className="p-6">
-            <div className="flex flex-col md:flex-row gap-6 bg-white p-4 rounded-xl border border-gray-200 shadow-sm max-w-4xl">
-              {/* Profile Level Controls only */}
+            <div className="flex flex-col md:flex-row gap-6 bg-white p-6 rounded-2xl border border-gray-200 shadow-xl max-w-4xl mx-auto">
               <div className="flex-1 w-full">
                  <AdminProfileControls 
                    profileId={user.id} 
                    isDeleted={user.isDeleted ?? 0}
                    currentRole={user.role} 
+                   currentCategory={user.category}
+                   viewerRole={viewerRole}
                  />
               </div>
             </div>

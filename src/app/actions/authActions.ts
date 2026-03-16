@@ -37,7 +37,8 @@ async function uploadToR2(file: File): Promise<string> {
 
 export async function registerUser(formData: FormData) {
   try {
-    const role = formData.get('role') as string;
+    const category = (formData.get('category') || formData.get('role')) as string; 
+    const role = 'member';
     const fullName = formData.get('fullName') as string;
     const mobile = formData.get('mobile') as string;
     const email = formData.get('email') as string;
@@ -70,6 +71,7 @@ export async function registerUser(formData: FormData) {
       mobile,
       passwordHash,
       role,
+      category,
       gender: formData.get('gender') as string || null,
       maritalStatus: formData.get('maritalStatus') as string || null,
       dob: dob ? new Date(dob) : null,
@@ -78,8 +80,8 @@ export async function registerUser(formData: FormData) {
       occupation: formData.get('occupation') as string || null,
       avatarUrl,
       membershipType: formData.get('membershipType') as string || 'member',
-      paymentReceiptUrl: role !== 'guest' ? paymentReceiptUrl : null,
-      paymentStatus: role !== 'guest' ? 'pending' : 'verified',
+      paymentReceiptUrl: category !== 'guest' ? paymentReceiptUrl : null,
+      paymentStatus: category !== 'guest' ? 'pending' : 'verified',
       createdAt: new Date(),
     };
 
@@ -93,8 +95,8 @@ export async function registerUser(formData: FormData) {
     try {
       await db.insert(profiles).values(newProfile);
 
-      // Role specific details
-      if (role === 'doctor') {
+      // Category specific details
+      if (category === 'doctor') {
         const docDetails = {
           id: randomUUID(),
           profileId,
@@ -113,7 +115,7 @@ export async function registerUser(formData: FormData) {
         };
         await db.insert(doctorDetails).values(docDetails);
       } 
-      else if (role === 'student') {
+      else if (category === 'student') {
         const collegeEntryYear = formData.get('collegeEntryYear') as string;
         const stuDetails = {
           id: randomUUID(),

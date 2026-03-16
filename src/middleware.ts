@@ -16,7 +16,7 @@ export async function middleware(request: NextRequest) {
     }
 
     const userRole = (token as any).role;
-    if (userRole !== 'admin' && userRole !== 'super_admin') {
+    if (userRole !== 'admin' && userRole !== 'super_admin' && userRole !== 'editor') {
       return NextResponse.redirect(new URL('/', request.url));
     }
   }

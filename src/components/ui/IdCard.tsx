@@ -8,13 +8,14 @@ interface IdCardProps {
   id: string;
   name: string;
   role: string;
+  category?: string;
   membershipType: string;
   avatarUrl?: string;
   bloodGroup?: string;
   validUntil?: string;
 }
 
-export default function IdCard({ id, name, role, membershipType, avatarUrl, bloodGroup, validUntil }: IdCardProps) {
+export default function IdCard({ id, name, role, category, membershipType, avatarUrl, bloodGroup, validUntil }: IdCardProps) {
   const [qrCodeUrl, setQrCodeUrl] = useState('');
 
   useEffect(() => {
@@ -69,7 +70,15 @@ export default function IdCard({ id, name, role, membershipType, avatarUrl, bloo
           <h3 className="text-xl font-bold text-gray-900 mb-1 line-clamp-1">{name}</h3>
           
           <div className="flex items-center gap-2 mb-4 min-h-[1.5rem]">
-             {/* Role display removed */}
+             {category && (
+               <span className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md border ${
+                 category === 'doctor' ? 'bg-blue-50 text-blue-700 border-blue-100' :
+                 category === 'student' ? 'bg-emerald-50 text-emerald-700 border-emerald-100' :
+                 'bg-gray-50 text-gray-500 border-gray-100'
+               }`}>
+                 {category}
+               </span>
+             )}
              {membershipType === 'aajivan' && (
                 <span className="bg-yellow-100 text-yellow-800 flex items-center gap-1 text-xs px-2 py-1 rounded-full font-bold leading-none">
                   <Award className="w-3 h-3" /> Life Member

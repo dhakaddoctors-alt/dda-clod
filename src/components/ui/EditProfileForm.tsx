@@ -7,17 +7,20 @@ import { User, Mail, Phone, MapPin, Briefcase, GraduationCap, Camera, Save, Arro
 
 interface EditProfileFormProps {
   profile: any;
+  isAdmin?: boolean;
+  canChangeCategory?: boolean;
 }
 
-export default function EditProfileForm({ profile }: EditProfileFormProps) {
+export default function EditProfileForm({ profile, isAdmin, canChangeCategory }: EditProfileFormProps) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [avatarPreview, setAvatarPreview] = useState<string | null>(profile.avatarUrl || null);
+  const [category, setCategory] = useState(profile.category || 'guest');
 
-  const isDoctor = profile.role === 'doctor';
-  const isStudent = profile.role === 'student';
+  const isDoctor = category === 'doctor';
+  const isStudent = category === 'student';
   const details = profile.details || {};
 
   const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -38,7 +41,8 @@ export default function EditProfileForm({ profile }: EditProfileFormProps) {
 
     const formData = new FormData(e.currentTarget);
     formData.append('profileId', profile.id);
-    formData.append('role', profile.role);
+    formData.append('category', category); // Use state value
+    formData.append('role', profile.role); // Keep role for consistency if needed
 
     startTransition(async () => {
       const result = await updateUserProfile(formData);
@@ -110,9 +114,25 @@ export default function EditProfileForm({ profile }: EditProfileFormProps) {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
         {/* Personal Details */}
         <div className="space-y-6 bg-white rounded-3xl p-6 shadow-sm border border-gray-100">
-          <h3 className="text-lg font-bold text-gray-900 flex items-center gap-2 mb-2">
-            <User className="w-5 h-5 text-blue-600" /> Personal Details
-          </h3>
+          <div className="flex items-center justify-between mb-2">
+            <h3 className="text-lg font-bold text-gray-900 flex items-center gap-2">
+              <User className="w-5 h-5 text-blue-600" /> Personal Details
+            </h3>
+            {canChangeCategory && (
+              <div className="flex items-center gap-2">
+                <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Identify As</label>
+                <select 
+                  value={category}
+                  onChange={(e) => setCategory(e.target.value)}
+                  className="px-3 py-1 bg-blue-50 text-blue-700 text-xs font-bold rounded-lg border border-blue-100 focus:outline-none"
+                >
+                  <option value="guest">Guest</option>
+                  <option value="student">Student</option>
+                  <option value="doctor">Doctor</option>
+                </select>
+              </div>
+            )}
+          </div>
           
           <div className="space-y-4">
             <div>

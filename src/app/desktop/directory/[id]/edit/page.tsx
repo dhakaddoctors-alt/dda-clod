@@ -14,7 +14,7 @@ export default async function EditProfilePage({ params }: { params: Promise<{ id
     redirect('/login');
   }
 
-  const isAdmin = session.user.role === 'admin' || session.user.role === 'super_admin';
+  const isAdmin = session.user.role === 'admin' || session.user.role === 'super_admin' || session.user.role === 'editor';
   const isOwner = session.user.id === profileId;
 
   if (!isAdmin && !isOwner) {
@@ -27,12 +27,14 @@ export default async function EditProfilePage({ params }: { params: Promise<{ id
     redirect('/directory');
   }
 
+  const canChangeCategory = session.user.role === 'admin' || session.user.role === 'super_admin';
+
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
       <Navbar />
       <div className="flex flex-1 pt-16">
         <main className="flex-1 p-4 lg:p-8 w-full">
-          <EditProfileForm profile={profile} />
+          <EditProfileForm profile={profile} isAdmin={isAdmin} canChangeCategory={canChangeCategory} />
         </main>
       </div>
     </div>
