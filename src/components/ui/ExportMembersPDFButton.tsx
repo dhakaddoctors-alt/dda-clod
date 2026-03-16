@@ -87,6 +87,7 @@ export default function ExportMembersPDFButton({ selectedIds }: ExportMembersPDF
   const [selectedFields, setSelectedFields] = useState<Set<string>>(new Set(DEFAULT_SELECTED));
   const [layout,         setLayout]         = useState<LayoutMode>('idcard');
   const [categoryFilter, setCategoryFilter] = useState<string>('all');
+  const [sortBy,         setSortBy]         = useState<string>('none');
 
   const toggleField = (key: string) =>
     setSelectedFields(prev => { const n = new Set(prev); n.has(key) ? n.delete(key) : n.add(key); return n; });
@@ -102,6 +103,14 @@ export default function ExportMembersPDFButton({ selectedIds }: ExportMembersPDF
     { value: 'doctor',  label: '🏥 Doctors',  color: 'blue'   },
     { value: 'student', label: '🎓 Students', color: 'purple' },
     { value: 'guest',   label: '👤 Guests',   color: 'green'  },
+  ];
+
+  const SORT_OPTIONS = [
+    { value: 'none', label: 'Default Order' },
+    { value: 'batchAsc', label: 'Batch Year (Ascending ▲)' },
+    { value: 'batchDesc', label: 'Batch Year (Descending ▼)' },
+    { value: 'entryYearAsc', label: 'Student Entry Year (Ascending ▲)' },
+    { value: 'entryYearDesc', label: 'Student Entry Year (Descending ▼)' },
   ];
 
   // ── TABLE PDF ──────────────────────────────────────────────────────────────
@@ -287,8 +296,27 @@ export default function ExportMembersPDFButton({ selectedIds }: ExportMembersPDF
     try {
       const res = await exportMembersForPDF(selectedIds, categoryFilter);
       if (!res.success || !res.data) { alert(res.message || 'Failed'); return; }
-      if (layout === 'table') await buildTablePDF(res.data);
-      else await buildIdCardPDF(res.data);
+
+      // Apply sorting if selected
+      let finalData = [...res.data];
+      if (sortBy !== 'none') {
+        finalData.sort((a: any, b: any) => {
+          if (sortBy === 'batchAsc' || sortBy === 'batchDesc') {
+            const valA = parseInt(a.batch) || 0;
+            const valB = parseInt(b.batch) || 0;
+            return sortBy === 'batchAsc' ? valA - valB : valB - valA;
+          }
+          if (sortBy === 'entryYearAsc' || sortBy === 'entryYearDesc') {
+            const valA = parseInt(a.collegeEntryYear) || 0;
+            const valB = parseInt(b.collegeEntryYear) || 0;
+            return sortBy === 'entryYearAsc' ? valA - valB : valB - valA;
+          }
+          return 0;
+        });
+      }
+
+      if (layout === 'table') await buildTablePDF(finalData);
+      else await buildIdCardPDF(finalData);
       setShowModal(false);
     } catch (err) {
       console.error(err);
@@ -340,23 +368,40 @@ export default function ExportMembersPDFButton({ selectedIds }: ExportMembersPDF
               </button>
             </div>
 
-            {/* Category filter */}
-            <div className="px-6 pt-3">
-              <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">Filter by Category</p>
-              <div className="flex gap-2 flex-wrap">
-                {CATEGORY_FILTERS.map(f => (
-                  <button
-                    key={f.value}
-                    onClick={() => setCategoryFilter(f.value)}
-                    className={`px-3 py-1.5 rounded-full text-sm font-semibold border-2 transition-all ${
-                      categoryFilter === f.value
-                        ? 'border-blue-600 bg-blue-50 text-blue-700'
-                        : 'border-gray-200 text-gray-500 hover:border-gray-300'
-                    }`}
-                  >
-                    {f.label}
-                  </button>
-                ))}
+            {/* Category filter & Sort */}
+            <div className="px-6 pt-3 grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* Left: Category */}
+              <div>
+                <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">Filter by Category</p>
+                <div className="flex gap-2 flex-wrap">
+                  {CATEGORY_FILTERS.map(f => (
+                    <button
+                      key={f.value}
+                      onClick={() => setCategoryFilter(f.value)}
+                      className={`px-3 py-1.5 rounded-full text-sm font-semibold border-2 transition-all ${
+                        categoryFilter === f.value
+                          ? 'border-blue-600 bg-blue-50 text-blue-700'
+                          : 'border-gray-200 text-gray-500 hover:border-gray-300'
+                      }`}
+                    >
+                      {f.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Right: Sort */}
+              <div>
+                <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">Sort By</p>
+                <select 
+                  value={sortBy} 
+                  onChange={(e) => setSortBy(e.target.value)}
+                  className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-sm font-medium text-gray-700 focus:bg-white focus:ring-2 focus:ring-blue-500 outline-none transition-all cursor-pointer"
+                >
+                  {SORT_OPTIONS.map(opt => (
+                    <option key={opt.value} value={opt.value}>{opt.label}</option>
+                  ))}
+                </select>
               </div>
             </div>
 
