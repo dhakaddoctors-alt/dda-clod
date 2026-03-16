@@ -232,11 +232,15 @@ export default function RegisterPage() {
                   <h3 className={sectionTitle}>Professional Details (Doctor)</h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                      <label className={labelClass}>Degree (e.g. MBBS, MD) *</label>
-                      <input type="text" name="degree" required className={inputClass} />
+                      <label className={labelClass}>Medical Degree *</label>
+                      <input type="text" name="degree" required className={inputClass} placeholder="e.g. MBBS, MD, BDS" />
                     </div>
                     <div>
-                      <label className={labelClass}>Specialization (Optional)</label>
+                      <label className={labelClass}>Batch Year</label>
+                      <input type="text" name="batch" className={inputClass} placeholder="e.g. 2012" />
+                    </div>
+                    <div>
+                      <label className={labelClass}>Specialization</label> (Optional)
                       <input type="text" name="specialization" className={inputClass} />
                     </div>
                     <div>

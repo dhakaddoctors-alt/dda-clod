@@ -153,6 +153,12 @@ export default async function ProfilePage({ params }: { params: Promise<{ id: st
                         <p className="text-xs text-gray-500 font-semibold uppercase">Degree</p>
                         <p className="font-medium text-gray-900 mt-1">{details.degree}</p>
                       </div>
+                      {details.batch && (
+                        <div>
+                          <p className="text-xs text-gray-500 font-semibold uppercase">Batch Year</p>
+                          <p className="font-medium text-gray-900 mt-1">{details.batch}</p>
+                        </div>
+                      )}
                       <div>
                         <p className="text-xs text-gray-500 font-semibold uppercase">Specialization</p>
                         <p className="font-medium text-gray-900 mt-1">{details.specialization}</p>

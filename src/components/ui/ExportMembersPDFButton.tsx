@@ -29,6 +29,7 @@ const ALL_FIELDS: FieldDef[] = [
   { key: 'district',              label: 'District',             group: 'Contact' },
   { key: 'occupation',            label: 'Occupation',           group: 'Contact' },
   { key: 'degree',                label: 'Degree',               group: 'Doctor' },
+  { key: 'batch',                 label: 'Batch Year',           group: 'Doctor' },
   { key: 'specialization',        label: 'Specialization',       group: 'Doctor' },
   { key: 'hospitalName',          label: 'Hospital/Clinic',      group: 'Doctor' },
   { key: 'presentWorkingPlace',   label: 'Working Place',        group: 'Doctor' },

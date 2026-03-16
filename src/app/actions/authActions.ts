@@ -103,6 +103,7 @@ export async function registerUser(formData: FormData) {
           id: randomUUID(),
           profileId,
           degree: formData.get('degree') as string || null,
+          batch: formData.get('batch') as string || null,
           specialization: formData.get('specialization') as string || null,
           registrationNo: formData.get('registrationNo') as string || null,
           experience: Number(formData.get('experience')) || null,

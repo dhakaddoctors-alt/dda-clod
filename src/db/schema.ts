@@ -39,6 +39,7 @@ export const doctorDetails = sqliteTable('doctor_details', {
   id: text('id').primaryKey(),
   profileId: text('profile_id').references(() => profiles.id).notNull().unique(),
   degree: text('degree'),
+  batch: text('batch'),
   specialization: text('specialization'),
   hospitalName: text('hospital_name'),
   presentWorkingPlace: text('present_working_place'),

@@ -87,6 +87,7 @@ export async function updateUserProfile(formData: FormData) {
     if (category === 'doctor') {
       const docData = {
         degree: formData.get('degree') as string,
+        batch: formData.get('batch') as string,
         specialization: formData.get('specialization') as string,
         hospitalName: formData.get('hospitalName') as string,
         presentWorkingPlace: formData.get('presentWorkingPlace') as string,

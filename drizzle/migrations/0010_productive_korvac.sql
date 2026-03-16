@@ -1,0 +1,1 @@
+ALTER TABLE `doctor_details` ADD `batch` text;

@@ -285,6 +285,7 @@ export async function exportMembersForPDF(profileIds?: string[], category?: stri
         createdAt: p.createdAt ? new Date(p.createdAt).toLocaleDateString('en-IN') : '',
         // Doctor fields
         degree: doc?.degree || '',
+        batch: doc?.batch || '',
         specialization: doc?.specialization || '',
         hospitalName: doc?.hospitalName || '',
         presentWorkingPlace: doc?.presentWorkingPlace || '',
