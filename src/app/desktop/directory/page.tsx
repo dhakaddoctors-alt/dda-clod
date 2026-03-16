@@ -2,6 +2,7 @@ import Link from 'next/link';
 import Navbar from '@/components/shared/Navbar';
 import { Search, Filter, MapPin, Briefcase, GraduationCap, Sparkles, Lock } from 'lucide-react';
 import { fetchDirectoryMembers } from '@/app/actions/directoryActions';
+import { toTitleCase, toUpperCase } from '@/lib/formatters';
 import { generateSmartRecommendations } from '@/app/actions/aiActions';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/app/api/auth/[...nextauth]/route';
@@ -158,36 +159,38 @@ export default async function DirectoryPage(props: { searchParams?: Promise<{ q?
                       )}
                     </div>
                     
-                    <h3 className="text-lg font-bold text-gray-900 line-clamp-1">{member.name}</h3>
+                    <h3 className="text-lg font-bold text-gray-900 line-clamp-1">{toTitleCase(member.name)}</h3>
                     <div className="flex items-center gap-1 mt-1">
                       <span className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full border ${
                         member.category === 'doctor' ? 'bg-blue-50 text-blue-600 border-blue-100' :
-                        member.category === 'student' ? 'bg-emerald-50 text-emerald-600 border-emerald-100' :
+                        member.category === 'student' ? 'bg-purple-50 text-purple-600 border-purple-100' :
                         'bg-gray-50 text-gray-500 border-gray-100'
                       }`}>
-                        {member.category || 'Guest'}
+                        {toUpperCase(member.category || 'Guest')}
                       </span>
                     </div>
 
                     <div className="mt-4 w-full space-y-2 text-sm text-gray-600 flex-1 flex flex-col items-center">
-                      {member.specialty && (
-                        <div className="flex items-center gap-2">
-                          <Briefcase className="w-4 h-4 text-gray-400 flex-shrink-0" />
-                          <span className="line-clamp-1">{member.specialty} • {member.experience} Yrs</span>
-                        </div>
-                      )}
-                      {member.course && (
-                        <div className="flex items-center gap-2">
-                          <GraduationCap className="w-4 h-4 text-gray-400 flex-shrink-0" />
-                          <span className="line-clamp-1">{member.course}</span>
-                        </div>
-                      )}
-                      {member.clinicAddress && (
-                         <div className="flex items-center gap-2">
-                          <MapPin className="w-4 h-4 text-gray-400 flex-shrink-0" />
-                          <span className="line-clamp-1">{member.clinicAddress}</span>
-                         </div>
-                      )}
+                      {member.category === 'doctor' && member.hospitalName && (
+                      <div className="flex items-start gap-2 text-sm text-gray-600 mb-2">
+                        <MapPin className="w-4 h-4 mt-0.5 text-blue-400 shrink-0" />
+                        <span className="line-clamp-2">{toTitleCase(member.hospitalName)}</span>
+                      </div>
+                    )}
+                    
+                    {member.category === 'student' && member.college && (
+                      <div className="flex items-start gap-2 text-sm text-gray-600 mb-2">
+                        <GraduationCap className="w-4 h-4 mt-0.5 text-purple-400 shrink-0" />
+                        <span className="line-clamp-2">{toTitleCase(member.college)}</span>
+                      </div>
+                    )}
+
+                    {member.category === 'guest' && member.occupation && (
+                      <div className="flex items-start gap-2 text-sm text-gray-600 mb-2">
+                        <Briefcase className="w-4 h-4 mt-0.5 text-gray-400 shrink-0" />
+                        <span className="line-clamp-2">{toTitleCase(member.occupation)}</span>
+                      </div>
+                    )}
                     </div>
 
                     <Link href={`/directory/${member.id}`} className="mt-6 w-full py-2 bg-blue-50 text-blue-600 hover:bg-blue-100 hover:text-blue-700 rounded-lg font-medium transition-colors">

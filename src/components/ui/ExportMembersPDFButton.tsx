@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { FileText, Loader2, X, CheckSquare, Square, CreditCard, Table2 } from 'lucide-react';
 import { exportMembersForPDF } from '@/app/actions/adminActions';
+import { toTitleCase, toUpperCase, toSentenceCase } from '@/lib/formatters';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 
@@ -117,7 +118,13 @@ export default function ExportMembersPDFButton({ selectedIds }: ExportMembersPDF
   const buildTablePDF = async (data: any[]) => {
     const orderedFields = ALL_FIELDS.filter(f => selectedFields.has(f.key));
     const headers = orderedFields.map(f => f.label);
-    const rows = data.map((m: any) => orderedFields.map(f => String(m[f.key] ?? '')));
+    const rows = data.map((m: any) => orderedFields.map(f => {
+      const v = String(m[f.key] ?? '');
+      // Format basic names/places
+      if (['fullName', 'fatherName', 'state', 'district', 'college', 'hospitalName', 'occupation'].includes(f.key)) return toTitleCase(v);
+      if (['bloodGroup', 'category', 'membershipType'].includes(f.key)) return toUpperCase(v);
+      return v;
+    }));
 
     const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
     doc.setFont('helvetica', 'bold');
@@ -228,7 +235,8 @@ export default function ExportMembersPDFButton({ selectedIds }: ExportMembersPDF
       doc.setFontSize(9);
       doc.setTextColor(15, 23, 42);
       const nameMaxW = cardW - (textX - x) - 3;
-      const nameLines = doc.splitTextToSize(member.fullName || 'Unknown', nameMaxW);
+      const formattedName = toTitleCase(member.fullName || 'Unknown');
+      const nameLines = doc.splitTextToSize(formattedName, nameMaxW);
       doc.text(nameLines[0], textX, textY);
       textY += 4.5;
 
@@ -250,19 +258,25 @@ export default function ExportMembersPDFButton({ selectedIds }: ExportMembersPDF
 
       const nonEmptyFields = cardFields.filter(f => String(member[f.key] || '').trim() !== '');
 
+      const formatField = (key: string, val: string) => {
+        if (['fatherName', 'state', 'district', 'college', 'hospitalName', 'occupation'].includes(key)) return toTitleCase(val);
+        if (['bloodGroup'].includes(key)) return toUpperCase(val);
+        return val;
+      };
+
       for (let fi = 0; fi < nonEmptyFields.length; fi += 2) {
         if (textY >= maxTextY) break;
 
         // Left column
         const fl = nonEmptyFields[fi];
-        const vl = String(member[fl.key] || '');
+        const vl = formatField(fl.key, String(member[fl.key] || ''));
         const leftText = doc.splitTextToSize(`${fl.label}: ${vl}`, halfW);
         doc.text(leftText[0], textX, textY);
 
         // Right column (if exists)
         if (fi + 1 < nonEmptyFields.length) {
           const fr = nonEmptyFields[fi + 1];
-          const vr = String(member[fr.key] || '');
+          const vr = formatField(fr.key, String(member[fr.key] || ''));
           const rightText = doc.splitTextToSize(`${fr.label}: ${vr}`, halfW);
           doc.text(rightText[0], rightColX, textY);
         }

@@ -4,6 +4,7 @@ import { useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import { updateUserProfile } from '@/app/actions/profileActions';
 import { User, Mail, Phone, MapPin, Briefcase, GraduationCap, Camera, Save, ArrowLeft, Loader2 } from 'lucide-react';
+import { toTitleCase, toUpperCase } from '@/lib/formatters';
 
 interface EditProfileFormProps {
   profile: any;
@@ -53,6 +54,14 @@ export default function EditProfileForm({ profile, isAdmin, canChangeCategory }:
         setError(result.message);
       }
     });
+  };
+
+  const handleFormatTitleCase = (e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    e.target.value = toTitleCase(e.target.value);
+  };
+
+  const handleFormatUpperCase = (e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    e.target.value = toUpperCase(e.target.value);
   };
 
   return (
@@ -141,6 +150,7 @@ export default function EditProfileForm({ profile, isAdmin, canChangeCategory }:
                 type="text" 
                 name="fullName" 
                 defaultValue={profile.fullName} 
+                onBlur={handleFormatTitleCase}
                 required
                 className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all outline-none" 
               />
@@ -203,6 +213,7 @@ export default function EditProfileForm({ profile, isAdmin, canChangeCategory }:
                     type="text" 
                     name="fatherName" 
                     defaultValue={profile.fatherName || ''} 
+                    onBlur={handleFormatTitleCase}
                     className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all outline-none" 
                   />
                </div>
@@ -252,6 +263,7 @@ export default function EditProfileForm({ profile, isAdmin, canChangeCategory }:
                     type="text" 
                     name="state" 
                     defaultValue={profile.state || ''}
+                    onBlur={handleFormatTitleCase}
                     placeholder="e.g. Rajasthan"
                     className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all outline-none" 
                   />
@@ -262,6 +274,7 @@ export default function EditProfileForm({ profile, isAdmin, canChangeCategory }:
                     type="text" 
                     name="district" 
                     defaultValue={profile.district || ''}
+                    onBlur={handleFormatTitleCase}
                     placeholder="e.g. Jaipur"
                     className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all outline-none" 
                   />
@@ -274,6 +287,7 @@ export default function EditProfileForm({ profile, isAdmin, canChangeCategory }:
                 type="text" 
                 name="occupation" 
                 defaultValue={profile.occupation || ''}
+                onBlur={handleFormatTitleCase}
                 placeholder="What do you do?"
                 className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all outline-none" 
               />
@@ -294,7 +308,7 @@ export default function EditProfileForm({ profile, isAdmin, canChangeCategory }:
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
                 <label className="block text-xs font-bold text-gray-500 uppercase mb-1.5 ml-1">Degree</label>
-                <input type="text" name="degree" defaultValue={details.degree || ''} className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:bg-white outline-none" placeholder="e.g. MBBS, MD, BDS" />
+                <input type="text" name="degree" defaultValue={details.degree || ''} onBlur={handleFormatUpperCase} className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:bg-white outline-none" placeholder="e.g. MBBS, MD, BDS" />
               </div>
               <div>
                 <label className="block text-xs font-bold text-gray-500 uppercase mb-1.5 ml-1">Batch Year</label>
@@ -306,7 +320,7 @@ export default function EditProfileForm({ profile, isAdmin, canChangeCategory }:
               </div>
               <div>
                 <label className="block text-xs font-bold text-gray-500 uppercase mb-1.5 ml-1">Hospital/Clinic Name</label>
-                <input type="text" name="hospitalName" defaultValue={details.hospitalName || ''} className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:bg-white outline-none" />
+                <input type="text" name="hospitalName" defaultValue={details.hospitalName || ''} onBlur={handleFormatTitleCase} className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:bg-white outline-none" />
               </div>
               <div>
                 <label className="block text-xs font-bold text-gray-500 uppercase mb-1.5 ml-1">Present Working Place</label>
@@ -330,7 +344,7 @@ export default function EditProfileForm({ profile, isAdmin, canChangeCategory }:
               </div>
               <div className="md:col-span-2">
                 <label className="block text-xs font-bold text-gray-500 uppercase mb-1.5 ml-1">Clinic Address</label>
-                <textarea name="clinicAddress" defaultValue={details.clinicAddress || ''} rows={2} className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:bg-white outline-none resize-none" />
+                <textarea name="clinicAddress" defaultValue={details.clinicAddress || ''} onBlur={handleFormatTitleCase} rows={2} className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:bg-white outline-none resize-none" />
               </div>
               <div className="md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
@@ -351,11 +365,11 @@ export default function EditProfileForm({ profile, isAdmin, canChangeCategory }:
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="md:col-span-2">
                 <label className="block text-xs font-bold text-gray-500 uppercase mb-1.5 ml-1">College Name</label>
-                <input type="text" name="college" defaultValue={details.college || ''} className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:bg-white outline-none" />
+                <input type="text" name="college" defaultValue={details.college || ''} onBlur={handleFormatTitleCase} className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:bg-white outline-none" />
               </div>
               <div>
                 <label className="block text-xs font-bold text-gray-500 uppercase mb-1.5 ml-1">University</label>
-                <input type="text" name="university" defaultValue={details.university || ''} className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:bg-white outline-none" />
+                <input type="text" name="university" defaultValue={details.university || ''} onBlur={handleFormatTitleCase} className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:bg-white outline-none" />
               </div>
               <div>
                 <label className="block text-xs font-bold text-gray-500 uppercase mb-1.5 ml-1">Course</label>

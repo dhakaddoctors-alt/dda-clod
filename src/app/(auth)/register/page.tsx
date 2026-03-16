@@ -6,6 +6,7 @@ import Navbar from '@/components/shared/Navbar';
 import { compressImageTo1MB } from '@/lib/imageCompression';
 import DynamicUPIQR from '@/components/ui/DynamicUPIQR';
 import { User, Stethoscope, GraduationCap, CheckCircle2 } from 'lucide-react';
+import { toTitleCase, toUpperCase } from '@/lib/formatters';
 
 const inputClass = "mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 bg-gray-50 border p-2 text-sm";
 const labelClass = "block text-sm font-medium text-gray-700";
@@ -73,6 +74,14 @@ export default function RegisterPage() {
               className="space-y-6"
               action={async (formData) => {
                 const password = formData.get('password') as string;
+
+                const handleFormatTitleCase = (e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+                  e.target.value = toTitleCase(e.target.value);
+                };
+              
+                const handleFormatUpperCase = (e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+                  e.target.value = toUpperCase(e.target.value);
+                };
                 const confirmPassword = formData.get('confirmPassword') as string;
 
                 if (password !== confirmPassword) {
@@ -107,11 +116,11 @@ export default function RegisterPage() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <label className={labelClass}>Full Name *</label>
-                    <input type="text" name="fullName" required className={inputClass} />
+                    <input type="text" name="fullName" required onBlur={(e) => { e.target.value = toTitleCase(e.target.value) }} className={inputClass} />
                   </div>
                   <div>
                     <label className={labelClass}>Father's Name *</label>
-                    <input type="text" name="fatherName" required className={inputClass} />
+                    <input type="text" name="fatherName" required onBlur={(e) => { e.target.value = toTitleCase(e.target.value) }} className={inputClass} />
                   </div>
                   <div>
                     <label className={labelClass}>Mobile Number *</label>
@@ -198,7 +207,7 @@ export default function RegisterPage() {
                   </div>
                   <div>
                     <label className={labelClass}>District</label>
-                    <input type="text" name="district" placeholder="e.g. Indore, Jaipur, Kota" className={inputClass} />
+                    <input type="text" name="district" placeholder="e.g. Indore, Jaipur, Kota" onBlur={(e) => { e.target.value = toTitleCase(e.target.value) }} className={inputClass} />
                   </div>
                   <div>
                     <label className={labelClass}>Password *</label>
@@ -221,7 +230,7 @@ export default function RegisterPage() {
                   <h3 className={sectionTitle}>Guest Details</h3>
                   <div>
                     <label className={labelClass}>Current Occupation</label>
-                    <input type="text" name="occupation" placeholder="e.g. Businessman, Teacher" className={inputClass} />
+                    <input type="text" name="occupation" placeholder="e.g. Businessman, Teacher" onBlur={(e) => { e.target.value = toTitleCase(e.target.value) }} className={inputClass} />
                   </div>
                 </div>
               )}
@@ -233,7 +242,7 @@ export default function RegisterPage() {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                       <label className={labelClass}>Medical Degree *</label>
-                      <input type="text" name="degree" required className={inputClass} placeholder="e.g. MBBS, MD, BDS" />
+                      <input type="text" name="degree" required onBlur={(e) => { e.target.value = toUpperCase(e.target.value) }} className={inputClass} placeholder="e.g. MBBS, MD, BDS" />
                     </div>
                     <div>
                       <label className={labelClass}>Batch Year</label>
@@ -241,7 +250,7 @@ export default function RegisterPage() {
                     </div>
                     <div>
                       <label className={labelClass}>Specialization</label> (Optional)
-                      <input type="text" name="specialization" className={inputClass} />
+                      <input type="text" name="specialization" onBlur={(e) => { e.target.value = toTitleCase(e.target.value) }} className={inputClass} />
                     </div>
                     <div>
                       <label className={labelClass}>Medical Registration No. *</label>
@@ -253,7 +262,7 @@ export default function RegisterPage() {
                     </div>
                     <div>
                       <label className={labelClass}>Hospital / Clinic Name</label>
-                      <input type="text" name="hospitalName" className={inputClass} />
+                      <input type="text" name="hospitalName" onBlur={(e) => { e.target.value = toTitleCase(e.target.value) }} className={inputClass} />
                     </div>
                     <div>
                       <label className={labelClass}>Present Working Place</label>
@@ -269,7 +278,7 @@ export default function RegisterPage() {
                     </div>
                     <div className="md:col-span-2">
                       <label className={labelClass}>Clinic Address</label>
-                      <input type="text" name="clinicAddress" className={inputClass} />
+                      <input type="text" name="clinicAddress" onBlur={(e) => { e.target.value = toTitleCase(e.target.value) }} className={inputClass} />
                     </div>
                     <div className="md:col-span-2">
                       <label className={labelClass}>Memberships / Associations</label>
@@ -294,15 +303,15 @@ export default function RegisterPage() {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="md:col-span-2">
                       <label className={labelClass}>College / Institute Name *</label>
-                      <input type="text" name="college" required className={inputClass} />
+                      <input type="text" name="college" required onBlur={(e) => { e.target.value = toTitleCase(e.target.value) }} className={inputClass} />
                     </div>
                     <div className="md:col-span-2">
                       <label className={labelClass}>University</label>
-                      <input type="text" name="university" className={inputClass} />
+                      <input type="text" name="university" onBlur={(e) => { e.target.value = toTitleCase(e.target.value) }} className={inputClass} />
                     </div>
                     <div>
                       <label className={labelClass}>Course (e.g. MBBS) *</label>
-                      <input type="text" name="course" required className={inputClass} />
+                      <input type="text" name="course" required onBlur={(e) => { e.target.value = toUpperCase(e.target.value) }} className={inputClass} />
                     </div>
                     <div>
                       <label className={labelClass}>Current Year / Semester *</label>

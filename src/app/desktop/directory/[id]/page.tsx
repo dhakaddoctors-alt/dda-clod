@@ -1,11 +1,13 @@
 import Navbar from '@/components/shared/Navbar';
 import { fetchUserProfile } from '@/app/actions/profileActions';
+import { notFound } from 'next/navigation';
 import IdCard from '@/components/ui/IdCard';
-import { Mail, Phone, MapPin, Briefcase, GraduationCap, Award, Calendar, Edit, User as UserIcon } from 'lucide-react';
+import { Mail, Phone, MapPin, Briefcase, GraduationCap, Award, Calendar, Edit, User as UserIcon, CheckCircle, Clock } from 'lucide-react';
 import Link from 'next/link';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/app/api/auth/[...nextauth]/route';
 import AdminProfileControls from '@/components/ui/AdminProfileControls';
+import { toTitleCase, toUpperCase } from '@/lib/formatters';
 
 export default async function ProfilePage({ params }: { params: Promise<{ id: string }> }) {
   const resolvedParams = await params;
@@ -13,22 +15,7 @@ export default async function ProfilePage({ params }: { params: Promise<{ id: st
   const profile = await fetchUserProfile(profileId);
 
   if (!profile) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex flex-col">
-        <Navbar />
-        <div className="flex flex-1 pt-16">
-          <main className="flex-1 p-8 flex items-center justify-center w-full">
-            <div className="bg-white p-8 rounded-2xl shadow-sm text-center">
-              <h2 className="text-2xl font-bold text-gray-900 mb-2">Profile Not Found</h2>
-              <p className="text-gray-500 mb-6">The member you are looking for does not exist or has been removed.</p>
-              <Link href="/directory" className="px-6 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition">
-                Return to Directory
-              </Link>
-            </div>
-          </main>
-        </div>
-      </div>
-    );
+    notFound();
   }
 
   const isDoctor = profile.category === 'doctor';
@@ -79,20 +66,37 @@ export default async function ProfilePage({ params }: { params: Promise<{ id: st
               {/* Header Info Block */}
               <div className="bg-white rounded-2xl p-6 md:p-8 shadow-sm border border-gray-200">
                 <div className="mb-6 pb-6 border-b border-gray-100 flex justify-between items-start gap-4 flex-wrap">
-                  <div>
-                    <h1 className="text-3xl font-bold text-gray-900 mb-2">{profile.fullName}</h1>
-                    <div className="flex flex-wrap items-center gap-3 text-sm text-gray-500 font-medium pt-1">
-                      <span className="flex items-center gap-1"><Calendar className="w-4 h-4" /> Member since {new Date(profile.createdAt || Date.now()).getFullYear()}</span>
-                      {canEdit && (
-                        <Link 
-                          href={`/directory/${profile.id}/edit`}
-                          className="flex items-center gap-1.5 px-3 py-1 bg-blue-50 text-blue-600 rounded-full hover:bg-blue-100 transition-colors"
-                        >
-                          <Edit className="w-3.5 h-3.5" />
-                          <span>Edit Profile</span>
-                        </Link>
-                      )}
+                  <div className="flex-1 text-center md:text-left">
+                    <h1 className="text-3xl font-black text-gray-900 mb-1">{toTitleCase(profile.fullName)}</h1>
+                    
+                    <div className="flex flex-wrap items-center justify-center md:justify-start gap-2 mb-3">
+                      <span className={`px-2.5 py-0.5 rounded-md text-[10px] font-black uppercase tracking-widest ${
+                        profile.category === 'doctor' ? 'bg-blue-100 text-blue-700' :
+                        profile.category === 'student' ? 'bg-purple-100 text-purple-700' :
+                        'bg-gray-100 text-gray-700'
+                      }`}>
+                        {toUpperCase(profile.category || 'Guest')}
+                      </span>
                     </div>
+
+                    {profile.district && profile.state && (
+                      <div className="flex items-center justify-center md:justify-start gap-1.5 text-gray-500 text-sm mt-2">
+                        <MapPin className="w-4 h-4 text-gray-400" />
+                        {toTitleCase(profile.district)}, {toTitleCase(profile.state)}
+                      </div>
+                    )}
+                  </div>
+                  <div className="flex flex-wrap items-center gap-3 text-sm text-gray-500 font-medium pt-1">
+                    <span className="flex items-center gap-1"><Calendar className="w-4 h-4" /> Member since {new Date(profile.createdAt || Date.now()).getFullYear()}</span>
+                    {canEdit && (
+                      <Link 
+                        href={`/directory/${profile.id}/edit`}
+                        className="flex items-center gap-1.5 px-3 py-1 bg-blue-50 text-blue-600 rounded-full hover:bg-blue-100 transition-colors"
+                      >
+                        <Edit className="w-3.5 h-3.5" />
+                        <span>Edit Profile</span>
+                      </Link>
+                    )}
                   </div>
                   {profile.paymentStatus === 'verified' ? (
                      <span className="bg-green-100 text-green-700 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider flex items-center gap-1">
@@ -127,7 +131,7 @@ export default async function ProfilePage({ params }: { params: Promise<{ id: st
                       <UserIcon className="w-5 h-5 text-gray-400 shrink-0" />
                       <div>
                         <p className="text-xs text-gray-500 font-semibold uppercase tracking-wider mb-0.5">Father's Name</p>
-                        <p className="text-gray-900 font-medium">{profile.fatherName}</p>
+                        <p className="text-gray-900 font-medium">{toTitleCase(profile.fatherName)}</p>
                       </div>
                     </div>
                   )}
@@ -136,7 +140,7 @@ export default async function ProfilePage({ params }: { params: Promise<{ id: st
                       <span className="text-red-500 text-lg shrink-0">🩸</span>
                       <div>
                         <p className="text-xs text-gray-500 font-semibold uppercase tracking-wider mb-0.5">Blood Group</p>
-                        <p className="text-red-700 font-bold text-lg">{profile.bloodGroup}</p>
+                        <p className="text-red-700 font-bold text-lg">{toUpperCase(profile.bloodGroup)}</p>
                       </div>
                     </div>
                   )}
@@ -151,7 +155,7 @@ export default async function ProfilePage({ params }: { params: Promise<{ id: st
                     <div className="bg-gray-50 rounded-2xl p-6 border border-gray-100 grid grid-cols-1 sm:grid-cols-2 gap-y-6 gap-x-4">
                       <div>
                         <p className="text-xs text-gray-500 font-semibold uppercase">Degree</p>
-                        <p className="font-medium text-gray-900 mt-1">{details.degree}</p>
+                        <p className="font-medium text-gray-900 mt-1">{toUpperCase(details.degree)}</p>
                       </div>
                       {details.batch && (
                         <div>
@@ -161,23 +165,19 @@ export default async function ProfilePage({ params }: { params: Promise<{ id: st
                       )}
                       <div>
                         <p className="text-xs text-gray-500 font-semibold uppercase">Specialization</p>
-                        <p className="font-medium text-gray-900 mt-1">{details.specialization}</p>
-                      </div>
-                      <div>
-                        <p className="text-xs text-gray-500 font-semibold uppercase">Hospital/Clinic Name</p>
-                        <p className="font-medium text-gray-900 mt-1">{details.hospitalName || 'Independent Practice'}</p>
-                      </div>
-                      <div>
-                        <p className="text-xs text-gray-500 font-semibold uppercase">Present Working Place</p>
-                        <p className="font-medium text-gray-900 mt-1">{details.presentWorkingPlace || 'Not Provided'}</p>
-                      </div>
-                      <div>
-                        <p className="text-xs text-gray-500 font-semibold uppercase">Registration No.</p>
-                        <p className="font-medium text-gray-900 mt-1">{details.registrationNo}</p>
+                        <p className="font-medium text-gray-900 mt-1">{toTitleCase(details.specialization) || 'General'}</p>
                       </div>
                       <div>
                         <p className="text-xs text-gray-500 font-semibold uppercase">Experience</p>
                         <p className="font-medium text-gray-900 mt-1">{details.experience} Years</p>
+                      </div>
+                      <div>
+                        <p className="text-xs text-gray-500 font-semibold uppercase">Hospital/Clinic Name</p>
+                        <p className="font-medium text-gray-900 mt-1">{toTitleCase(details.hospitalName) || 'N/A'}</p>
+                      </div>
+                      <div>
+                        <p className="text-xs text-gray-500 font-semibold uppercase">Registration No.</p>
+                        <p className="font-medium text-gray-900 mt-1">{details.registrationNo}</p>
                       </div>
                       <div>
                         <p className="text-xs text-gray-500 font-semibold uppercase">Consultation Fee</p>
