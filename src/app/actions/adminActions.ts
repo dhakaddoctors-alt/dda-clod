@@ -241,10 +241,7 @@ export async function exportMembersForPDF(profileIds?: string[]) {
   try {
     const db = getDb();
     
-    // Fetch records
     let profilesQuery = db.select().from(profiles);
-    
-    // If specific IDs are provided, filter by them
     const allProfiles = profileIds && profileIds.length > 0
       ? await profilesQuery.where(inArray(profiles.id, profileIds))
       : await profilesQuery;
@@ -255,34 +252,57 @@ export async function exportMembersForPDF(profileIds?: string[]) {
     if (allProfiles.length === 0) return { success: true, data: [] };
     
     const formattedData = allProfiles.map(p => {
-      let extraInfo = '';
-      
-      // Use presence of joined details (not role string) to support dual identities
-      // e.g. an admin who is also a doctor will have a doctorDetails row
       const doc = allDocs.find(d => d.profileId === p.id);
       const stu = allStudents.find(s => s.profileId === p.id);
 
-      if (doc) {
-        extraInfo = `${doc.degree || ''} ${doc.specialization ? '- ' + doc.specialization : ''}\n${doc.hospitalName || doc.clinicAddress || ''}`;
-      } else if (stu) {
-        extraInfo = `${stu.course || ''} - ${stu.year || ''}\n${stu.college || ''}`;
-      }
-
-      // Build a readable role label using Category (and ignoring base role if it's just 'member')
-      let displayLabel = (p.category || 'GUEST').toUpperCase();
-      if (p.role !== 'member') {
-        displayLabel += ` (${p.role.toUpperCase()})`;
-      }
-      
       return {
-        id: p.id.substring(0, 8),
-        fullName: p.fullName || 'N/A',
-        contact: `${p.mobile || 'No Mobile'}\n${p.email || ''}`,
-        role: displayLabel,
-        professionDetails: extraInfo.trim() || 'N/A',
-        membership: p.membershipType.toUpperCase(),
-        date: p.createdAt ? new Date(p.createdAt).toLocaleDateString() : 'N/A',
-        avatarUrl: p.avatarUrl || null
+        // Base Profile
+        id: p.id,
+        shortId: p.id.substring(0, 8),
+        fullName: p.fullName || '',
+        fatherName: p.fatherName || '',
+        email: p.email || '',
+        mobile: p.mobile || '',
+        gender: p.gender || '',
+        maritalStatus: p.maritalStatus || '',
+        dob: p.dob ? new Date(p.dob).toLocaleDateString('en-IN') : '',
+        bloodGroup: p.bloodGroup || '',
+        state: p.state || '',
+        district: p.district || '',
+        occupation: p.occupation || '',
+        category: p.category || '',
+        role: p.role || '',
+        membershipType: p.membershipType || '',
+        paymentStatus: p.paymentStatus || '',
+        avatarUrl: p.avatarUrl || null,
+        createdAt: p.createdAt ? new Date(p.createdAt).toLocaleDateString('en-IN') : '',
+        // Doctor fields
+        degree: doc?.degree || '',
+        specialization: doc?.specialization || '',
+        hospitalName: doc?.hospitalName || '',
+        presentWorkingPlace: doc?.presentWorkingPlace || '',
+        registrationNo: doc?.registrationNo || '',
+        experience: doc?.experience != null ? String(doc.experience) : '',
+        clinicAddress: doc?.clinicAddress || '',
+        consultationFee: doc?.consultationFee != null ? String(doc.consultationFee) : '',
+        availabilityTimings: doc?.availabilityTimings || '',
+        memberships: doc?.memberships || '',
+        awards: doc?.awards || '',
+        websiteSocialLinks: doc?.websiteSocialLinks || '',
+        // Student fields
+        college: stu?.college || '',
+        university: stu?.university || '',
+        course: stu?.course || '',
+        year: stu?.year || '',
+        collegeEntryYear: stu?.collegeEntryYear != null ? String(stu.collegeEntryYear) : '',
+        gotraFather: stu?.gotraFather || '',
+        gotraMother: stu?.gotraMother || '',
+        gotraGrandmother: stu?.gotraGrandmother || '',
+        futureGoals: stu?.futureGoals || '',
+        internshipStatus: stu?.internshipStatus || '',
+        hobbiesInterests: stu?.hobbiesInterests || '',
+        linkedinProfile: stu?.linkedinProfile || '',
+        bloodDonationWillingness: stu?.bloodDonationWillingness || '',
       };
     });
     
