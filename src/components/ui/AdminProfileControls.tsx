@@ -1,3 +1,5 @@
+'use client';
+
 import { useTransition, useState } from 'react';
 import { softDeleteUser, restoreUser, changeUserRole, changeUserCategory } from '@/app/actions/adminActions';
 import { Trash2, UserPlus, ShieldAlert, GraduationCap, Stethoscope, User } from 'lucide-react';

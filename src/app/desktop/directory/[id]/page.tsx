@@ -67,6 +67,7 @@ export default async function ProfilePage({ params }: { params: Promise<{ id: st
                       isDeleted={profile.isDeleted ?? 0}
                       currentRole={profile.role}
                       currentCategory={profile.category}
+                      viewerRole={session?.user?.role || 'member'}
                     />
                  </div>
                )}

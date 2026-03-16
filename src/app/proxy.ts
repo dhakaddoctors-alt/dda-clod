@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { getToken } from 'next-auth/jwt';
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   const url = request.nextUrl.clone();
 
   // Admin Route Protection
@@ -36,25 +36,7 @@ export async function middleware(request: NextRequest) {
   const userAgent = request.headers.get('user-agent') || '';
   const isMobile = /iPhone|iPad|iPod|Android/i.test(userAgent);
 
-  // Example logic:
-  // If user is on Mobile and trying to access root or dashboard
-  // We rewrite them to the (mobile) route group equivalent if needed,
-  // but since Route Groups are completely transparent to the URL, 
-  // we actually need to use folder-based routing internally 
-  // if we want Next.js to serve them separately.
-  
-  // *Important Next.js Behavior Note*:
-  // Route groups `(desktop)` and `(mobile)` do NOT change the URL structure.
-  // We can't actually rewrite to `/` and let it auto-resolve between groups.
-  // Instead, the structure should be:
-  // src/app/desktop/...
-  // src/app/mobile/...
-  // And the middleware rewrites the ROOT `/` to either `/desktop` or `/mobile`.
-  
-  // Let's implement the rewrite logic assuming we use actual folders for routing
-  // We currently only have a dedicated mobile experience for the root landing page.
-  // For all other routes (directory, profile, admin, etc.), we want Mobile users 
-  // to fall back to the existing responsive Desktop views to avoid 404s.
+  // Layout Routing Logic
   if (isMobile && url.pathname === '/') {
     url.pathname = '/mobile';
     return NextResponse.rewrite(url);
