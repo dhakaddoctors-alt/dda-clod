@@ -237,14 +237,21 @@ export async function exportMembersToCSV(profileIds?: string[]) {
   }
 }
 
-export async function exportMembersForPDF(profileIds?: string[]) {
+export async function exportMembersForPDF(profileIds?: string[], category?: string) {
   try {
     const db = getDb();
     
-    let profilesQuery = db.select().from(profiles);
-    const allProfiles = profileIds && profileIds.length > 0
-      ? await profilesQuery.where(inArray(profiles.id, profileIds))
-      : await profilesQuery;
+    let query = db.select().from(profiles);
+    let allProfiles = await query;
+
+    // Filter by selected IDs
+    if (profileIds && profileIds.length > 0) {
+      allProfiles = allProfiles.filter(p => profileIds.includes(p.id));
+    }
+    // Filter by category
+    if (category && category !== 'all') {
+      allProfiles = allProfiles.filter(p => p.category === category);
+    }
       
     const allDocs = await db.select().from(doctorDetails);
     const allStudents = await db.select().from(studentDetails);

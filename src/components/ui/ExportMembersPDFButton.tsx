@@ -85,6 +85,7 @@ export default function ExportMembersPDFButton({ selectedIds }: ExportMembersPDF
   const [showModal,      setShowModal]      = useState(false);
   const [selectedFields, setSelectedFields] = useState<Set<string>>(new Set(DEFAULT_SELECTED));
   const [layout,         setLayout]         = useState<LayoutMode>('idcard');
+  const [categoryFilter, setCategoryFilter] = useState<string>('all');
 
   const toggleField = (key: string) =>
     setSelectedFields(prev => { const n = new Set(prev); n.has(key) ? n.delete(key) : n.add(key); return n; });
@@ -94,6 +95,13 @@ export default function ExportMembersPDFButton({ selectedIds }: ExportMembersPDF
     const allSel = keys.every(k => selectedFields.has(k));
     setSelectedFields(prev => { const n = new Set(prev); keys.forEach(k => allSel ? n.delete(k) : n.add(k)); return n; });
   };
+
+  const CATEGORY_FILTERS = [
+    { value: 'all',     label: 'All Members', color: 'gray'   },
+    { value: 'doctor',  label: '🏥 Doctors',  color: 'blue'   },
+    { value: 'student', label: '🎓 Students', color: 'purple' },
+    { value: 'guest',   label: '👤 Guests',   color: 'green'  },
+  ];
 
   // ── TABLE PDF ──────────────────────────────────────────────────────────────
   const buildTablePDF = async (data: any[]) => {
@@ -276,7 +284,7 @@ export default function ExportMembersPDFButton({ selectedIds }: ExportMembersPDF
     setIsPending(true);
     setProgress('Fetching data...');
     try {
-      const res = await exportMembersForPDF(selectedIds);
+      const res = await exportMembersForPDF(selectedIds, categoryFilter);
       if (!res.success || !res.data) { alert(res.message || 'Failed'); return; }
       if (layout === 'table') await buildTablePDF(res.data);
       else await buildIdCardPDF(res.data);
@@ -316,7 +324,7 @@ export default function ExportMembersPDFButton({ selectedIds }: ExportMembersPDF
             </div>
 
             {/* Layout toggle */}
-            <div className="px-6 pt-4 flex gap-3">
+            <div className="px-6 pt-4 flex gap-3 flex-wrap">
               <button
                 onClick={() => setLayout('idcard')}
                 className={`flex items-center gap-2 px-4 py-2 rounded-xl border-2 font-semibold text-sm transition-all ${layout === 'idcard' ? 'border-blue-600 bg-blue-50 text-blue-700' : 'border-gray-200 text-gray-500 hover:border-gray-300'}`}
@@ -329,6 +337,26 @@ export default function ExportMembersPDFButton({ selectedIds }: ExportMembersPDF
               >
                 <Table2 className="w-4 h-4" /> Table List
               </button>
+            </div>
+
+            {/* Category filter */}
+            <div className="px-6 pt-3">
+              <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">Filter by Category</p>
+              <div className="flex gap-2 flex-wrap">
+                {CATEGORY_FILTERS.map(f => (
+                  <button
+                    key={f.value}
+                    onClick={() => setCategoryFilter(f.value)}
+                    className={`px-3 py-1.5 rounded-full text-sm font-semibold border-2 transition-all ${
+                      categoryFilter === f.value
+                        ? 'border-blue-600 bg-blue-50 text-blue-700'
+                        : 'border-gray-200 text-gray-500 hover:border-gray-300'
+                    }`}
+                  >
+                    {f.label}
+                  </button>
+                ))}
+              </div>
             </div>
 
             {/* Field picker */}
