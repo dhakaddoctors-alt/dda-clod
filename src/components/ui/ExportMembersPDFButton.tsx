@@ -151,7 +151,7 @@ export default function ExportMembersPDFButton({ selectedIds }: ExportMembersPDF
     const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
 
     // Layout constants
-    const COLS = 2, ROWS = 5, PER_PAGE = COLS * ROWS;
+    const COLS = 2, ROWS = 4, PER_PAGE = COLS * ROWS;
     const marginX = 8, marginTop = 22, marginBot = 8;
     const gapX = 5, gapY = 4;
     const pageW = 210, pageH = 297;
@@ -372,7 +372,7 @@ export default function ExportMembersPDFButton({ selectedIds }: ExportMembersPDF
                 onClick={() => setLayout('idcard')}
                 className={`flex items-center gap-2 px-4 py-2 rounded-xl border-2 font-semibold text-sm transition-all ${layout === 'idcard' ? 'border-blue-600 bg-blue-50 text-blue-700' : 'border-gray-200 text-gray-500 hover:border-gray-300'}`}
               >
-                <CreditCard className="w-4 h-4" /> ID Card (10/page)
+                <CreditCard className="w-4 h-4" /> ID Card (8/page)
               </button>
               <button
                 onClick={() => setLayout('table')}
