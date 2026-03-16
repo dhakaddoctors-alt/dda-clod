@@ -222,18 +222,34 @@ export default function ExportMembersPDFButton({ selectedIds }: ExportMembersPDF
       doc.text(cat, textX, textY);
       textY += 4;
 
-      // Extra fields
+      // Extra fields — 2 columns per row
       doc.setFont('helvetica', 'normal');
-      doc.setFontSize(6.5);
+      doc.setFontSize(6);
       doc.setTextColor(70, 70, 70);
       const maxTextY = y + cardH - 6;
-      for (const f of cardFields) {
+      const halfW = nameMaxW / 2 - 1;               // width of each column
+      const rightColX = textX + halfW + 2;           // X start of right column
+
+      const nonEmptyFields = cardFields.filter(f => String(member[f.key] || '').trim() !== '');
+
+      for (let fi = 0; fi < nonEmptyFields.length; fi += 2) {
         if (textY >= maxTextY) break;
-        const val = String(member[f.key] || '');
-        if (!val) continue;
-        const line = doc.splitTextToSize(`${f.label}: ${val}`, nameMaxW);
-        doc.text(line[0], textX, textY);
-        textY += 3.8;
+
+        // Left column
+        const fl = nonEmptyFields[fi];
+        const vl = String(member[fl.key] || '');
+        const leftText = doc.splitTextToSize(`${fl.label}: ${vl}`, halfW);
+        doc.text(leftText[0], textX, textY);
+
+        // Right column (if exists)
+        if (fi + 1 < nonEmptyFields.length) {
+          const fr = nonEmptyFields[fi + 1];
+          const vr = String(member[fr.key] || '');
+          const rightText = doc.splitTextToSize(`${fr.label}: ${vr}`, halfW);
+          doc.text(rightText[0], rightColX, textY);
+        }
+
+        textY += 3.6;
       }
 
       // Bottom strip — ID + Membership
