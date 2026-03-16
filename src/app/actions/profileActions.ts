@@ -87,9 +87,15 @@ export async function updateUserProfile(formData: FormData) {
         degree: formData.get('degree') as string,
         specialization: formData.get('specialization') as string,
         hospitalName: formData.get('hospitalName') as string,
+        presentWorkingPlace: formData.get('presentWorkingPlace') as string,
         registrationNo: formData.get('registrationNo') as string,
         experience: Number(formData.get('experience')) || 0,
         clinicAddress: formData.get('clinicAddress') as string,
+        consultationFee: Number(formData.get('consultationFee')) || 0,
+        availabilityTimings: formData.get('availabilityTimings') as string,
+        memberships: formData.get('memberships') as string,
+        awards: formData.get('awards') as string,
+        websiteSocialLinks: formData.get('websiteSocialLinks') as string,
       };
       
       // Check if details exist, if not insert, else update
@@ -106,8 +112,15 @@ export async function updateUserProfile(formData: FormData) {
         university: formData.get('university') as string,
         course: formData.get('course') as string,
         year: formData.get('year') as string,
+        collegeEntryYear: Number(formData.get('collegeEntryYear')) || 0,
         gotraFather: formData.get('gotraFather') as string,
         gotraMother: formData.get('gotraMother') as string,
+        gotraGrandmother: formData.get('gotraGrandmother') as string,
+        futureGoals: formData.get('futureGoals') as string,
+        internshipStatus: formData.get('internshipStatus') as string,
+        hobbiesInterests: formData.get('hobbiesInterests') as string,
+        linkedinProfile: formData.get('linkedinProfile') as string,
+        bloodDonationWillingness: formData.get('bloodDonationWillingness') as string,
       };
 
       const existing = await db.select().from(studentDetails).where(eq(studentDetails.profileId, profileId)).limit(1);

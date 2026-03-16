@@ -140,8 +140,12 @@ export default async function ProfilePage({ params }: { params: Promise<{ id: st
                         <p className="font-medium text-gray-900 mt-1">{details.specialization}</p>
                       </div>
                       <div>
-                        <p className="text-xs text-gray-500 font-semibold uppercase">Hospital/Clinic</p>
+                        <p className="text-xs text-gray-500 font-semibold uppercase">Hospital/Clinic Name</p>
                         <p className="font-medium text-gray-900 mt-1">{details.hospitalName || 'Independent Practice'}</p>
+                      </div>
+                      <div>
+                        <p className="text-xs text-gray-500 font-semibold uppercase">Present Working Place</p>
+                        <p className="font-medium text-gray-900 mt-1">{details.presentWorkingPlace || 'Not Provided'}</p>
                       </div>
                       <div>
                         <p className="text-xs text-gray-500 font-semibold uppercase">Registration No.</p>
@@ -151,10 +155,38 @@ export default async function ProfilePage({ params }: { params: Promise<{ id: st
                         <p className="text-xs text-gray-500 font-semibold uppercase">Experience</p>
                         <p className="font-medium text-gray-900 mt-1">{details.experience} Years</p>
                       </div>
+                      <div>
+                        <p className="text-xs text-gray-500 font-semibold uppercase">Consultation Fee</p>
+                        <p className="font-medium text-gray-900 mt-1">{details.consultationFee ? `₹${details.consultationFee}` : 'Variable'}</p>
+                      </div>
+                      <div>
+                        <p className="text-xs text-gray-500 font-semibold uppercase">Availability</p>
+                        <p className="font-medium text-gray-900 mt-1">{details.availabilityTimings || 'By Appointment'}</p>
+                      </div>
                       <div className="sm:col-span-2">
                         <p className="text-xs text-gray-500 font-semibold uppercase flex items-center gap-1"><MapPin className="w-3 h-3"/> Clinic Address</p>
                         <p className="font-medium text-gray-900 mt-1">{details.clinicAddress || 'Not Provided'}</p>
                       </div>
+                      {details.memberships && (
+                        <div className="sm:col-span-2">
+                          <p className="text-xs text-gray-500 font-semibold uppercase">Professional Memberships</p>
+                          <p className="font-medium text-gray-900 mt-1">{details.memberships}</p>
+                        </div>
+                      )}
+                      {details.awards && (
+                        <div className="sm:col-span-2">
+                          <p className="text-xs text-gray-500 font-semibold uppercase">Awards & Recognition</p>
+                          <p className="font-medium text-gray-900 mt-1">{details.awards}</p>
+                        </div>
+                      )}
+                      {details.websiteSocialLinks && (
+                        <div className="sm:col-span-2">
+                          <p className="text-xs text-gray-500 font-semibold uppercase">Website / Links</p>
+                          <a href={details.websiteSocialLinks} target="_blank" rel="noopener noreferrer" className="font-medium text-blue-600 hover:underline mt-1 block truncate">
+                            {details.websiteSocialLinks}
+                          </a>
+                        </div>
+                      )}
                     </div>
                   </>
                 )}
@@ -169,22 +201,74 @@ export default async function ProfilePage({ params }: { params: Promise<{ id: st
                         <p className="text-xs text-gray-500 font-semibold uppercase">College / Institute</p>
                         <p className="font-medium text-gray-900 mt-1">{details.college}</p>
                       </div>
+                      {details.university && (
+                         <div className="sm:col-span-2">
+                           <p className="text-xs text-gray-500 font-semibold uppercase">University</p>
+                           <p className="font-medium text-gray-900 mt-1">{details.university}</p>
+                         </div>
+                      )}
                       <div>
                         <p className="text-xs text-gray-500 font-semibold uppercase">Course</p>
                         <p className="font-medium text-gray-900 mt-1">{details.course}</p>
                       </div>
                       <div>
-                        <p className="text-xs text-gray-500 font-semibold uppercase">Year</p>
+                        <p className="text-xs text-gray-500 font-semibold uppercase">Current Year</p>
                         <p className="font-medium text-gray-900 mt-1">{details.year}</p>
                       </div>
+                      {details.collegeEntryYear && (
+                        <div>
+                          <p className="text-xs text-gray-500 font-semibold uppercase">Entry Year</p>
+                          <p className="font-medium text-gray-900 mt-1">{details.collegeEntryYear}</p>
+                        </div>
+                      )}
+                      {details.internshipStatus && (
+                        <div>
+                          <p className="text-xs text-gray-500 font-semibold uppercase">Internship Status</p>
+                          <p className="font-medium text-gray-900 mt-1 capitalize">{details.internshipStatus.replace('_', ' ')}</p>
+                        </div>
+                      )}
                       <div>
-                        <p className="text-xs text-gray-500 font-semibold uppercase flex items-center gap-1">Father's Gotra</p>
+                        <p className="text-xs text-gray-500 font-semibold uppercase">Father's Gotra</p>
                         <p className="font-medium text-gray-900 mt-1">{details.gotraFather || 'Not Provided'}</p>
                       </div>
                       <div>
-                        <p className="text-xs text-gray-500 font-semibold uppercase flex items-center gap-1">Mother's Gotra</p>
+                        <p className="text-xs text-gray-500 font-semibold uppercase">Mother's Gotra</p>
                         <p className="font-medium text-gray-900 mt-1">{details.gotraMother || 'Not Provided'}</p>
                       </div>
+                      {details.gotraGrandmother && (
+                        <div>
+                          <p className="text-xs text-gray-500 font-semibold uppercase">Grandmother's Gotra</p>
+                          <p className="font-medium text-gray-900 mt-1">{details.gotraGrandmother}</p>
+                        </div>
+                      )}
+                      {details.bloodDonationWillingness && (
+                        <div>
+                          <p className="text-xs text-gray-500 font-semibold uppercase">Blood Donation</p>
+                          <p className={`font-bold mt-1 ${details.bloodDonationWillingness === 'yes' ? 'text-red-600' : 'text-gray-900'}`}>
+                            {details.bloodDonationWillingness === 'yes' ? 'Willing to Donate ❤️' : details.bloodDonationWillingness.replace('_', ' ')}
+                          </p>
+                        </div>
+                      )}
+                      {details.linkedinProfile && (
+                        <div className="sm:col-span-2">
+                          <p className="text-xs text-gray-500 font-semibold uppercase">LinkedIn Profile</p>
+                          <a href={details.linkedinProfile} target="_blank" rel="noopener noreferrer" className="font-medium text-blue-600 hover:underline mt-1 block truncate">
+                            {details.linkedinProfile}
+                          </a>
+                        </div>
+                      )}
+                      {details.futureGoals && (
+                        <div className="sm:col-span-2">
+                          <p className="text-xs text-gray-500 font-semibold uppercase">Future Goals</p>
+                          <p className="font-medium text-gray-900 mt-1">{details.futureGoals}</p>
+                        </div>
+                      )}
+                      {details.hobbiesInterests && (
+                        <div className="sm:col-span-2">
+                          <p className="text-xs text-gray-500 font-semibold uppercase">Hobbies & Interests</p>
+                          <p className="font-medium text-gray-900 mt-1">{details.hobbiesInterests}</p>
+                        </div>
+                      )}
                     </div>
                   </>
                 )}

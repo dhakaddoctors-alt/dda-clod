@@ -275,6 +275,10 @@ export default function EditProfileForm({ profile, isAdmin, canChangeCategory }:
                 <input type="text" name="hospitalName" defaultValue={details.hospitalName || ''} className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:bg-white outline-none" />
               </div>
               <div>
+                <label className="block text-xs font-bold text-gray-500 uppercase mb-1.5 ml-1">Present Working Place</label>
+                <input type="text" name="presentWorkingPlace" defaultValue={details.presentWorkingPlace || ''} className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:bg-white outline-none" />
+              </div>
+              <div>
                 <label className="block text-xs font-bold text-gray-500 uppercase mb-1.5 ml-1">Registration No.</label>
                 <input type="text" name="registrationNo" defaultValue={details.registrationNo || ''} className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:bg-white outline-none" />
               </div>
@@ -282,9 +286,31 @@ export default function EditProfileForm({ profile, isAdmin, canChangeCategory }:
                 <label className="block text-xs font-bold text-gray-500 uppercase mb-1.5 ml-1">Experience (Years)</label>
                 <input type="number" name="experience" defaultValue={details.experience || ''} className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:bg-white outline-none" />
               </div>
+              <div>
+                <label className="block text-xs font-bold text-gray-500 uppercase mb-1.5 ml-1">Consultation Fee (₹)</label>
+                <input type="number" name="consultationFee" defaultValue={details.consultationFee || ''} className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:bg-white outline-none" />
+              </div>
+              <div>
+                <label className="block text-xs font-bold text-gray-500 uppercase mb-1.5 ml-1">Availability Timings</label>
+                <input type="text" name="availabilityTimings" defaultValue={details.availabilityTimings || ''} placeholder="e.g. 10 AM - 5 PM" className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:bg-white outline-none" />
+              </div>
               <div className="md:col-span-2">
                 <label className="block text-xs font-bold text-gray-500 uppercase mb-1.5 ml-1">Clinic Address</label>
-                <textarea name="clinicAddress" defaultValue={details.clinicAddress || ''} rows={3} className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:bg-white outline-none resize-none" />
+                <textarea name="clinicAddress" defaultValue={details.clinicAddress || ''} rows={2} className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:bg-white outline-none resize-none" />
+              </div>
+              <div className="md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <label className="block text-xs font-bold text-gray-500 uppercase mb-1.5 ml-1">Professional Memberships</label>
+                  <textarea name="memberships" defaultValue={details.memberships || ''} rows={2} placeholder="IMA, API, etc." className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:bg-white outline-none resize-none" />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-gray-500 uppercase mb-1.5 ml-1">Awards & Recognition</label>
+                  <textarea name="awards" defaultValue={details.awards || ''} rows={2} className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:bg-white outline-none resize-none" />
+                </div>
+              </div>
+              <div className="md:col-span-2">
+                <label className="block text-xs font-bold text-gray-500 uppercase mb-1.5 ml-1">Website or Social Links</label>
+                <input type="text" name="websiteSocialLinks" defaultValue={details.websiteSocialLinks || ''} placeholder="https://..." className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:bg-white outline-none" />
               </div>
             </div>
           ) : (
@@ -313,6 +339,45 @@ export default function EditProfileForm({ profile, isAdmin, canChangeCategory }:
                 <div>
                   <label className="block text-xs font-bold text-gray-500 uppercase mb-1.5 ml-1">Mother's Gotra</label>
                   <input type="text" name="gotraMother" defaultValue={details.gotraMother || ''} className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:bg-white outline-none" />
+                </div>
+              </div>
+              <div>
+                <label className="block text-xs font-bold text-gray-500 uppercase mb-1.5 ml-1">Grandmother's Gotra</label>
+                <input type="text" name="gotraGrandmother" defaultValue={details.gotraGrandmother || ''} className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:bg-white outline-none" />
+              </div>
+              <div>
+                <label className="block text-xs font-bold text-gray-500 uppercase mb-1.5 ml-1">College Entry Year</label>
+                <input type="number" name="collegeEntryYear" defaultValue={details.collegeEntryYear || ''} className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:bg-white outline-none" />
+              </div>
+              <div>
+                <label className="block text-xs font-bold text-gray-500 uppercase mb-1.5 ml-1">Internship Status</label>
+                <select name="internshipStatus" defaultValue={details.internshipStatus || ''} className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:bg-white outline-none">
+                   <option value="">Select Status</option>
+                   <option value="not_started">Not Started</option>
+                   <option value="ongoing">Ongoing</option>
+                   <option value="completed">Completed</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-xs font-bold text-gray-500 uppercase mb-1.5 ml-1">LinkedIn Profile</label>
+                <input type="text" name="linkedinProfile" defaultValue={details.linkedinProfile || ''} placeholder="https://linkedin.com/in/..." className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:bg-white outline-none" />
+              </div>
+              <div className="md:col-span-2">
+                <label className="block text-xs font-bold text-gray-500 uppercase mb-1.5 ml-1">Willing to Donate Blood?</label>
+                <select name="bloodDonationWillingness" defaultValue={details.bloodDonationWillingness || ''} className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:bg-white outline-none">
+                   <option value="no">No</option>
+                   <option value="yes">Yes</option>
+                   <option value="emergency_only">In Emergency Only</option>
+                </select>
+              </div>
+              <div className="md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <label className="block text-xs font-bold text-gray-500 uppercase mb-1.5 ml-1">Future Goals</label>
+                  <textarea name="futureGoals" defaultValue={details.futureGoals || ''} rows={2} className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:bg-white outline-none resize-none" />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-gray-500 uppercase mb-1.5 ml-1">Hobbies & Interests</label>
+                  <textarea name="hobbiesInterests" defaultValue={details.hobbiesInterests || ''} rows={2} className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:bg-white outline-none resize-none" />
                 </div>
               </div>
             </div>
