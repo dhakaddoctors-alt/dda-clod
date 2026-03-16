@@ -1,144 +1,269 @@
 'use client';
 
 import { useState } from 'react';
-import { FileText, Loader2, X, CheckSquare, Square } from 'lucide-react';
+import { FileText, Loader2, X, CheckSquare, Square, CreditCard, Table2 } from 'lucide-react';
 import { exportMembersForPDF } from '@/app/actions/adminActions';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 
-// ─── Field definitions ──────────────────────────────────────────────────────
+// ─── Field definitions ───────────────────────────────────────────────────────
 type FieldKey = string;
 interface FieldDef { label: string; key: FieldKey; group: string; }
 
 const ALL_FIELDS: FieldDef[] = [
-  // Basic
-  { key: 'shortId',       label: 'Member ID',          group: 'Basic' },
-  { key: 'fullName',      label: 'Full Name',           group: 'Basic' },
-  { key: 'fatherName',    label: "Father's Name",       group: 'Basic' },
-  { key: 'gender',        label: 'Gender',              group: 'Basic' },
-  { key: 'dob',           label: 'Date of Birth',       group: 'Basic' },
-  { key: 'maritalStatus', label: 'Marital Status',      group: 'Basic' },
-  { key: 'bloodGroup',    label: 'Blood Group',         group: 'Basic' },
-  { key: 'category',      label: 'Category',            group: 'Basic' },
-  { key: 'role',          label: 'Role',                group: 'Basic' },
-  { key: 'membershipType',label: 'Membership',          group: 'Basic' },
-  { key: 'paymentStatus', label: 'Payment Status',      group: 'Basic' },
-  { key: 'createdAt',     label: 'Joined On',           group: 'Basic' },
-  // Contact
-  { key: 'mobile',        label: 'Mobile',              group: 'Contact' },
-  { key: 'email',         label: 'Email',               group: 'Contact' },
-  { key: 'state',         label: 'State',               group: 'Contact' },
-  { key: 'district',      label: 'District',            group: 'Contact' },
-  { key: 'occupation',    label: 'Occupation',          group: 'Contact' },
-  // Doctor
-  { key: 'degree',              label: 'Degree',              group: 'Doctor' },
-  { key: 'specialization',      label: 'Specialization',      group: 'Doctor' },
-  { key: 'hospitalName',        label: 'Hospital/Clinic',     group: 'Doctor' },
-  { key: 'presentWorkingPlace', label: 'Working Place',       group: 'Doctor' },
-  { key: 'registrationNo',      label: 'Registration No.',    group: 'Doctor' },
-  { key: 'experience',          label: 'Experience (Yrs)',    group: 'Doctor' },
-  { key: 'clinicAddress',       label: 'Clinic Address',      group: 'Doctor' },
-  { key: 'consultationFee',     label: 'Consultation Fee',    group: 'Doctor' },
-  { key: 'availabilityTimings', label: 'Availability',        group: 'Doctor' },
-  { key: 'memberships',         label: 'Memberships',         group: 'Doctor' },
-  { key: 'awards',              label: 'Awards',              group: 'Doctor' },
-  // Student
-  { key: 'college',                label: 'College',               group: 'Student' },
-  { key: 'university',             label: 'University',             group: 'Student' },
-  { key: 'course',                 label: 'Course',                 group: 'Student' },
-  { key: 'year',                   label: 'Year',                   group: 'Student' },
-  { key: 'collegeEntryYear',       label: 'Entry Year',             group: 'Student' },
-  { key: 'gotraFather',            label: "Father's Gotra",         group: 'Student' },
-  { key: 'gotraMother',            label: "Mother's Gotra",         group: 'Student' },
-  { key: 'gotraGrandmother',       label: "Grandmother's Gotra",    group: 'Student' },
-  { key: 'internshipStatus',       label: 'Internship Status',      group: 'Student' },
-  { key: 'bloodDonationWillingness', label: 'Blood Donation',       group: 'Student' },
-  { key: 'linkedinProfile',        label: 'LinkedIn',               group: 'Student' },
-  { key: 'futureGoals',            label: 'Future Goals',           group: 'Student' },
-  { key: 'hobbiesInterests',       label: 'Hobbies',                group: 'Student' },
+  { key: 'shortId',               label: 'Member ID',           group: 'Basic' },
+  { key: 'fullName',              label: 'Full Name',            group: 'Basic' },
+  { key: 'fatherName',            label: "Father's Name",        group: 'Basic' },
+  { key: 'gender',                label: 'Gender',               group: 'Basic' },
+  { key: 'dob',                   label: 'Date of Birth',        group: 'Basic' },
+  { key: 'maritalStatus',         label: 'Marital Status',       group: 'Basic' },
+  { key: 'bloodGroup',            label: 'Blood Group',          group: 'Basic' },
+  { key: 'category',              label: 'Category',             group: 'Basic' },
+  { key: 'role',                  label: 'Role',                 group: 'Basic' },
+  { key: 'membershipType',        label: 'Membership',           group: 'Basic' },
+  { key: 'paymentStatus',         label: 'Payment Status',       group: 'Basic' },
+  { key: 'createdAt',             label: 'Joined On',            group: 'Basic' },
+  { key: 'mobile',                label: 'Mobile',               group: 'Contact' },
+  { key: 'email',                 label: 'Email',                group: 'Contact' },
+  { key: 'state',                 label: 'State',                group: 'Contact' },
+  { key: 'district',              label: 'District',             group: 'Contact' },
+  { key: 'occupation',            label: 'Occupation',           group: 'Contact' },
+  { key: 'degree',                label: 'Degree',               group: 'Doctor' },
+  { key: 'specialization',        label: 'Specialization',       group: 'Doctor' },
+  { key: 'hospitalName',          label: 'Hospital/Clinic',      group: 'Doctor' },
+  { key: 'presentWorkingPlace',   label: 'Working Place',        group: 'Doctor' },
+  { key: 'registrationNo',        label: 'Registration No.',     group: 'Doctor' },
+  { key: 'experience',            label: 'Experience (Yrs)',     group: 'Doctor' },
+  { key: 'clinicAddress',         label: 'Clinic Address',       group: 'Doctor' },
+  { key: 'consultationFee',       label: 'Consultation Fee',     group: 'Doctor' },
+  { key: 'availabilityTimings',   label: 'Availability',         group: 'Doctor' },
+  { key: 'memberships',           label: 'Memberships',          group: 'Doctor' },
+  { key: 'awards',                label: 'Awards',               group: 'Doctor' },
+  { key: 'college',               label: 'College',              group: 'Student' },
+  { key: 'university',            label: 'University',           group: 'Student' },
+  { key: 'course',                label: 'Course',               group: 'Student' },
+  { key: 'year',                  label: 'Year',                 group: 'Student' },
+  { key: 'collegeEntryYear',      label: 'Entry Year',           group: 'Student' },
+  { key: 'gotraFather',           label: "Father's Gotra",       group: 'Student' },
+  { key: 'gotraMother',           label: "Mother's Gotra",       group: 'Student' },
+  { key: 'gotraGrandmother',      label: "Grandmother's Gotra",  group: 'Student' },
+  { key: 'internshipStatus',      label: 'Internship Status',    group: 'Student' },
+  { key: 'bloodDonationWillingness', label: 'Blood Donation',   group: 'Student' },
+  { key: 'linkedinProfile',       label: 'LinkedIn',             group: 'Student' },
+  { key: 'futureGoals',           label: 'Future Goals',         group: 'Student' },
+  { key: 'hobbiesInterests',      label: 'Hobbies',              group: 'Student' },
 ];
 
 const GROUPS = ['Basic', 'Contact', 'Doctor', 'Student'];
-const GROUP_COLORS: Record<string, string> = {
-  Basic: 'blue', Contact: 'green', Doctor: 'purple', Student: 'orange'
-};
+const DEFAULT_SELECTED = new Set(['fullName', 'fatherName', 'mobile', 'email', 'state', 'district', 'bloodGroup', 'category', 'membershipType']);
 
-const DEFAULT_SELECTED = ['fullName', 'fatherName', 'mobile', 'email', 'state', 'district', 'bloodGroup', 'category', 'membershipType'];
+// Helper: load image via proxy as base64
+const loadImageBase64 = (url: string): Promise<string | null> =>
+  new Promise(resolve => {
+    const img = new Image();
+    img.crossOrigin = 'Anonymous';
+    img.onload = () => {
+      const c = document.createElement('canvas');
+      c.width = img.width; c.height = img.height;
+      const ctx = c.getContext('2d');
+      if (ctx) { ctx.drawImage(img, 0, 0); resolve(c.toDataURL('image/jpeg', 0.7)); }
+      else resolve(null);
+    };
+    img.onerror = () => resolve(null);
+    img.src = url;
+  });
 
 interface ExportMembersPDFButtonProps {
   selectedIds?: string[];
 }
 
-export default function ExportMembersPDFButton({ selectedIds }: ExportMembersPDFButtonProps) {
-  const [isPending, setIsPending] = useState(false);
-  const [progress, setProgress] = useState('');
-  const [showModal, setShowModal] = useState(false);
-  const [selectedFields, setSelectedFields] = useState<Set<string>>(new Set(DEFAULT_SELECTED));
+type LayoutMode = 'table' | 'idcard';
 
-  const toggleField = (key: string) => {
-    setSelectedFields(prev => {
-      const next = new Set(prev);
-      next.has(key) ? next.delete(key) : next.add(key);
-      return next;
-    });
-  };
+export default function ExportMembersPDFButton({ selectedIds }: ExportMembersPDFButtonProps) {
+  const [isPending,      setIsPending]      = useState(false);
+  const [progress,       setProgress]       = useState('');
+  const [showModal,      setShowModal]      = useState(false);
+  const [selectedFields, setSelectedFields] = useState<Set<string>>(new Set(DEFAULT_SELECTED));
+  const [layout,         setLayout]         = useState<LayoutMode>('idcard');
+
+  const toggleField = (key: string) =>
+    setSelectedFields(prev => { const n = new Set(prev); n.has(key) ? n.delete(key) : n.add(key); return n; });
 
   const toggleGroup = (group: string) => {
-    const groupKeys = ALL_FIELDS.filter(f => f.group === group).map(f => f.key);
-    const allSelected = groupKeys.every(k => selectedFields.has(k));
-    setSelectedFields(prev => {
-      const next = new Set(prev);
-      groupKeys.forEach(k => allSelected ? next.delete(k) : next.add(k));
-      return next;
-    });
+    const keys = ALL_FIELDS.filter(f => f.group === group).map(f => f.key);
+    const allSel = keys.every(k => selectedFields.has(k));
+    setSelectedFields(prev => { const n = new Set(prev); keys.forEach(k => allSel ? n.delete(k) : n.add(k)); return n; });
   };
 
-  const selectAll = () => setSelectedFields(new Set(ALL_FIELDS.map(f => f.key)));
-  const clearAll  = () => setSelectedFields(new Set());
+  // ── TABLE PDF ──────────────────────────────────────────────────────────────
+  const buildTablePDF = async (data: any[]) => {
+    const orderedFields = ALL_FIELDS.filter(f => selectedFields.has(f.key));
+    const headers = orderedFields.map(f => f.label);
+    const rows = data.map((m: any) => orderedFields.map(f => String(m[f.key] ?? '')));
 
-  const handleExportPDF = async () => {
-    if (selectedFields.size === 0) { alert('Please select at least one field.'); return; }
+    const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(15);
+    doc.setTextColor(30, 58, 138);
+    doc.text('DDA Member Directory', 148, 12, { align: 'center' });
+    doc.setFontSize(8);
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(130, 130, 130);
+    doc.text(`Generated: ${new Date().toLocaleDateString('en-IN')}  •  ${data.length} members`, 148, 19, { align: 'center' });
+
+    autoTable(doc, {
+      head: [headers], body: rows, startY: 24,
+      styles: { fontSize: 7, cellPadding: 1.5, overflow: 'linebreak' },
+      headStyles: { fillColor: [30, 58, 138], textColor: 255, fontStyle: 'bold', fontSize: 7.5 },
+      alternateRowStyles: { fillColor: [245, 247, 255] },
+      margin: { left: 6, right: 6 },
+    });
+    doc.save(`DDA_Table_${new Date().toISOString().split('T')[0]}.pdf`);
+  };
+
+  // ── ID CARD PDF  (2 cols × 5 rows = 10 per A4 page) ───────────────────────
+  const buildIdCardPDF = async (data: any[]) => {
+    const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+
+    // Layout constants
+    const COLS = 2, ROWS = 5, PER_PAGE = COLS * ROWS;
+    const marginX = 8, marginTop = 22, marginBot = 8;
+    const gapX = 5, gapY = 4;
+    const pageW = 210, pageH = 297;
+    const cardW = (pageW - 2 * marginX - gapX) / COLS;                          // ≈93.5 mm
+    const cardH = (pageH - marginTop - marginBot - (ROWS - 1) * gapY) / ROWS;   // ≈49.4 mm
+    const RIBBON_H = 7;
+    const SHOW_PHOTO = true; // always try to show photo
+    const PHOTO_SIZE = 16;
+
+    // Which extra text fields to show on card (in order, skipping fullName which is always title)
+    const cardFields = ALL_FIELDS.filter(f => selectedFields.has(f.key) && f.key !== 'fullName');
+
+    let page = 0;
+
+    for (let i = 0; i < data.length; i++) {
+      const posOnPage = i % PER_PAGE;
+
+      if (posOnPage === 0) {
+        if (i > 0) doc.addPage();
+        page++;
+        // Page header
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(13);
+        doc.setTextColor(30, 58, 138);
+        doc.text('Dhakad Doctors Association — Member Directory', pageW / 2, 14, { align: 'center' });
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(7);
+        doc.setTextColor(160, 160, 160);
+        doc.text(`Page ${page}  •  ${new Date().toLocaleDateString('en-IN')}`, pageW - marginX, 14, { align: 'right' });
+      }
+
+      const col = posOnPage % COLS;
+      const row = Math.floor(posOnPage / COLS);
+      const x = marginX + col * (cardW + gapX);
+      const y = marginTop + row * (cardH + gapY);
+
+      const member = data[i];
+
+      // Card background + border
+      doc.setDrawColor(200, 210, 230);
+      doc.setFillColor(255, 255, 255);
+      doc.roundedRect(x, y, cardW, cardH, 2.5, 2.5, 'FD');
+
+      // Blue header ribbon
+      doc.setFillColor(30, 58, 138);
+      doc.roundedRect(x, y, cardW, RIBBON_H, 2.5, 2.5, 'F');
+      doc.setFillColor(30, 58, 138);
+      doc.rect(x, y + 2, cardW, RIBBON_H - 2, 'F'); // square bottom of ribbon
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(7);
+      doc.setTextColor(255, 255, 255);
+      doc.text('DHAKAD DOCTORS ASSOCIATION', x + cardW / 2, y + 4.8, { align: 'center' });
+
+      // Photo
+      let photoX = x + 3;
+      let textX = x + 3;
+      if (SHOW_PHOTO) {
+        const photoY = y + RIBBON_H + 3;
+        let imgData: string | null = null;
+        if (member.avatarUrl) {
+          const proxyUrl = `/api/proxy-image?url=${encodeURIComponent(member.avatarUrl)}`;
+          imgData = await loadImageBase64(proxyUrl);
+        }
+        if (imgData) {
+          doc.addImage(imgData, 'JPEG', photoX, photoY, PHOTO_SIZE, PHOTO_SIZE);
+        } else {
+          doc.setFillColor(225, 232, 245);
+          doc.roundedRect(photoX, photoY, PHOTO_SIZE, PHOTO_SIZE, 1.5, 1.5, 'F');
+          doc.setFont('helvetica', 'bold');
+          doc.setFontSize(11);
+          doc.setTextColor(120, 140, 180);
+          const initial = (member.fullName || '?').charAt(0).toUpperCase();
+          doc.text(initial, photoX + PHOTO_SIZE / 2, photoY + PHOTO_SIZE / 1.6, { align: 'center' });
+        }
+        textX = photoX + PHOTO_SIZE + 3;
+      }
+
+      // Name
+      let textY = y + RIBBON_H + 7;
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(9);
+      doc.setTextColor(15, 23, 42);
+      const nameMaxW = cardW - (textX - x) - 3;
+      const nameLines = doc.splitTextToSize(member.fullName || 'Unknown', nameMaxW);
+      doc.text(nameLines[0], textX, textY);
+      textY += 4.5;
+
+      // Category badge
+      const cat = (member.category || 'GUEST').toUpperCase();
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(6);
+      doc.setTextColor(60, 100, 200);
+      doc.text(cat, textX, textY);
+      textY += 4;
+
+      // Extra fields
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(6.5);
+      doc.setTextColor(70, 70, 70);
+      const maxTextY = y + cardH - 6;
+      for (const f of cardFields) {
+        if (textY >= maxTextY) break;
+        const val = String(member[f.key] || '');
+        if (!val) continue;
+        const line = doc.splitTextToSize(`${f.label}: ${val}`, nameMaxW);
+        doc.text(line[0], textX, textY);
+        textY += 3.8;
+      }
+
+      // Bottom strip — ID + Membership
+      const botY = y + cardH - 3;
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(5.5);
+      doc.setTextColor(140, 140, 140);
+      doc.text(`ID: ${member.shortId}`, x + 3, botY);
+      doc.text((member.membershipType || '').toUpperCase(), x + cardW - 3, botY, { align: 'right' });
+
+      // Bottom border line
+      doc.setDrawColor(220, 230, 245);
+      doc.line(x + 2, botY - 1.5, x + cardW - 2, botY - 1.5);
+
+      setProgress(`Processing ${i + 1}/${data.length}...`);
+    }
+
+    doc.save(`DDA_ID_Cards_${new Date().toISOString().split('T')[0]}.pdf`);
+  };
+
+  // ── Main handler ───────────────────────────────────────────────────────────
+  const handleExport = async () => {
+    if (selectedFields.size === 0) { alert('Select at least one field.'); return; }
     setIsPending(true);
     setProgress('Fetching data...');
-
     try {
       const res = await exportMembersForPDF(selectedIds);
       if (!res.success || !res.data) { alert(res.message || 'Failed'); return; }
-
-      setProgress('Building PDF...');
-
-      // Ordered columns the user chose
-      const orderedFields = ALL_FIELDS.filter(f => selectedFields.has(f.key));
-      const headers = orderedFields.map(f => f.label);
-
-      const rows = res.data.map((member: any) =>
-        orderedFields.map(f => String(member[f.key] ?? ''))
-      );
-
-      const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
-
-      // Title
-      doc.setFont('helvetica', 'bold');
-      doc.setFontSize(16);
-      doc.setTextColor(30, 58, 138);
-      doc.text('DDA Member Directory Export', 148, 13, { align: 'center' });
-      doc.setFontSize(9);
-      doc.setFont('helvetica', 'normal');
-      doc.setTextColor(120, 120, 120);
-      doc.text(`Generated: ${new Date().toLocaleDateString('en-IN')}  |  Total: ${res.data.length} members`, 148, 20, { align: 'center' });
-
-      autoTable(doc, {
-        head: [headers],
-        body: rows,
-        startY: 25,
-        styles: { fontSize: 7, cellPadding: 1.5, overflow: 'linebreak' },
-        headStyles: { fillColor: [30, 58, 138], textColor: 255, fontStyle: 'bold', fontSize: 7.5 },
-        alternateRowStyles: { fillColor: [245, 247, 255] },
-        margin: { left: 8, right: 8 },
-        tableWidth: 'auto',
-      });
-
-      doc.save(`DDA_Export_${new Date().toISOString().split('T')[0]}.pdf`);
+      if (layout === 'table') await buildTablePDF(res.data);
+      else await buildIdCardPDF(res.data);
       setShowModal(false);
     } catch (err) {
       console.error(err);
@@ -162,58 +287,60 @@ export default function ExportMembersPDFButton({ selectedIds }: ExportMembersPDF
       {showModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
           <div className="bg-white rounded-2xl w-full max-w-2xl shadow-2xl flex flex-col max-h-[90vh]">
+
             {/* Header */}
             <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
               <div>
                 <h3 className="text-xl font-bold text-gray-900">Export PDF</h3>
-                <p className="text-sm text-gray-500 mt-0.5">Select the columns you want in the PDF</p>
+                <p className="text-sm text-gray-500 mt-0.5">Choose layout &amp; select fields</p>
               </div>
               <button onClick={() => !isPending && setShowModal(false)} disabled={isPending}>
                 <X className="w-5 h-5 text-gray-400 hover:text-gray-700" />
               </button>
             </div>
 
-            {/* Field Selector */}
+            {/* Layout toggle */}
+            <div className="px-6 pt-4 flex gap-3">
+              <button
+                onClick={() => setLayout('idcard')}
+                className={`flex items-center gap-2 px-4 py-2 rounded-xl border-2 font-semibold text-sm transition-all ${layout === 'idcard' ? 'border-blue-600 bg-blue-50 text-blue-700' : 'border-gray-200 text-gray-500 hover:border-gray-300'}`}
+              >
+                <CreditCard className="w-4 h-4" /> ID Card (10/page)
+              </button>
+              <button
+                onClick={() => setLayout('table')}
+                className={`flex items-center gap-2 px-4 py-2 rounded-xl border-2 font-semibold text-sm transition-all ${layout === 'table' ? 'border-blue-600 bg-blue-50 text-blue-700' : 'border-gray-200 text-gray-500 hover:border-gray-300'}`}
+              >
+                <Table2 className="w-4 h-4" /> Table List
+              </button>
+            </div>
+
+            {/* Field picker */}
             <div className="overflow-y-auto flex-1 px-6 py-4 space-y-5">
-              {/* Quick actions */}
-              <div className="flex gap-3">
-                <button onClick={selectAll} className="text-xs font-semibold text-blue-600 flex items-center gap-1 hover:underline">
-                  <CheckSquare className="w-3.5 h-3.5" /> Select All
+              <div className="flex gap-4 items-center">
+                <button onClick={() => setSelectedFields(new Set(ALL_FIELDS.map(f => f.key)))} className="text-xs font-semibold text-blue-600 flex items-center gap-1 hover:underline">
+                  <CheckSquare className="w-3.5 h-3.5" /> All
                 </button>
-                <button onClick={clearAll} className="text-xs font-semibold text-gray-400 flex items-center gap-1 hover:underline">
-                  <Square className="w-3.5 h-3.5" /> Clear All
+                <button onClick={() => setSelectedFields(new Set())} className="text-xs font-semibold text-gray-400 flex items-center gap-1 hover:underline">
+                  <Square className="w-3.5 h-3.5" /> Clear
                 </button>
-                <span className="ml-auto text-xs text-gray-400">{selectedFields.size} fields selected</span>
+                <span className="ml-auto text-xs text-gray-400">{selectedFields.size} selected</span>
               </div>
 
-              {/* Groups */}
               {GROUPS.map(group => {
-                const groupFields = ALL_FIELDS.filter(f => f.group === group);
-                const allGroupSelected = groupFields.every(f => selectedFields.has(f.key));
-                const color = GROUP_COLORS[group];
+                const gFields = ALL_FIELDS.filter(f => f.group === group);
+                const allSel = gFields.every(f => selectedFields.has(f.key));
+                const colorMap: Record<string, string> = { Basic: 'text-blue-700', Contact: 'text-green-700', Doctor: 'text-purple-700', Student: 'text-orange-600' };
                 return (
                   <div key={group}>
-                    <button
-                      onClick={() => toggleGroup(group)}
-                      className={`flex items-center gap-2 text-sm font-bold mb-2 ${
-                        color === 'blue' ? 'text-blue-700' :
-                        color === 'green' ? 'text-green-700' :
-                        color === 'purple' ? 'text-purple-700' : 'text-orange-700'
-                      }`}
-                    >
-                      {allGroupSelected ? <CheckSquare className="w-4 h-4" /> : <Square className="w-4 h-4" />}
-                      {group} Fields
+                    <button onClick={() => toggleGroup(group)} className={`flex items-center gap-2 text-sm font-bold mb-2 ${colorMap[group]}`}>
+                      {allSel ? <CheckSquare className="w-4 h-4" /> : <Square className="w-4 h-4" />}
+                      {group}
                     </button>
-                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                      {groupFields.map(f => (
-                        <label key={f.key} className="flex items-center gap-2 cursor-pointer p-2 rounded-lg hover:bg-gray-50">
-                          <input
-                            type="checkbox"
-                            checked={selectedFields.has(f.key)}
-                            onChange={() => toggleField(f.key)}
-                            disabled={isPending}
-                            className="w-4 h-4 rounded border-gray-300 text-blue-600"
-                          />
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-1.5">
+                      {gFields.map(f => (
+                        <label key={f.key} className="flex items-center gap-2 cursor-pointer p-1.5 rounded-lg hover:bg-gray-50">
+                          <input type="checkbox" checked={selectedFields.has(f.key)} onChange={() => toggleField(f.key)} disabled={isPending} className="w-4 h-4 rounded border-gray-300 text-blue-600" />
                           <span className="text-sm text-gray-700">{f.label}</span>
                         </label>
                       ))}
@@ -226,7 +353,7 @@ export default function ExportMembersPDFButton({ selectedIds }: ExportMembersPDF
             {/* Footer */}
             <div className="px-6 py-4 border-t border-gray-100">
               <button
-                onClick={handleExportPDF}
+                onClick={handleExport}
                 disabled={isPending || selectedFields.size === 0}
                 className="w-full flex items-center justify-center gap-2 py-3 rounded-xl font-bold text-white bg-red-600 hover:bg-red-700 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed transition-all"
               >
