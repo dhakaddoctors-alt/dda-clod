@@ -64,6 +64,8 @@ export async function updateUserProfile(formData: FormData) {
       district: formData.get('district') as string,
       occupation: formData.get('occupation') as string,
       category: formData.get('category') as string,
+      fatherName: formData.get('fatherName') as string,
+      bloodGroup: formData.get('bloodGroup') as string,
     };
 
     // Handle optional avatar upload

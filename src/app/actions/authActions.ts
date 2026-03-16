@@ -79,6 +79,8 @@ export async function registerUser(formData: FormData) {
       district: formData.get('district') as string || null,
       occupation: formData.get('occupation') as string || null,
       avatarUrl,
+      fatherName: formData.get('fatherName') as string || null,
+      bloodGroup: formData.get('bloodGroup') as string || null,
       membershipType: formData.get('membershipType') as string || 'member',
       paymentReceiptUrl: category !== 'guest' ? paymentReceiptUrl : null,
       paymentStatus: category !== 'guest' ? 'pending' : 'verified',

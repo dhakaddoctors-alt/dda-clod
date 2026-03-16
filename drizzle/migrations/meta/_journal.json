@@ -64,6 +64,13 @@
       "when": 1773679303101,
       "tag": "0008_powerful_klaw",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "6",
+      "when": 1773692667370,
+      "tag": "0009_woozy_lethal_legion",
+      "breakpoints": true
     }
   ]
 }

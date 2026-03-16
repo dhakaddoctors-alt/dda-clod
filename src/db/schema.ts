@@ -24,6 +24,8 @@ export const profiles = sqliteTable('profiles', {
   state: text('state'), // new field for location-based elections
   district: text('district'), // new field for location-based elections
   avatarUrl: text('avatar_url'),
+  fatherName: text('father_name'),
+  bloodGroup: text('blood_group'),
   occupation: text('occupation'), // specifically for guests
   membershipType: text('membership_type').default('member').notNull(), // member, 2_year, aajivan, patron, vishisht
   membershipExpiryDate: integer('membership_expiry_date', { mode: 'timestamp' }),

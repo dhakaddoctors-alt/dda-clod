@@ -196,6 +196,36 @@ export default function EditProfileForm({ profile, isAdmin, canChangeCategory }:
                </div>
             </div>
 
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+               <div>
+                  <label className="block text-xs font-bold text-gray-500 uppercase mb-1.5 ml-1">Father's Name</label>
+                  <input 
+                    type="text" 
+                    name="fatherName" 
+                    defaultValue={profile.fatherName || ''} 
+                    className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all outline-none" 
+                  />
+               </div>
+               <div>
+                  <label className="block text-xs font-bold text-gray-500 uppercase mb-1.5 ml-1">Blood Group</label>
+                  <select 
+                    name="bloodGroup" 
+                    defaultValue={profile.bloodGroup || ''}
+                    className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all outline-none"
+                  >
+                    <option value="">Select Blood Group</option>
+                    <option value="A+">A+</option>
+                    <option value="A-">A-</option>
+                    <option value="B+">B+</option>
+                    <option value="B-">B-</option>
+                    <option value="AB+">AB+</option>
+                    <option value="AB-">AB-</option>
+                    <option value="O+">O+</option>
+                    <option value="O-">O-</option>
+                  </select>
+               </div>
+            </div>
+
             <div>
               <label className="block text-xs font-bold text-gray-500 uppercase mb-1.5 ml-1">Date of Birth</label>
               <input 

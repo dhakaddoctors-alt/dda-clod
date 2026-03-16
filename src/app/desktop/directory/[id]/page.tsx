@@ -122,6 +122,24 @@ export default async function ProfilePage({ params }: { params: Promise<{ id: st
                       <p className="text-gray-900 font-medium">{profile.mobile || 'Confidential'}</p>
                     </div>
                   </div>
+                  {profile.fatherName && (
+                    <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl">
+                      <UserIcon className="w-5 h-5 text-gray-400 shrink-0" />
+                      <div>
+                        <p className="text-xs text-gray-500 font-semibold uppercase tracking-wider mb-0.5">Father's Name</p>
+                        <p className="text-gray-900 font-medium">{profile.fatherName}</p>
+                      </div>
+                    </div>
+                  )}
+                  {profile.bloodGroup && (
+                    <div className="flex items-center gap-3 p-3 bg-red-50 rounded-xl">
+                      <span className="text-red-500 text-lg shrink-0">🩸</span>
+                      <div>
+                        <p className="text-xs text-gray-500 font-semibold uppercase tracking-wider mb-0.5">Blood Group</p>
+                        <p className="text-red-700 font-bold text-lg">{profile.bloodGroup}</p>
+                      </div>
+                    </div>
+                  )}
                 </div>
 
                 {/* Role Specific Info Component */}

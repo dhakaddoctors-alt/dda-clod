@@ -141,6 +141,24 @@ export default function RegisterPage() {
                     </select>
                   </div>
                   <div>
+                    <label className={labelClass}>Father's Name *</label>
+                    <input type="text" name="fatherName" required className={inputClass} />
+                  </div>
+                  <div>
+                    <label className={labelClass}>Blood Group</label>
+                    <select name="bloodGroup" className={inputClass}>
+                      <option value="">Select Blood Group</option>
+                      <option value="A+">A+</option>
+                      <option value="A-">A-</option>
+                      <option value="B+">B+</option>
+                      <option value="B-">B-</option>
+                      <option value="AB+">AB+</option>
+                      <option value="AB-">AB-</option>
+                      <option value="O+">O+</option>
+                      <option value="O-">O-</option>
+                    </select>
+                  </div>
+                  <div>
                     <label className={labelClass}>State / UT <span className="text-red-500">*</span></label>
                     <select name="state" required className={inputClass}>
                       <option value="">Select State or Union Territory</option>
