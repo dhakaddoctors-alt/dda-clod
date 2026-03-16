@@ -110,6 +110,10 @@ export default function RegisterPage() {
                     <input type="text" name="fullName" required className={inputClass} />
                   </div>
                   <div>
+                    <label className={labelClass}>Father's Name *</label>
+                    <input type="text" name="fatherName" required className={inputClass} />
+                  </div>
+                  <div>
                     <label className={labelClass}>Mobile Number *</label>
                     <input type="tel" name="mobile" required className={inputClass} />
                   </div>
@@ -139,10 +143,6 @@ export default function RegisterPage() {
                       <option value="Widowed">Widowed</option>
                       <option value="Divorced">Divorced</option>
                     </select>
-                  </div>
-                  <div>
-                    <label className={labelClass}>Father's Name *</label>
-                    <input type="text" name="fatherName" required className={inputClass} />
                   </div>
                   <div>
                     <label className={labelClass}>Blood Group</label>
