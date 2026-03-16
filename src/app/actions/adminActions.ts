@@ -1,7 +1,7 @@
 'use server';
 
 import { profiles, doctorDetails, studentDetails } from '@/db/schema';
-import { eq } from 'drizzle-orm';
+import { eq, inArray } from 'drizzle-orm';
 import { revalidatePath } from 'next/cache';
 import { getDb } from '@/db';
 import { getServerSession } from 'next-auth';
@@ -200,10 +200,17 @@ export async function fetchDeletedUsers() {
   }
 }
 
-export async function exportMembersToCSV() {
+export async function exportMembersToCSV(profileIds?: string[]) {
   try {
     const db = getDb();
-    const allProfiles = await db.select().from(profiles);
+    
+    // Fetch records
+    let profilesQuery = db.select().from(profiles);
+    
+    // If specific IDs are provided, filter by them
+    const allProfiles = profileIds && profileIds.length > 0
+      ? await profilesQuery.where(inArray(profiles.id, profileIds))
+      : await profilesQuery;
     
     if (allProfiles.length === 0) return { success: true, csv: '' };
     
@@ -230,12 +237,18 @@ export async function exportMembersToCSV() {
   }
 }
 
-export async function exportMembersForPDF() {
+export async function exportMembersForPDF(profileIds?: string[]) {
   try {
     const db = getDb();
     
-    // Fetch all records
-    const allProfiles = await db.select().from(profiles);
+    // Fetch records
+    let profilesQuery = db.select().from(profiles);
+    
+    // If specific IDs are provided, filter by them
+    const allProfiles = profileIds && profileIds.length > 0
+      ? await profilesQuery.where(inArray(profiles.id, profileIds))
+      : await profilesQuery;
+      
     const allDocs = await db.select().from(doctorDetails);
     const allStudents = await db.select().from(studentDetails);
     

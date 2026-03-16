@@ -75,8 +75,6 @@ export default async function AdminDashboardPage() {
                 <p className="text-gray-600 mt-1">Manage portal users, verify payments, and monitor Cloudflare metrics.</p>
               </div>
               <div className="flex flex-col sm:flex-row items-center gap-3 mt-4 sm:mt-0">
-                <ExportMembersPDFButton />
-                <ExportMembersButton />
               </div>
             </div>
 

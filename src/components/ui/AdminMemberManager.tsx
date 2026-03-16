@@ -1,7 +1,9 @@
 'use client';
 
 import { useState } from 'react';
-import { Search, ShieldAlert, Award, User, Filter } from 'lucide-react';
+import { Search, ShieldAlert, Award, User, Filter, CheckSquare, Square } from 'lucide-react';
+import ExportMembersPDFButton from '@/components/ui/ExportMembersPDFButton';
+import ExportMembersButton from '@/components/ui/ExportMembersButton';
 import AdminProfileControls from '@/components/ui/AdminProfileControls';
 import ApproveRejectButtons from '@/components/ui/ApproveRejectButtons';
 import Link from 'next/link';
@@ -17,6 +19,10 @@ export default function AdminMemberManager({ initialUsers, viewerRole }: AdminMe
   const [filterCategory, setFilterCategory] = useState('all');
   const [filterStatus, setFilterStatus] = useState('all');
   const [displayLimit, setDisplayLimit] = useState(10);
+  
+  // Selection State
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const [isAllSelected, setIsAllSelected] = useState(false);
 
   const filteredUsers = initialUsers.filter((user) => {
     // Search
@@ -51,18 +57,41 @@ export default function AdminMemberManager({ initialUsers, viewerRole }: AdminMe
 
   const displayedUsers = filteredUsers.slice(0, displayLimit);
 
+  // Selection Handlers
+  const handleSelectOne = (id: string) => {
+    setSelectedIds(prev => 
+      prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]
+    );
+  };
+
+  const handleSelectAllOnPage = () => {
+    if (isAllSelected) {
+      setSelectedIds([]);
+      setIsAllSelected(false);
+    } else {
+      const allIds = filteredUsers.map(u => u.id);
+      setSelectedIds(allIds);
+      setIsAllSelected(true);
+    }
+  };
+
   return (
     <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden flex flex-col h-full">
       {/* Header & Filters */}
       <div className="p-6 border-b border-gray-100 bg-gray-50 flex flex-col gap-4">
-        <div className="flex justify-between items-center">
+        <div className="flex justify-between items-center flex-wrap gap-4">
           <div>
             <h2 className="text-xl font-bold text-gray-900">Master Member List</h2>
             <p className="text-sm text-gray-500">Manage all registered users, approve memberships, and change roles.</p>
           </div>
-          <span className="bg-blue-100 text-blue-800 text-xs font-bold px-3 py-1 rounded-full">
-            {filteredUsers.length} Users Found
-          </span>
+          
+          <div className="flex items-center gap-3">
+             <ExportMembersPDFButton selectedIds={selectedIds} />
+             <ExportMembersButton selectedIds={selectedIds} />
+             <span className="bg-blue-100 text-blue-800 text-xs font-bold px-3 py-1 rounded-full">
+               {filteredUsers.length} Users Found
+             </span>
+          </div>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
@@ -75,6 +104,8 @@ export default function AdminMemberManager({ initialUsers, viewerRole }: AdminMe
               onChange={(e) => {
                 setSearchTerm(e.target.value);
                 setDisplayLimit(10); // Reset limit on search
+                setSelectedIds([]);
+                setIsAllSelected(false);
               }}
               className="w-full pl-9 pr-4 py-2 bg-white border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
             />
@@ -84,6 +115,8 @@ export default function AdminMemberManager({ initialUsers, viewerRole }: AdminMe
             onChange={(e) => {
               setFilterCategory(e.target.value);
               setDisplayLimit(10); 
+              setSelectedIds([]);
+              setIsAllSelected(false);
             }}
             className="w-full px-4 py-2 bg-white border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none"
           >
@@ -97,6 +130,8 @@ export default function AdminMemberManager({ initialUsers, viewerRole }: AdminMe
             onChange={(e) => {
               setFilterRole(e.target.value);
               setDisplayLimit(10); 
+              setSelectedIds([]);
+              setIsAllSelected(false);
             }}
             className="w-full px-4 py-2 bg-white border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none"
           >
@@ -111,6 +146,8 @@ export default function AdminMemberManager({ initialUsers, viewerRole }: AdminMe
             onChange={(e) => {
               setFilterStatus(e.target.value);
               setDisplayLimit(10); 
+              setSelectedIds([]);
+              setIsAllSelected(false);
             }}
             className="w-full px-4 py-2 bg-white border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none"
           >
@@ -127,6 +164,14 @@ export default function AdminMemberManager({ initialUsers, viewerRole }: AdminMe
         <table className="w-full text-left border-collapse text-sm">
           <thead className="bg-gray-50 text-gray-500 uppercase text-xs sticky top-0 z-10 border-y border-gray-100 shadow-sm">
             <tr>
+              <th className="p-4 w-10">
+                <input 
+                  type="checkbox" 
+                  checked={isAllSelected && filteredUsers.length > 0} 
+                  onChange={handleSelectAllOnPage}
+                  className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                />
+              </th>
               <th className="p-4 font-semibold whitespace-nowrap">Member</th>
               <th className="p-4 font-semibold whitespace-nowrap">Contact</th>
               <th className="p-4 font-semibold whitespace-nowrap">Status</th>
@@ -136,7 +181,7 @@ export default function AdminMemberManager({ initialUsers, viewerRole }: AdminMe
           <tbody className="divide-y divide-gray-100">
             {displayedUsers.length === 0 ? (
               <tr>
-                <td colSpan={4} className="p-12 text-center text-gray-500">
+                <td colSpan={5} className="p-12 text-center text-gray-500">
                   <div className="flex flex-col items-center">
                     <Filter className="w-12 h-12 text-gray-300 mb-4" />
                     <p className="font-medium text-lg">No members found</p>
@@ -146,7 +191,13 @@ export default function AdminMemberManager({ initialUsers, viewerRole }: AdminMe
               </tr>
             ) : (
               displayedUsers.map((user) => (
-                <MemberTableRow key={user.id} user={user} viewerRole={viewerRole} />
+                <MemberTableRow 
+                  key={user.id} 
+                  user={user} 
+                  viewerRole={viewerRole} 
+                  isSelected={selectedIds.includes(user.id)}
+                  onSelect={() => handleSelectOne(user.id)}
+                />
               ))
             )}
           </tbody>
@@ -167,12 +218,22 @@ export default function AdminMemberManager({ initialUsers, viewerRole }: AdminMe
   );
 }
 
-function MemberTableRow({ user, viewerRole }: { user: any, viewerRole: string }) {
+function MemberTableRow({ user, viewerRole, isSelected, onSelect }: { user: any, viewerRole: string, isSelected: boolean, onSelect: () => void }) {
   const [isExpanded, setIsExpanded] = useState(false);
 
   return (
     <>
-      <tr className="hover:bg-slate-50 transition-colors group">
+      <tr className={`transition-colors group ${isSelected ? 'bg-blue-50/50' : 'hover:bg-slate-50'}`}>
+        {/* Checkbox */}
+        <td className="p-4 align-top">
+          <input 
+            type="checkbox" 
+            checked={isSelected} 
+            onChange={onSelect}
+            className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+          />
+        </td>
+
         {/* Name & Role */}
         <td className="p-4 align-top min-w-[200px]">
           <div className="flex items-center gap-3">
@@ -255,7 +316,7 @@ function MemberTableRow({ user, viewerRole }: { user: any, viewerRole: string })
       {/* Expanded Row */}
       {isExpanded && (
         <tr className="bg-slate-50 border-b border-gray-200">
-          <td colSpan={4} className="p-6">
+          <td colSpan={5} className="p-6">
             <div className="flex flex-col md:flex-row gap-6 bg-white p-6 rounded-2xl border border-gray-200 shadow-xl max-w-4xl mx-auto">
               <div className="flex-1 w-full">
                  <AdminProfileControls 

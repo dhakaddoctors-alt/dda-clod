@@ -25,7 +25,11 @@ const loadImageBase64 = (url: string): Promise<string | null> => {
   });
 };
 
-export default function ExportMembersPDFButton() {
+interface ExportMembersPDFButtonProps {
+  selectedIds?: string[];
+}
+
+export default function ExportMembersPDFButton({ selectedIds }: ExportMembersPDFButtonProps) {
   const [isPending, setIsPending] = useState(false);
   const [progress, setProgress] = useState(0);
   const [showModal, setShowModal] = useState(false);
@@ -47,7 +51,8 @@ export default function ExportMembersPDFButton() {
     setProgress(0);
     
     try {
-      const res = await exportMembersForPDF();
+      // Use selectedIds if provided
+      const res = await exportMembersForPDF(selectedIds);
       
       if (res.success && res.data) {
         const doc = new jsPDF('portrait', 'mm', 'a4');
@@ -114,7 +119,9 @@ export default function ExportMembersPDFButton() {
 
             let imgData = null;
             if (member.avatarUrl) {
-              imgData = await loadImageBase64(member.avatarUrl);
+              // USE PROXY TO PREVENT CORS BLOCKS
+              const proxyUrl = `/api/proxy-image?url=${encodeURIComponent(member.avatarUrl)}`;
+              imgData = await loadImageBase64(proxyUrl);
             }
             
             if (imgData) {
@@ -192,10 +199,10 @@ export default function ExportMembersPDFButton() {
     <>
       <button 
         onClick={() => setShowModal(true)}
-        className="flex items-center gap-2 text-sm font-medium text-red-700 bg-red-50 hover:bg-red-100 px-4 py-2 rounded-lg transition-colors"
+        className="flex items-center gap-2 text-sm font-medium text-red-700 bg-red-50 hover:bg-red-100 px-4 py-2 rounded-lg transition-colors border border-red-100 shadow-sm"
       >
         <FileText className="w-4 h-4" /> 
-        Export ID Directory
+        {selectedIds && selectedIds.length > 0 ? `Export Selected (${selectedIds.length})` : 'Export ID Directory'}
       </button>
 
       {showModal && (

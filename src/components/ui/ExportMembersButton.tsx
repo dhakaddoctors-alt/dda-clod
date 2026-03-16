@@ -4,12 +4,16 @@ import { useState, useTransition } from 'react';
 import { DownloadCloud } from 'lucide-react';
 import { exportMembersToCSV } from '@/app/actions/adminActions';
 
-export default function ExportMembersButton() {
+interface ExportMembersButtonProps {
+  selectedIds?: string[];
+}
+
+export default function ExportMembersButton({ selectedIds }: ExportMembersButtonProps) {
   const [isPending, startTransition] = useTransition();
 
   const handleExport = () => {
     startTransition(async () => {
-      const res = await exportMembersToCSV();
+      const res = await exportMembersToCSV(selectedIds);
       if (res.success && res.csv) {
         // Create a blob and trigger download in browser
         const blob = new Blob([res.csv], { type: 'text/csv;charset=utf-8;' });
@@ -31,10 +35,10 @@ export default function ExportMembersButton() {
     <button 
       onClick={handleExport}
       disabled={isPending}
-      className="flex items-center gap-2 text-sm font-medium text-green-700 bg-green-50 hover:bg-green-100 px-4 py-2 rounded-lg transition-colors disabled:opacity-50"
+      className="flex items-center gap-2 text-sm font-medium text-green-700 bg-green-100 hover:bg-green-200 px-4 py-2 rounded-lg transition-colors disabled:opacity-50 border border-green-200 shadow-sm"
     >
       <DownloadCloud className="w-4 h-4" /> 
-      {isPending ? 'Generating CSV...' : 'Export Members CSV'}
+      {isPending ? 'Generating...' : selectedIds && selectedIds.length > 0 ? `CSV (${selectedIds.length})` : 'Export CSV'}
     </button>
   );
 }
