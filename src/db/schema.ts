@@ -33,6 +33,7 @@ export const profiles = sqliteTable('profiles', {
   paymentStatus: text('payment_status').default('pending').notNull(), // pending, verified, rejected
   createdAt: integer('created_at', { mode: 'timestamp' }),
   isDeleted: integer('is_deleted').default(0), // 0 for active, 1 for soft deleted
+  customFields: text('custom_fields'), // JSON dynamic data
 });
 
 export const doctorDetails = sqliteTable('doctor_details', {
@@ -51,6 +52,8 @@ export const doctorDetails = sqliteTable('doctor_details', {
   memberships: text('memberships'),
   awards: text('awards'),
   websiteSocialLinks: text('website_social_links'),
+  permanentAddress: text('permanent_address'),
+  currentAddress: text('current_address'),
 });
 
 export const studentDetails = sqliteTable('student_details', {
@@ -69,6 +72,8 @@ export const studentDetails = sqliteTable('student_details', {
   hobbiesInterests: text('hobbies_interests'),
   linkedinProfile: text('linkedin_profile'),
   bloodDonationWillingness: text('blood_donation_willingness'),
+  permanentAddress: text('permanent_address'),
+  currentAddress: text('current_address'),
 });
 
 // For CMS & Social Features (Facebook-style feed)
@@ -170,4 +175,29 @@ export const advertisements = sqliteTable('advertisements', {
   linkUrl: text('link_url'),
   status: text('status').default('pending').notNull(), // pending, approved, rejected, expired
   createdAt: integer('created_at', { mode: 'timestamp' }).notNull(),
+});
+
+// Registration Form Configuration
+export const formConfigs = sqliteTable('form_configs', {
+  id: text('id').primaryKey(),
+  fieldName: text('field_name').notNull().unique(),
+  label: text('label').notNull(),
+  section: text('section').notNull(), // basic, doctor, student, payment
+  isVisible: integer('is_visible').default(1).notNull(), // 0 or 1
+  isRequired: integer('is_required').default(0).notNull(), // 0 or 1
+  categoryScope: text('category_scope').default('all').notNull(), // all, guest, doctor, student
+  fieldType: text('field_type').default('text').notNull(), // text, number, select, date, etc.
+  options: text('options'), // JSON string for select options
+  storageMode: text('storage_mode').default('json').notNull(), // json, meta, column
+  showInProfile: integer('show_in_profile').default(1).notNull(),
+  showInPdf: integer('show_in_pdf').default(1).notNull(),
+  showInDirectory: integer('show_in_directory').default(1).notNull(),
+  orderIndex: integer('order_index').default(0).notNull(),
+});
+
+export const profileMetadata = sqliteTable('profile_metadata', {
+  id: text('id').primaryKey(),
+  profileId: text('profile_id').references(() => profiles.id).notNull(),
+  fieldName: text('field_name').notNull(), // the custom_xxx field name
+  fieldValue: text('field_value').notNull(),
 });

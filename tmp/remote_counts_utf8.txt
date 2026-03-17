@@ -1,0 +1,60 @@
+﻿
+ Γ¢à∩╕Å wrangler 4.71.0 (update available 4.75.0)
+ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+Resource location: remote 
+
+≡ƒîÇ Executing on remote database dda_clod (e8e9b6a4-4372-4d27-954b-6cf73f1e5dc4):
+≡ƒîÇ To execute on your local development database, remove the --remote flag from your wrangler command.
+≡ƒÜú Executed 2 commands in 0.44ms
+[
+  {
+    "results": [
+      {
+        "count(*)": 36
+      }
+    ],
+    "success": true,
+    "meta": {
+      "served_by": "v3-prod",
+      "served_by_region": "APAC",
+      "served_by_colo": "SIN",
+      "served_by_primary": true,
+      "timings": {
+        "sql_duration_ms": 0.277
+      },
+      "duration": 0.277,
+      "changes": 0,
+      "last_row_id": 0,
+      "changed_db": false,
+      "size_after": 241664,
+      "rows_read": 36,
+      "rows_written": 0,
+      "total_attempts": 1
+    }
+  },
+  {
+    "results": [
+      {
+        "count(*)": 29
+      }
+    ],
+    "success": true,
+    "meta": {
+      "served_by": "v3-prod",
+      "served_by_region": "APAC",
+      "served_by_colo": "SIN",
+      "served_by_primary": true,
+      "timings": {
+        "sql_duration_ms": 0.1593
+      },
+      "duration": 0.1593,
+      "changes": 0,
+      "last_row_id": 0,
+      "changed_db": false,
+      "size_after": 241664,
+      "rows_read": 29,
+      "rows_written": 0,
+      "total_attempts": 1
+    }
+  }
+]

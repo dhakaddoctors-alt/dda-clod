@@ -78,6 +78,27 @@
       "when": 1773696028600,
       "tag": "0010_productive_korvac",
       "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "6",
+      "when": 1773772711139,
+      "tag": "0011_moaning_champions",
+      "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "6",
+      "when": 1773773972858,
+      "tag": "0012_overconfident_squirrel_girl",
+      "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "6",
+      "when": 1773776789390,
+      "tag": "0013_cooing_radioactive_man",
+      "breakpoints": true
     }
   ]
 }

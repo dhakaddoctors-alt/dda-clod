@@ -5,22 +5,13 @@ import { fetchAllUsersForAdmin } from '@/app/actions/adminActions';
 import { fetchCommitteesWithMembers } from '@/app/actions/committeeActions';
 import { fetchLiveElectionAnalytics } from '@/app/actions/nominationActions';
 import { fetchAllNews } from '@/app/actions/newsActions';
-import AdminMemberManager from '@/components/ui/AdminMemberManager';
-import CommitteeBuilder from '@/components/ui/CommitteeBuilder';
-import NewsManager from '@/components/ui/NewsManager';
-import AiAdminPanel from '@/components/ui/AiAdminPanel';
-import AdminElectionManager from '@/components/ui/AdminElectionManager';
-import ExportMembersButton from '@/components/ui/ExportMembersButton';
-import ExportMembersPDFButton from '@/components/ui/ExportMembersPDFButton';
 import DatabaseBackupButton from '@/components/ui/DatabaseBackupButton';
 import { fetchActiveElections } from '@/app/actions/electionActions';
 import { adminFetchAllPosts } from '@/app/actions/postActions';
 import { adminFetchAllStories } from '@/app/actions/storyActions';
-import Link from 'next/link';
-import AdminFeedManager from '@/components/ui/AdminFeedManager';
-import AdminStoryManager from '@/components/ui/AdminStoryManager';
 import { fetchAdsForAdmin } from '@/app/actions/adActions';
-import AdminAdManager from '@/components/ui/AdminAdManager';
+import AdminDashboardTabs from '@/components/ui/AdminDashboardTabs';
+import AiAdminPanel from '@/components/ui/AiAdminPanel';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/app/api/auth/[...nextauth]/route';
 
@@ -93,36 +84,20 @@ export default async function AdminDashboardPage() {
               ))}
             </div>
 
-            {/* Master Member Manager - TOP */}
-            <AdminMemberManager initialUsers={allUsers} viewerRole={viewerRole} />
-
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
               
-              {/* Main Left Content Area */}
-              <div className="lg:col-span-2 space-y-6 min-w-0">
-
-                {/* News Slider Management */}
-                <NewsManager initialNews={newsList} />
-
-                {/* Committee Hierarchy Builder Section */}
-                <CommitteeBuilder initialTiers={committeeData} />
-
-                {/* Advertisement Management Section */}
-                <AdminAdManager initialAds={adsList as any} />
-
-                {/* Content Moderation Section */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full">
-                  {/* Social Feed Manager */}
-                  <AdminFeedManager initialPosts={allPosts as any} />
-                  
-                  {/* Story Manager */}
-                  <AdminStoryManager initialStories={allStories as any} />
-                </div>
-
-                {/* Election Control Center - BOTTOM */}
-                <AdminElectionManager 
-                   elections={activeElections} 
-                   analyticsData={analyticsData} 
+              {/* Main Left Content Area - Now Tabbed */}
+              <div className="lg:col-span-2 min-w-0">
+                <AdminDashboardTabs 
+                  allUsers={allUsers}
+                  viewerRole={viewerRole}
+                  newsList={newsList}
+                  committeeData={committeeData}
+                  adsList={adsList}
+                  activeElections={activeElections}
+                  analyticsData={analyticsData}
+                  allPosts={allPosts}
+                  allStories={allStories}
                 />
               </div>
 

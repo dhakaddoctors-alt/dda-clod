@@ -3,15 +3,17 @@
 import { useState } from 'react';
 import { FileText, Loader2, X, CheckSquare, Square, CreditCard, Table2 } from 'lucide-react';
 import { exportMembersForPDF } from '@/app/actions/adminActions';
+import { fetchFormConfigs } from '@/app/actions/formActions';
 import { toTitleCase, toUpperCase, toSentenceCase } from '@/lib/formatters';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
+import { useEffect } from 'react';
 
 // ─── Field definitions ───────────────────────────────────────────────────────
 type FieldKey = string;
 interface FieldDef { label: string; key: FieldKey; group: string; }
 
-const ALL_FIELDS: FieldDef[] = [
+const INITIAL_FIELDS: FieldDef[] = [
   { key: 'shortId',               label: 'Member ID',           group: 'Basic' },
   { key: 'fullName',              label: 'Full Name',            group: 'Basic' },
   { key: 'fatherName',            label: "Father's Name",        group: 'Basic' },
@@ -56,7 +58,7 @@ const ALL_FIELDS: FieldDef[] = [
   { key: 'hobbiesInterests',      label: 'Hobbies',              group: 'Student' },
 ];
 
-const GROUPS = ['Basic', 'Contact', 'Doctor', 'Student'];
+const INITIAL_GROUPS = ['Basic', 'Contact', 'Doctor', 'Student'];
 const DEFAULT_SELECTED = new Set(['fullName', 'fatherName', 'mobile', 'email', 'state', 'district', 'bloodGroup', 'category', 'membershipType']);
 
 // Helper: load image via proxy as base64
@@ -89,12 +91,33 @@ export default function ExportMembersPDFButton({ selectedIds }: ExportMembersPDF
   const [layout,         setLayout]         = useState<LayoutMode>('idcard');
   const [categoryFilter, setCategoryFilter] = useState<string>('all');
   const [sortBy,         setSortBy]         = useState<string>('none');
+  const [allFields,      setAllFields]      = useState<FieldDef[]>(INITIAL_FIELDS);
+  const [groups,         setGroups]         = useState<string[]>(INITIAL_GROUPS);
+
+  useEffect(() => {
+    async function loadCustomConfigs() {
+      const configs = await fetchFormConfigs();
+      const pdfFields = configs
+        .filter(c => c.showInPdf === 1 && c.isVisible === 1 && c.fieldName.startsWith('custom_'))
+        .map(c => ({
+          key: c.fieldName,
+          label: c.label,
+          group: 'Custom'
+        }));
+      
+      if (pdfFields.length > 0) {
+        setAllFields([...INITIAL_FIELDS, ...pdfFields]);
+        setGroups([...INITIAL_GROUPS, 'Custom']);
+      }
+    }
+    loadCustomConfigs();
+  }, []);
 
   const toggleField = (key: string) =>
     setSelectedFields(prev => { const n = new Set(prev); n.has(key) ? n.delete(key) : n.add(key); return n; });
 
   const toggleGroup = (group: string) => {
-    const keys = ALL_FIELDS.filter(f => f.group === group).map(f => f.key);
+    const keys = allFields.filter(f => f.group === group).map(f => f.key);
     const allSel = keys.every(k => selectedFields.has(k));
     setSelectedFields(prev => { const n = new Set(prev); keys.forEach(k => allSel ? n.delete(k) : n.add(k)); return n; });
   };
@@ -116,7 +139,7 @@ export default function ExportMembersPDFButton({ selectedIds }: ExportMembersPDF
 
   // ── TABLE PDF ──────────────────────────────────────────────────────────────
   const buildTablePDF = async (data: any[]) => {
-    const orderedFields = ALL_FIELDS.filter(f => selectedFields.has(f.key));
+    const orderedFields = allFields.filter(f => selectedFields.has(f.key));
     const headers = orderedFields.map(f => f.label);
     const rows = data.map((m: any) => orderedFields.map(f => {
       const v = String(m[f.key] ?? '');
@@ -162,7 +185,7 @@ export default function ExportMembersPDFButton({ selectedIds }: ExportMembersPDF
     const PHOTO_SIZE = 16;
 
     // Which extra text fields to show on card (in order, skipping fullName which is always title)
-    const cardFields = ALL_FIELDS.filter(f => selectedFields.has(f.key) && f.key !== 'fullName');
+    const cardFields = allFields.filter(f => selectedFields.has(f.key) && f.key !== 'fullName');
 
     let page = 0;
 
@@ -422,7 +445,7 @@ export default function ExportMembersPDFButton({ selectedIds }: ExportMembersPDF
             {/* Field picker */}
             <div className="overflow-y-auto flex-1 px-6 py-4 space-y-5">
               <div className="flex gap-4 items-center">
-                <button onClick={() => setSelectedFields(new Set(ALL_FIELDS.map(f => f.key)))} className="text-xs font-semibold text-blue-600 flex items-center gap-1 hover:underline">
+                <button onClick={() => setSelectedFields(new Set(allFields.map(f => f.key)))} className="text-xs font-semibold text-blue-600 flex items-center gap-1 hover:underline">
                   <CheckSquare className="w-3.5 h-3.5" /> All
                 </button>
                 <button onClick={() => setSelectedFields(new Set())} className="text-xs font-semibold text-gray-400 flex items-center gap-1 hover:underline">
@@ -431,10 +454,10 @@ export default function ExportMembersPDFButton({ selectedIds }: ExportMembersPDF
                 <span className="ml-auto text-xs text-gray-400">{selectedFields.size} selected</span>
               </div>
 
-              {GROUPS.map(group => {
-                const gFields = ALL_FIELDS.filter(f => f.group === group);
+              {groups.map(group => {
+                const gFields = allFields.filter(f => f.group === group);
                 const allSel = gFields.every(f => selectedFields.has(f.key));
-                const colorMap: Record<string, string> = { Basic: 'text-blue-700', Contact: 'text-green-700', Doctor: 'text-purple-700', Student: 'text-orange-600' };
+                const colorMap: Record<string, string> = { Basic: 'text-blue-700', Contact: 'text-green-700', Doctor: 'text-purple-700', Student: 'text-orange-600', Custom: 'text-indigo-700' };
                 return (
                   <div key={group}>
                     <button onClick={() => toggleGroup(group)} className={`flex items-center gap-2 text-sm font-bold mb-2 ${colorMap[group]}`}>

@@ -1,9 +1,9 @@
 'use server';
 
-import { profiles, doctorDetails, studentDetails } from '@/db/schema';
-import { eq, like, or, ne } from 'drizzle-orm';
+import { profiles, doctorDetails, studentDetails, profileMetadata, formConfigs } from '@/db/schema';
+import { eq, like, or, ne, inArray } from 'drizzle-orm';
 import { getDb } from '@/db'; 
-
+import { sql } from 'drizzle-orm';
 export async function fetchDirectoryMembers(queryString?: string, filterRole?: string) {
   try {
     const db = getDb();
@@ -71,7 +71,70 @@ export async function fetchDirectoryMembers(queryString?: string, filterRole?: s
         baseQuery = baseQuery.where(and(...conditions)); 
     }
 
-    const results = await baseQuery.limit(50);
+    const results = await baseQuery.limit(50) as any[];
+    if (results.length === 0) return [];
+
+    const memberIds = results.map(r => r.id);
+    const configs = await db.select().from(formConfigs);
+    const directoryConfigs = configs.filter(c => c.showInDirectory === 1 && c.isVisible === 1);
+
+    // 4. Fetch Meta Table Data in bulk
+    const metaEntries = await db.select()
+      .from(profileMetadata)
+      .where(inArray(profileMetadata.profileId, memberIds));
+
+    // 5. Fetch Dynamic Columns if any are marked for directory
+    const columnFields = directoryConfigs.filter(c => c.storageMode === 'column');
+    
+    // We'll update the result objects with extra data
+    for (const member of results) {
+       // Append Meta
+       const memberMeta = metaEntries.filter(m => m.profileId === member.id);
+       memberMeta.forEach(m => {
+          member[m.fieldName] = m.fieldValue;
+       });
+
+       // Append JSON
+       const profileRaw = await db.select({ customFields: profiles.customFields })
+         .from(profiles)
+         .where(eq(profiles.id, member.id))
+         .limit(1);
+       if (profileRaw[0]?.customFields) {
+          try {
+            const json = JSON.parse(profileRaw[0].customFields as string);
+            Object.assign(member, json);
+          } catch(e) {}
+       }
+       
+        // Handle Dynamic Columns (Fetch based on section)
+        if (columnFields.length > 0) {
+           const pCols = columnFields.filter(c => c.section !== 'doctor' && c.section !== 'student').map(c => c.fieldName);
+           if (pCols.length > 0) {
+              const res = await db.run(sql.raw(`SELECT ${pCols.join(', ')} FROM profiles WHERE id = '${member.id}'`));
+              const row = (res as any).rows?.[0] || [];
+              pCols.forEach((col, idx) => member[col] = row[idx]);
+           }
+
+           if (member.category === 'doctor') {
+             const dCols = columnFields.filter(c => c.section === 'doctor').map(c => c.fieldName);
+             if (dCols.length > 0) {
+                const res = await db.run(sql.raw(`SELECT ${dCols.join(', ')} FROM doctor_details WHERE profile_id = '${member.id}'`));
+                const row = (res as any).rows?.[0] || [];
+                dCols.forEach((col, idx) => member[col] = row[idx]);
+             }
+           }
+
+           if (member.category === 'student') {
+             const sCols = columnFields.filter(c => c.section === 'student').map(c => c.fieldName);
+             if (sCols.length > 0) {
+                const res = await db.run(sql.raw(`SELECT ${sCols.join(', ')} FROM student_details WHERE profile_id = '${member.id}'`));
+                const row = (res as any).rows?.[0] || [];
+                sCols.forEach((col, idx) => member[col] = row[idx]);
+             }
+           }
+        }
+    }
+
     return results;
 
   } catch (error) {

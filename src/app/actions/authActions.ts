@@ -1,8 +1,8 @@
 'use server';
 
 import { getDb } from '@/db'; 
-import { profiles, doctorDetails, studentDetails } from '@/db/schema';
-import { eq } from 'drizzle-orm';
+import { profiles, doctorDetails, studentDetails, formConfigs, profileMetadata } from '@/db/schema';
+import { eq, sql } from 'drizzle-orm';
 import bcrypt from 'bcryptjs';
 import { randomUUID } from 'crypto';
 import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
@@ -62,9 +62,50 @@ export async function registerUser(formData: FormData) {
        avatarUrl = await uploadToR2(avatar);
     }
 
-    // Insert into Profiles
-    const dob = formData.get('dob') as string;
-    const newProfile = {
+    // 1. Fetch Form Configs to determine storage modes
+    const db = getDb();
+    const configs = await db.select().from(formConfigs);
+    
+    // 2. Categorize fields
+    const jsonFields: Record<string, any> = {};
+    const metaFields: { fieldName: string, fieldValue: any }[] = [];
+    const columnFields: Record<string, any> = {}; // These will be used for raw SQL updates
+
+    const standardFields = [
+      'category', 'role', 'fullName', 'mobile', 'email', 'password', 'dob', 'gender', 
+      'maritalStatus', 'state', 'district', 'occupation', 'fatherName', 'bloodGroup',
+      'membershipType', 'paymentReceipt', 'avatar',
+      'degree', 'batch', 'specialization', 'registrationNo', 'experience', 'hospitalName',
+      'presentWorkingPlace', 'clinicAddress', 'consultationFee', 'availabilityTimings',
+      'memberships', 'awards', 'websiteSocialLinks',
+      'college', 'university', 'course', 'year', 'collegeEntryYear', 'gotraFather',
+      'gotraMother', 'gotraGrandmother', 'futureGoals', 'internshipStatus', 
+      'hobbiesInterests', 'linkedinProfile', 'bloodDonationWillingness',
+      'permanentAddress', 'currentAddress'
+    ];
+
+    formData.forEach((value, key) => {
+      if (key.startsWith('$ACTION')) return;
+      
+      const config = configs.find(c => c.fieldName === key);
+      if (config) {
+        if (config.storageMode === 'meta') {
+          metaFields.push({ fieldName: key, fieldValue: value });
+        } else if (config.storageMode === 'column') {
+          columnFields[key] = value;
+        } else {
+          // Default is JSON for unknown or 'json' mode
+          jsonFields[key] = value;
+        }
+      } else if (!standardFields.includes(key)) {
+        // Any other non-standard fields go to JSON by default
+        jsonFields[key] = value;
+      }
+    });
+
+    // 3. Prepare Base Objects
+    const dobValue = formData.get('dob') as string;
+    const profileInsert = {
       id: profileId,
       fullName,
       email,
@@ -74,7 +115,7 @@ export async function registerUser(formData: FormData) {
       category,
       gender: formData.get('gender') as string || null,
       maritalStatus: formData.get('maritalStatus') as string || null,
-      dob: dob ? new Date(dob) : null,
+      dob: dobValue ? new Date(dobValue) : null,
       state: formData.get('state') as string || null,
       district: formData.get('district') as string || null,
       occupation: formData.get('occupation') as string || null,
@@ -84,23 +125,68 @@ export async function registerUser(formData: FormData) {
       membershipType: formData.get('membershipType') as string || 'member',
       paymentReceiptUrl: category !== 'guest' ? paymentReceiptUrl : null,
       paymentStatus: category !== 'guest' ? 'pending' : 'verified',
+      customFields: Object.keys(jsonFields).length > 0 ? JSON.stringify(jsonFields) : null,
       createdAt: new Date(),
     };
 
-    console.log('Inserting profile:', newProfile);
-    
-    // Connect to D1 via the HTTP Proxy abstraction
-    const db = getDb();
-    
-    // We enforce a manual try-catch block here because if the D1 Proxy swallowed a constraint error as an empty row, 
-    // we want to ensure it throws explicitly so the user doesn't see a false success message.
     try {
-      await db.insert(profiles).values(newProfile);
+      // 4. Standard Insert into Profiles
+      await db.insert(profiles).values(profileInsert);
 
-      // Category specific details
+      // 5. Insert Meta Fields
+      if (metaFields.length > 0) {
+        for (const meta of metaFields) {
+          await db.insert(profileMetadata).values({
+            id: randomUUID(),
+            profileId,
+            fieldName: meta.fieldName,
+            fieldValue: String(meta.fieldValue)
+          });
+        }
+      }
+
+      // 6. Handle Dynamic Columns
+      if (Object.keys(columnFields).length > 0) {
+        // Split column fields by target table
+        const profileCols: Record<string, any> = {};
+        const doctorCols: Record<string, any> = {};
+        const studentCols: Record<string, any> = {};
+
+        for (const [key, val] of Object.entries(columnFields)) {
+          const config = configs.find(c => c.fieldName === key);
+          if (config?.section === 'doctor') doctorCols[key] = val;
+          else if (config?.section === 'student') studentCols[key] = val;
+          else profileCols[key] = val;
+        }
+
+        const updateTable = async (tableName: string, idVal: string, idCol: string, fields: Record<string, any>) => {
+          if (Object.keys(fields).length === 0) return;
+          
+          const parts: any[] = [];
+          parts.push(sql.raw(`UPDATE ${tableName} SET `));
+          
+          const entries = Object.entries(fields);
+          entries.forEach(([key, val], idx) => {
+            parts.push(sql.raw(`${key} = `));
+            parts.push(sql`${val}`);
+            if (idx < entries.length - 1) parts.push(sql.raw(', '));
+          });
+          
+          parts.push(sql.raw(` WHERE ${idCol} = `));
+          parts.push(sql`${idVal}`);
+          
+          await db.run(sql.join(parts));
+        };
+
+        await updateTable('profiles', profileId, 'id', profileCols);
+        // doctor/student updates will be done after their base records are created
+      }
+
+      // 7. Category specific details
       if (category === 'doctor') {
-        const docDetails = {
-          id: randomUUID(),
+        const docId = randomUUID();
+        const docDetailsBase = {
+          id: docId,
           profileId,
           degree: formData.get('degree') as string || null,
           batch: formData.get('batch') as string || null,
@@ -115,13 +201,37 @@ export async function registerUser(formData: FormData) {
           memberships: formData.get('memberships') as string || null,
           awards: formData.get('awards') as string || null,
           websiteSocialLinks: formData.get('websiteSocialLinks') as string || null,
+          permanentAddress: formData.get('permanentAddress') as string || null,
+          currentAddress: formData.get('currentAddress') as string || null,
         };
-        await db.insert(doctorDetails).values(docDetails);
+        await db.insert(doctorDetails).values(docDetailsBase);
+
+        // Update Doctor Dynamic Columns
+        const doctorCols = {}; // We'll re-extract for clarity or just use the pre-filtered ones
+        for (const [key, val] of Object.entries(columnFields)) {
+          if (configs.find(c => c.fieldName === key)?.section === 'doctor') {
+            (doctorCols as any)[key] = val;
+          }
+        }
+        if (Object.keys(doctorCols).length > 0) {
+          const parts: any[] = [];
+          parts.push(sql.raw(`UPDATE doctor_details SET `));
+          const entries = Object.entries(doctorCols);
+          entries.forEach(([key, val], idx) => {
+            parts.push(sql.raw(`${key} = `));
+            parts.push(sql`${val}`);
+            if (idx < entries.length - 1) parts.push(sql.raw(', '));
+          });
+          parts.push(sql.raw(` WHERE id = `));
+          parts.push(sql`${docId}`);
+          await db.run(sql.join(parts));
+        }
       } 
       else if (category === 'student') {
+        const stuId = randomUUID();
         const collegeEntryYear = formData.get('collegeEntryYear') as string;
-        const stuDetails = {
-          id: randomUUID(),
+        const stuDetailsBase = {
+          id: stuId,
           profileId,
           college: formData.get('college') as string || null,
           university: formData.get('university') as string || null,
@@ -136,8 +246,31 @@ export async function registerUser(formData: FormData) {
           hobbiesInterests: formData.get('hobbiesInterests') as string || null,
           linkedinProfile: formData.get('linkedinProfile') as string || null,
           bloodDonationWillingness: formData.get('bloodDonationWillingness') as string || null,
+          permanentAddress: formData.get('permanentAddress') as string || null,
+          currentAddress: formData.get('currentAddress') as string || null,
         };
-        await db.insert(studentDetails).values(stuDetails);
+        await db.insert(studentDetails).values(stuDetailsBase);
+
+        // Update Student Dynamic Columns
+        const studentCols = {};
+        for (const [key, val] of Object.entries(columnFields)) {
+          if (configs.find(c => c.fieldName === key)?.section === 'student') {
+            (studentCols as any)[key] = val;
+          }
+        }
+        if (Object.keys(studentCols).length > 0) {
+          const parts: any[] = [];
+          parts.push(sql.raw(`UPDATE student_details SET `));
+          const entries = Object.entries(studentCols);
+          entries.forEach(([key, val], idx) => {
+            parts.push(sql.raw(`${key} = `));
+            parts.push(sql`${val}`);
+            if (idx < entries.length - 1) parts.push(sql.raw(', '));
+          });
+          parts.push(sql.raw(` WHERE id = `));
+          parts.push(sql`${stuId}`);
+          await db.run(sql.join(parts));
+        }
       }
     } catch (insertError: any) {
       console.error('Database Insertion Error:', insertError);

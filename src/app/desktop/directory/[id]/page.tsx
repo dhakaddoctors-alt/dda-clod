@@ -8,15 +8,26 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/app/api/auth/[...nextauth]/route';
 import AdminProfileControls from '@/components/ui/AdminProfileControls';
 import { toTitleCase, toUpperCase } from '@/lib/formatters';
+import { fetchFormConfigs } from '@/app/actions/formActions';
+import { Layers } from 'lucide-react';
 
 export default async function ProfilePage({ params }: { params: Promise<{ id: string }> }) {
   const resolvedParams = await params;
   const profileId = resolvedParams.id;
-  const profile = await fetchUserProfile(profileId);
+  const profile = await fetchUserProfile(profileId) as any;
+  const configs = await fetchFormConfigs();
 
   if (!profile) {
     notFound();
   }
+
+  // Filter custom fields to show in profile
+  const customToDisplay = configs.filter(c => 
+    c.fieldName.startsWith('custom_') && 
+    c.showInProfile === 1 && 
+    c.isVisible === 1 &&
+    (c.categoryScope === 'all' || c.categoryScope.includes(profile.category || 'guest'))
+  );
 
   const isDoctor = profile.category === 'doctor';
   const isStudent = profile.category === 'student';
