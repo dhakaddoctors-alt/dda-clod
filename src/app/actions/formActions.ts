@@ -103,7 +103,8 @@ export async function addFormConfig(section: string, categoryScope: string = 'al
       storageMode,
       showInProfile: 1,
       showInPdf: 1,
-      showInDirectory: 1
+      showInDirectory: 1,
+      showOnIdCard: 0
     });
 
     revalidatePath('/admin');
@@ -156,59 +157,59 @@ export async function initializeFormConfigs() {
 
     const defaults = [
       // Basic Info
-      { id: '1', fieldName: 'fullName', label: 'Full Name', section: 'basic', isVisible: 1, isRequired: 1, categoryScope: 'all' },
-      { id: '2', fieldName: 'fatherName', label: "Father's Name", section: 'basic', isVisible: 1, isRequired: 1, categoryScope: 'all' },
-      { id: '3', fieldName: 'mobile', label: 'Mobile Number', section: 'basic', isVisible: 1, isRequired: 1, categoryScope: 'all' },
-      { id: '4', fieldName: 'email', label: 'Email Address', section: 'basic', isVisible: 1, isRequired: 1, categoryScope: 'all' },
-      { id: '5', fieldName: 'dob', label: 'Date of Birth', section: 'basic', isVisible: 1, isRequired: 0, categoryScope: 'all' },
-      { id: '6', fieldName: 'gender', label: 'Gender', section: 'basic', isVisible: 1, isRequired: 0, categoryScope: 'all' },
-      { id: '7', fieldName: 'maritalStatus', label: 'Marital Status', section: 'basic', isVisible: 1, isRequired: 0, categoryScope: 'all' },
-      { id: '8', fieldName: 'bloodGroup', label: 'Blood Group', section: 'basic', isVisible: 1, isRequired: 0, categoryScope: 'all' },
-      { id: '9', fieldName: 'state', label: 'State / UT', section: 'basic', isVisible: 1, isRequired: 1, categoryScope: 'all' },
-      { id: '10', fieldName: 'district', label: 'District', section: 'basic', isVisible: 1, isRequired: 0, categoryScope: 'all' },
-      { id: '11', fieldName: 'avatar', label: 'Profile Photo', section: 'basic', isVisible: 1, isRequired: 0, categoryScope: 'all' },
+      { id: '1', fieldName: 'fullName', label: 'Full Name', section: 'basic', isVisible: 1, isRequired: 1, categoryScope: 'all', showOnIdCard: 1 },
+      { id: '2', fieldName: 'fatherName', label: "Father's Name", section: 'basic', isVisible: 1, isRequired: 1, categoryScope: 'all', showOnIdCard: 0 },
+      { id: '3', fieldName: 'mobile', label: 'Mobile Number', section: 'basic', isVisible: 1, isRequired: 1, categoryScope: 'all', showOnIdCard: 0 },
+      { id: '4', fieldName: 'email', label: 'Email Address', section: 'basic', isVisible: 1, isRequired: 1, categoryScope: 'all', showOnIdCard: 0 },
+      { id: '5', fieldName: 'dob', label: 'Date of Birth', section: 'basic', isVisible: 1, isRequired: 0, categoryScope: 'all', showOnIdCard: 0 },
+      { id: '6', fieldName: 'gender', label: 'Gender', section: 'basic', isVisible: 1, isRequired: 0, categoryScope: 'all', showOnIdCard: 0 },
+      { id: '7', fieldName: 'maritalStatus', label: 'Marital Status', section: 'basic', isVisible: 1, isRequired: 0, categoryScope: 'all', showOnIdCard: 0 },
+      { id: '8', fieldName: 'bloodGroup', label: 'Blood Group', section: 'basic', isVisible: 1, isRequired: 0, categoryScope: 'all', showOnIdCard: 1 },
+      { id: '9', fieldName: 'state', label: 'State / UT', section: 'basic', isVisible: 1, isRequired: 1, categoryScope: 'all', showOnIdCard: 0 },
+      { id: '10', fieldName: 'district', label: 'District', section: 'basic', isVisible: 1, isRequired: 0, categoryScope: 'all', showOnIdCard: 0 },
+      { id: '11', fieldName: 'avatar', label: 'Profile Photo', section: 'basic', isVisible: 1, isRequired: 0, categoryScope: 'all', showOnIdCard: 1 },
 
       // Guest Specific
-      { id: '12', fieldName: 'occupation', label: 'Occupation', section: 'guest', isVisible: 1, isRequired: 0, categoryScope: 'guest' },
+      { id: '12', fieldName: 'occupation', label: 'Occupation', section: 'guest', isVisible: 1, isRequired: 0, categoryScope: 'guest', showOnIdCard: 0 },
 
       // Doctor Specific
-      { id: '13', fieldName: 'degree', label: 'Medical Degree', section: 'doctor', isVisible: 1, isRequired: 1, categoryScope: 'doctor' },
-      { id: '14', fieldName: 'batch', label: 'Batch Year', section: 'doctor', isVisible: 1, isRequired: 0, categoryScope: 'doctor' },
-      { id: '15', fieldName: 'specialization', label: 'Specialization', section: 'doctor', isVisible: 1, isRequired: 0, categoryScope: 'doctor' },
-      { id: '16', fieldName: 'registrationNo', label: 'Medical Registration No.', section: 'doctor', isVisible: 1, isRequired: 1, categoryScope: 'doctor' },
-      { id: '17', fieldName: 'experience', label: 'Experience (Years)', section: 'doctor', isVisible: 1, isRequired: 0, categoryScope: 'doctor' },
-      { id: '18', fieldName: 'hospitalName', label: 'Hospital / Clinic Name', section: 'doctor', isVisible: 1, isRequired: 0, categoryScope: 'doctor' },
-      { id: '19', fieldName: 'presentWorkingPlace', label: 'Present Working Place', section: 'doctor', isVisible: 1, isRequired: 0, categoryScope: 'doctor' },
-      { id: '20', fieldName: 'consultationFee', label: 'Consultation Fee (₹)', section: 'doctor', isVisible: 1, isRequired: 0, categoryScope: 'doctor' },
-      { id: '21', fieldName: 'availabilityTimings', label: 'Availability Timings', section: 'doctor', isVisible: 1, isRequired: 0, categoryScope: 'doctor' },
-      { id: '22', fieldName: 'clinicAddress', label: 'Clinic Address', section: 'doctor', isVisible: 1, isRequired: 0, categoryScope: 'doctor' },
-      { id: '23', fieldName: 'memberships', label: 'Memberships / Associations', section: 'doctor', isVisible: 1, isRequired: 0, categoryScope: 'doctor' },
-      { id: '24', fieldName: 'awards', label: 'Awards & Achievements', section: 'doctor', isVisible: 1, isRequired: 0, categoryScope: 'doctor' },
-      { id: '25', fieldName: 'websiteSocialLinks', label: 'Website / Social Links', section: 'doctor', isVisible: 1, isRequired: 0, categoryScope: 'doctor' },
+      { id: '13', fieldName: 'degree', label: 'Medical Degree', section: 'doctor', isVisible: 1, isRequired: 1, categoryScope: 'doctor', showOnIdCard: 0 },
+      { id: '14', fieldName: 'batch', label: 'Batch Year', section: 'doctor', isVisible: 1, isRequired: 0, categoryScope: 'doctor', showOnIdCard: 0 },
+      { id: '15', fieldName: 'specialization', label: 'Specialization', section: 'doctor', isVisible: 1, isRequired: 0, categoryScope: 'doctor', showOnIdCard: 0 },
+      { id: '16', fieldName: 'registrationNo', label: 'Medical Registration No.', section: 'doctor', isVisible: 1, isRequired: 1, categoryScope: 'doctor', showOnIdCard: 0 },
+      { id: '17', fieldName: 'experience', label: 'Experience (Years)', section: 'doctor', isVisible: 1, isRequired: 0, categoryScope: 'doctor', showOnIdCard: 0 },
+      { id: '18', fieldName: 'hospitalName', label: 'Hospital / Clinic Name', section: 'doctor', isVisible: 1, isRequired: 0, categoryScope: 'doctor', showOnIdCard: 0 },
+      { id: '19', fieldName: 'presentWorkingPlace', label: 'Present Working Place', section: 'doctor', isVisible: 1, isRequired: 0, categoryScope: 'doctor', showOnIdCard: 1 },
+      { id: '20', fieldName: 'consultationFee', label: 'Consultation Fee (₹)', section: 'doctor', isVisible: 1, isRequired: 0, categoryScope: 'doctor', showOnIdCard: 0 },
+      { id: '21', fieldName: 'availabilityTimings', label: 'Availability Timings', section: 'doctor', isVisible: 1, isRequired: 0, categoryScope: 'doctor', showOnIdCard: 0 },
+      { id: '22', fieldName: 'clinicAddress', label: 'Clinic Address', section: 'doctor', isVisible: 1, isRequired: 0, categoryScope: 'doctor', showOnIdCard: 0 },
+      { id: '23', fieldName: 'memberships', label: 'Memberships / Associations', section: 'doctor', isVisible: 1, isRequired: 0, categoryScope: 'doctor', showOnIdCard: 0 },
+      { id: '24', fieldName: 'awards', label: 'Awards & Achievements', section: 'doctor', isVisible: 1, isRequired: 0, categoryScope: 'doctor', showOnIdCard: 0 },
+      { id: '25', fieldName: 'websiteSocialLinks', label: 'Website / Social Links', section: 'doctor', isVisible: 1, isRequired: 0, categoryScope: 'doctor', showOnIdCard: 0 },
 
       // Student Specific
-      { id: '26', fieldName: 'college', label: 'College / Institute Name', section: 'student', isVisible: 1, isRequired: 1, categoryScope: 'student' },
-      { id: '27', fieldName: 'university', label: 'University', section: 'student', isVisible: 1, isRequired: 0, categoryScope: 'student' },
-      { id: '28', fieldName: 'course', label: 'Course (e.g. MBBS)', section: 'student', isVisible: 1, isRequired: 1, categoryScope: 'student' },
-      { id: '29', fieldName: 'year', label: 'Current Year / Semester', section: 'student', isVisible: 1, isRequired: 1, categoryScope: 'student' },
-      { id: '30', fieldName: 'collegeEntryYear', label: 'College Entry Year', section: 'student', isVisible: 1, isRequired: 0, categoryScope: 'student' },
-      { id: '31', fieldName: 'internshipStatus', label: 'Internship Status', section: 'student', isVisible: 1, isRequired: 0, categoryScope: 'student' },
-      { id: '32', fieldName: 'gotraFather', label: "Father's Gotra", section: 'student', isVisible: 1, isRequired: 0, categoryScope: 'student' },
-      { id: '33', fieldName: 'gotraMother', label: "Mother's Gotra", section: 'student', isVisible: 1, isRequired: 0, categoryScope: 'student' },
-      { id: '34', fieldName: 'gotraGrandmother', label: "Grandmother's Gotra", section: 'student', isVisible: 1, isRequired: 0, categoryScope: 'student' },
-      { id: '35', fieldName: 'bloodDonationWillingness', label: 'Blood Donation Willingness', section: 'student', isVisible: 1, isRequired: 0, categoryScope: 'student' },
-      { id: '36', fieldName: 'linkedinProfile', label: 'LinkedIn Profile', section: 'student', isVisible: 1, isRequired: 0, categoryScope: 'student' },
-      { id: '37', fieldName: 'hobbiesInterests', label: 'Hobbies & Interests', section: 'student', isVisible: 1, isRequired: 0, categoryScope: 'student' },
-      { id: '38', fieldName: 'futureGoals', label: 'Future Goals', section: 'student', isVisible: 1, isRequired: 0, categoryScope: 'student' },
+      { id: '26', fieldName: 'college', label: 'College / Institute Name', section: 'student', isVisible: 1, isRequired: 1, categoryScope: 'student', showOnIdCard: 1 },
+      { id: '27', fieldName: 'university', label: 'University', section: 'student', isVisible: 1, isRequired: 0, categoryScope: 'student', showOnIdCard: 0 },
+      { id: '28', fieldName: 'course', label: 'Course (e.g. MBBS)', section: 'student', isVisible: 1, isRequired: 1, categoryScope: 'student', showOnIdCard: 0 },
+      { id: '29', fieldName: 'year', label: 'Current Year / Semester', section: 'student', isVisible: 1, isRequired: 1, categoryScope: 'student', showOnIdCard: 0 },
+      { id: '30', fieldName: 'collegeEntryYear', label: 'College Entry Year', section: 'student', isVisible: 1, isRequired: 0, categoryScope: 'student', showOnIdCard: 0 },
+      { id: '31', fieldName: 'internshipStatus', label: 'Internship Status', section: 'student', isVisible: 1, isRequired: 0, categoryScope: 'student', showOnIdCard: 0 },
+      { id: '32', fieldName: 'gotraFather', label: "Father's Gotra", section: 'student', isVisible: 1, isRequired: 0, categoryScope: 'student', showOnIdCard: 0 },
+      { id: '33', fieldName: 'gotraMother', label: "Mother's Gotra", section: 'student', isVisible: 1, isRequired: 0, categoryScope: 'student', showOnIdCard: 0 },
+      { id: '34', fieldName: 'gotraGrandmother', label: "Grandmother's Gotra", section: 'student', isVisible: 1, isRequired: 0, categoryScope: 'student', showOnIdCard: 0 },
+      { id: '35', fieldName: 'bloodDonationWillingness', label: 'Blood Donation Willingness', section: 'student', isVisible: 1, isRequired: 0, categoryScope: 'student', showOnIdCard: 0 },
+      { id: '36', fieldName: 'linkedinProfile', label: 'LinkedIn Profile', section: 'student', isVisible: 1, isRequired: 0, categoryScope: 'student', showOnIdCard: 0 },
+      { id: '37', fieldName: 'hobbiesInterests', label: 'Hobbies & Interests', section: 'student', isVisible: 1, isRequired: 0, categoryScope: 'student', showOnIdCard: 0 },
+      { id: '38', fieldName: 'futureGoals', label: 'Future Goals', section: 'student', isVisible: 1, isRequired: 0, categoryScope: 'student', showOnIdCard: 0 },
 
       // Payment Section
-      { id: '39', fieldName: 'membershipType', label: 'Membership Type', section: 'payment', isVisible: 1, isRequired: 0, categoryScope: 'doctor,student' },
-      { id: '40', fieldName: 'paymentReceipt', label: 'Payment Receipt Upload', section: 'payment', isVisible: 1, isRequired: 0, categoryScope: 'doctor,student' },
+      { id: '39', fieldName: 'membershipType', label: 'Membership Type', section: 'payment', isVisible: 1, isRequired: 0, categoryScope: 'doctor,student', showOnIdCard: 1 },
+      { id: '40', fieldName: 'paymentReceipt', label: 'Payment Receipt Upload', section: 'payment', isVisible: 1, isRequired: 0, categoryScope: 'doctor,student', showOnIdCard: 0 },
 
       // Category Visibility
-      { id: '41', fieldName: 'category_guest', label: 'Category: Guest/Member', section: 'visibility', isVisible: 1, isRequired: 0, categoryScope: 'all', orderIndex: 1 },
-      { id: '42', fieldName: 'category_doctor', label: 'Category: Doctor', section: 'visibility', isVisible: 1, isRequired: 0, categoryScope: 'all', orderIndex: 2 },
-      { id: '43', fieldName: 'category_student', label: 'Category: Student', section: 'visibility', isVisible: 1, isRequired: 0, categoryScope: 'all', orderIndex: 3 },
+      { id: '41', fieldName: 'category_guest', label: 'Category: Guest/Member', section: 'visibility', isVisible: 1, isRequired: 0, categoryScope: 'all', orderIndex: 1, showOnIdCard: 1 },
+      { id: '42', fieldName: 'category_doctor', label: 'Category: Doctor', section: 'visibility', isVisible: 1, isRequired: 0, categoryScope: 'all', orderIndex: 2, showOnIdCard: 1 },
+      { id: '43', fieldName: 'category_student', label: 'Category: Student', section: 'visibility', isVisible: 1, isRequired: 0, categoryScope: 'all', orderIndex: 3, showOnIdCard: 1 },
     ];
 
     // Map other defaults to have an order index based on their ID sequence

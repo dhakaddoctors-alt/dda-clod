@@ -97,6 +97,8 @@ export default function ExportMembersPDFButton({ selectedIds }: ExportMembersPDF
   useEffect(() => {
     async function loadCustomConfigs() {
       const configs = await fetchFormConfigs();
+      
+      // Load custom fields for PDF
       const pdfFields = configs
         .filter(c => c.showInPdf === 1 && c.isVisible === 1 && c.fieldName.startsWith('custom_'))
         .map(c => ({
@@ -109,9 +111,38 @@ export default function ExportMembersPDFButton({ selectedIds }: ExportMembersPDF
         setAllFields([...INITIAL_FIELDS, ...pdfFields]);
         setGroups([...INITIAL_GROUPS, 'Custom']);
       }
+
+      // Identify ID Card default fields from configs
+      const idCardDefaults = configs
+        .filter(c => c.showOnIdCard === 1 && c.isVisible === 1)
+        .map(c => c.fieldName);
+      
+      if (idCardDefaults.length > 0) {
+        // If we are in idcard mode, maybe we should update current selection?
+        // For now just keep them available.
+      }
     }
     loadCustomConfigs();
   }, []);
+
+  // Update selection when layout changes to match admin defaults for ID cards
+  useEffect(() => {
+    if (layout === 'idcard') {
+       async function updateToIdCardDefaults() {
+          const configs = await fetchFormConfigs();
+          const defaults = configs
+            .filter(c => c.showOnIdCard === 1 && c.isVisible === 1)
+            .map(c => c.fieldName);
+          
+          if (defaults.length > 0) {
+            setSelectedFields(new Set(defaults));
+          }
+       }
+       updateToIdCardDefaults();
+    } else {
+       setSelectedFields(new Set(DEFAULT_SELECTED));
+    }
+  }, [layout]);
 
   const toggleField = (key: string) =>
     setSelectedFields(prev => { const n = new Set(prev); n.has(key) ? n.delete(key) : n.add(key); return n; });

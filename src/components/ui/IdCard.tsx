@@ -13,9 +13,11 @@ interface IdCardProps {
   avatarUrl?: string;
   bloodGroup?: string;
   validUntil?: string;
+  configs?: any[];
+  memberData?: any;
 }
 
-export default function IdCard({ id, name, role, category, membershipType, avatarUrl, bloodGroup, validUntil }: IdCardProps) {
+export default function IdCard({ id, name, role, category, membershipType, avatarUrl, bloodGroup, validUntil, configs, memberData }: IdCardProps) {
   const [qrCodeUrl, setQrCodeUrl] = useState('');
 
   useEffect(() => {
@@ -43,6 +45,16 @@ export default function IdCard({ id, name, role, category, membershipType, avata
     // Basic print trigger. In a production app, we could use html2canvas to save a PNG.
     window.print();
   };
+
+  // Get dynamic fields to show on the ID card
+  const dynamicFields = configs 
+    ? configs.filter(c => 
+        c.showOnIdCard === 1 && 
+        c.isVisible === 1 && 
+        !['fullName', 'avatar'].includes(c.fieldName) && // These are handled separately
+        (c.categoryScope === 'all' || c.categoryScope.includes(category || 'guest'))
+      )
+    : [];
 
   return (
     <div className="w-full flex flex-col items-center">
@@ -91,10 +103,23 @@ export default function IdCard({ id, name, role, category, membershipType, avata
               <p className="text-gray-500 uppercase font-semibold text-[10px]">Portal ID</p>
               <p className="font-medium text-gray-900 line-clamp-1">{id.split('_')[1] || id}</p>
             </div>
-            <div>
-              <p className="text-gray-500 uppercase font-semibold text-[10px]">Blood Group</p>
-              <p className="font-medium text-gray-900">{bloodGroup || 'Not Specs'}</p>
-            </div>
+            {/* Render dynamic fields */}
+            {dynamicFields.map(field => {
+                const value = memberData ? memberData[field.fieldName] : (field.fieldName === 'bloodGroup' ? bloodGroup : null);
+                if (!value && field.fieldName !== 'bloodGroup') return null;
+                return (
+                  <div key={field.id}>
+                    <p className="text-gray-500 uppercase font-semibold text-[10px]">{field.label}</p>
+                    <p className="font-medium text-gray-900 line-clamp-1 truncate">{value || (field.fieldName === 'bloodGroup' ? 'Not Specs' : 'N/A')}</p>
+                  </div>
+                );
+            })}
+            {!configs && (
+               <div>
+                 <p className="text-gray-500 uppercase font-semibold text-[10px]">Blood Group</p>
+                 <p className="font-medium text-gray-900">{bloodGroup || 'Not Specs'}</p>
+               </div>
+            )}
             <div className="col-span-2 mt-1 pt-2 border-t border-gray-200">
               <p className="text-gray-500 uppercase font-semibold text-[10px]">Valid Until</p>
               <p className="font-medium text-gray-900">{membershipType === 'aajivan' ? 'Lifetime' : validUntil || 'N/A'}</p>

@@ -24,7 +24,8 @@ import {
   FileText,
   Contact2,
   ArrowUp,
-  ArrowDown
+  ArrowDown,
+  CreditCard
 } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 
@@ -42,6 +43,7 @@ interface FormConfig {
   showInProfile: number;
   showInPdf: number;
   showInDirectory: number;
+  showOnIdCard: number;
   orderIndex: number;
 }
 
@@ -308,6 +310,13 @@ export default function AdminRegistrationManager({ viewerRole }: AdminRegistrati
                           className={`p-1.5 rounded-md transition-all ${config.showInPdf === 1 ? 'bg-white text-blue-600 shadow-sm' : 'text-gray-300'}`}
                         >
                           <FileText className="w-3.5 h-3.5" />
+                        </button>
+                        <button
+                          onClick={() => handleToggle(config.id, 'showOnIdCard', config.showOnIdCard)}
+                          title="Show on ID Card"
+                          className={`p-1.5 rounded-md transition-all ${config.showOnIdCard === 1 ? 'bg-white text-blue-600 shadow-sm' : 'text-gray-300'}`}
+                        >
+                          <CreditCard className="w-3.5 h-3.5" />
                         </button>
                       </div>
 

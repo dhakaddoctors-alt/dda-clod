@@ -192,6 +192,7 @@ export const formConfigs = sqliteTable('form_configs', {
   showInProfile: integer('show_in_profile').default(1).notNull(),
   showInPdf: integer('show_in_pdf').default(1).notNull(),
   showInDirectory: integer('show_in_directory').default(1).notNull(),
+  showOnIdCard: integer('show_on_id_card').default(0).notNull(),
   orderIndex: integer('order_index').default(0).notNull(),
 });
 

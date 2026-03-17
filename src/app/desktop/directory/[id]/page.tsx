@@ -48,15 +48,18 @@ export default async function ProfilePage({ params }: { params: Promise<{ id: st
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             {/* Left Column - ID Card & Actions */}
             <div className="lg:col-span-1 space-y-6">
-               <IdCard 
-                 id={profile.id}
-                 name={profile.fullName}
-                 role={profile.role}
-                 category={profile.category}
-                 membershipType={profile.membershipType}
-                 avatarUrl={profile.avatarUrl || undefined}
-                 validUntil="Dec 2028" // Stubbed for now
-               />
+                <IdCard 
+                  id={profile.id}
+                  name={profile.fullName}
+                  role={profile.role}
+                  category={profile.category}
+                  membershipType={profile.membershipType}
+                  avatarUrl={profile.avatarUrl || undefined}
+                  bloodGroup={profile.bloodGroup || undefined}
+                  validUntil="Lifetime"
+                  configs={configs}
+                  memberData={{ ...profile, ...details }}
+                />
 
                {isAdmin && (
                  <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-200 mt-6">
