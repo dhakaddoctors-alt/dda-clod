@@ -4,8 +4,6 @@ import { Search, Filter, MapPin, Briefcase, GraduationCap, Sparkles, Lock } from
 import { fetchDirectoryMembers } from '@/app/actions/directoryActions';
 import { toTitleCase, toUpperCase } from '@/lib/formatters';
 import { generateSmartRecommendations } from '@/app/actions/aiActions';
-import { fetchFormConfigs } from '@/app/actions/formActions';
-import { Layers } from 'lucide-react';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/app/api/auth/[...nextauth]/route';
 
@@ -16,8 +14,6 @@ export default async function DirectoryPage(props: { searchParams?: Promise<{ q?
 
   // 1. Fetch DB records directly on the Server
   const members = await fetchDirectoryMembers(q, filter);
-  const configs = await fetchFormConfigs();
-  const directoryConfigs = configs.filter(c => c.showInDirectory === 1 && c.isVisible === 1);
   
   // 2. Auth Session Check
   const session = await getServerSession(authOptions);
@@ -196,17 +192,6 @@ export default async function DirectoryPage(props: { searchParams?: Promise<{ q?
                       </div>
                     )}
 
-                    {/* Dynamic Directory Fields */}
-                    {directoryConfigs.map(field => {
-                      const value = member[field.fieldName];
-                      if (!value) return null;
-                      return (
-                        <div key={field.id} className="flex items-center gap-1.5 text-[10px] text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-md font-bold uppercase">
-                           <Layers className="w-3 h-3 text-indigo-400" />
-                           <span className="truncate max-w-[120px]">{value}</span>
-                        </div>
-                      );
-                    })}
                     </div>
 
                     <Link href={`/directory/${member.id}`} className="mt-6 w-full py-2 bg-blue-50 text-blue-600 hover:bg-blue-100 hover:text-blue-700 rounded-lg font-medium transition-colors">
