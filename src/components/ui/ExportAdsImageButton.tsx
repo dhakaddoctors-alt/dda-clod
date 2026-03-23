@@ -110,7 +110,7 @@ export default function ExportAdsImageButton({ ad, variant = 'full' }: { ad: Ad,
             <div className="space-y-4">
               <p className="text-xs font-bold uppercase tracking-widest" style={{ color: '#9ca3af' }}>Primary Creative Preview</p>
               <div className="relative aspect-video rounded-3xl overflow-hidden border shadow-lg" style={{ borderColor: '#e5e7eb' }}>
-                <img src={mainImage} alt="" className="w-full h-full object-cover" />
+                <img src={mainImage} alt="" className="w-full h-full object-cover object-top" />
               </div>
             </div>
           )}

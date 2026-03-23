@@ -65,7 +65,7 @@ export default async function CommitteesPage() {
                             className="border border-gray-100 rounded-lg p-3 flex items-start gap-3 hover:border-blue-300 hover:shadow-sm transition-all bg-white cursor-pointer group"
                           >
                             {member.avatarUrl ? (
-                              <img src={member.avatarUrl} alt={member.name ?? ''} className="w-12 h-12 rounded-full object-cover border border-blue-100 shrink-0" />
+                              <img src={member.avatarUrl} alt={member.name ?? ''} className="w-12 h-12 rounded-full object-cover object-top border border-blue-100 shrink-0" />
                             ) : (
                               <div className="w-12 h-12 rounded-full bg-blue-50 flex items-center justify-center text-blue-600 font-bold border border-blue-100 shrink-0">
                                 {(member.name ?? '?').charAt(0)}

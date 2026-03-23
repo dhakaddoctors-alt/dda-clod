@@ -71,7 +71,7 @@ export default function IdCard({ id, name, role, category, membershipType, avata
           {/* Avatar Profile */}
           <div className="w-28 h-28 rounded-full border-4 border-white shadow-lg overflow-hidden bg-gray-100 -mt-12 mb-3 relative z-20">
             {avatarUrl ? (
-              <img src={avatarUrl} alt={name} className="w-full h-full object-cover" />
+              <img src={avatarUrl} alt={name} className="w-full h-full object-cover object-top" />
             ) : (
               <div className="w-full h-full flex items-center justify-center text-4xl font-bold text-gray-400 bg-gray-100">
                 {name.charAt(0)}

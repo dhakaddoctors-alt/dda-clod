@@ -65,13 +65,13 @@ export default function AdminStoryManager({ initialStories }: { initialStories: 
                  
                  {/* Story Image Thumbnail */}
                  <div className="w-12 h-16 rounded-xl bg-gray-100 shrink-0 overflow-hidden border border-gray-200 relative">
-                   <img src={story.imageUrl} alt="Story" className="w-full h-full object-cover" />
+                   <img src={story.imageUrl} alt="Story" className="w-full h-full object-cover object-top" />
                  </div>
 
                  {/* Author Info */}
                  <div className="w-10 h-10 rounded-full shrink-0 overflow-hidden border border-gray-200">
                    {story.authorAvatar ? (
-                     <img src={story.authorAvatar} alt={story.authorName || ''} className="w-full h-full object-cover" />
+                     <img src={story.authorAvatar} alt={story.authorName || ''} className="w-full h-full object-cover object-top" />
                    ) : (
                      <div className="w-full h-full bg-indigo-100 flex items-center justify-center">
                        <User className="w-5 h-5 text-indigo-600" />

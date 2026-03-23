@@ -115,7 +115,7 @@ export default async function ElectionDetailPage({ params }: { params: { id: str
                     {/* Poster Image */}
                     <div className="w-full h-64 bg-gray-100 relative overflow-hidden">
                       {candidate.posterUrl ? (
-                        <img src={candidate.posterUrl} alt={`${candidate.name} Poster`} className="w-full h-full object-cover" />
+                        <img src={candidate.posterUrl} alt={`${candidate.name} Poster`} className="w-full h-full object-cover object-top" />
                       ) : (
                         <div className="w-full h-full bg-gradient-to-br from-blue-100 to-indigo-200 flex items-center justify-center">
                           <Vote className="w-20 h-20 text-blue-300" />
@@ -130,7 +130,7 @@ export default async function ElectionDetailPage({ params }: { params: { id: str
                       <div className="absolute bottom-4 left-4 right-4 flex items-center gap-4">
                         <div className="w-16 h-16 rounded-full border-2 border-white overflow-hidden shadow-lg shrink-0 bg-white flex items-center justify-center">
                           {candidate.avatarUrl ? (
-                            <img src={candidate.avatarUrl} alt={candidate.name} className="w-full h-full object-cover"/>
+                            <img src={candidate.avatarUrl} alt={candidate.name} className="w-full h-full object-cover object-top"/>
                           ) : (
                             <span className="text-2xl font-bold text-blue-600">{candidate.name?.charAt(0)}</span>
                           )}

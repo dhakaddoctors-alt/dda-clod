@@ -122,7 +122,7 @@ export default function AdminAdManager({ initialAds }: { initialAds: Ad[] }) {
                           return items.map((img: any, i: number) => (
                             <div key={i} className="space-y-1">
                                 <a href={img.url} target="_blank" className="relative block w-10 h-10 rounded-lg overflow-hidden border border-gray-200 group">
-                                    <img src={img.url} alt="" className="w-full h-full object-cover" />
+                                    <img src={img.url} alt="" className="w-full h-full object-cover object-top" />
                                     <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
                                         <Eye className="w-3 h-3 text-white" />
                                     </div>

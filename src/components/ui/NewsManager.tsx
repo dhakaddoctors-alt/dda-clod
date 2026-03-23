@@ -95,7 +95,7 @@ export default function NewsManager({ initialNews }: { initialNews: NewsItem[] }
             {newsList.map((item) => (
               <div key={item.id} className="border border-gray-100 rounded-xl overflow-hidden group">
                 <div className="h-32 bg-gray-100 relative">
-                  <img src={item.imageUrl} alt={item.title} className="w-full h-full object-cover" />
+                  <img src={item.imageUrl} alt={item.title} className="w-full h-full object-cover object-top" />
                   <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-4">
                     <button 
                       onClick={() => handleToggle(item.id, item.isActive || 0)}

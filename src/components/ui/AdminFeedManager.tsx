@@ -61,7 +61,7 @@ export default function AdminFeedManager({ initialPosts }: { initialPosts: Post[
               {/* Avatar */}
               <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center shrink-0 overflow-hidden border border-gray-200">
                 {post.authorAvatar ? (
-                  <img src={post.authorAvatar} alt={post.authorName || ''} className="w-full h-full object-cover" />
+                  <img src={post.authorAvatar} alt={post.authorName || ''} className="w-full h-full object-cover object-top" />
                 ) : (
                   <User className="w-5 h-5 text-blue-600" />
                 )}

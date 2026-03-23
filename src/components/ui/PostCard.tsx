@@ -70,7 +70,7 @@ export default function PostCard({
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center overflow-hidden">
             {avatarUrl ? (
-              <img src={avatarUrl} alt={authorName} className="w-full h-full object-cover" />
+              <img src={avatarUrl} alt={authorName} className="w-full h-full object-cover object-top" />
             ) : (
               <span className="text-blue-600 font-bold">{authorName.charAt(0)}</span>
             )}
@@ -96,7 +96,7 @@ export default function PostCard({
       {/* Post Image (Optional) */}
       {imageUrl && (
         <div className="w-full h-auto max-h-[500px] overflow-hidden bg-gray-100 mt-2">
-          <img src={imageUrl} alt="Post content" className="w-full h-full object-cover" />
+          <img src={imageUrl} alt="Post content" className="w-full h-full object-cover object-top" />
         </div>
       )}
 
@@ -154,7 +154,7 @@ export default function PostCard({
                 <div key={comment.id} className="flex gap-2">
                   <div className="w-8 h-8 shrink-0 rounded-full bg-blue-100 flex flex-col items-center justify-center overflow-hidden">
                     {comment.authorAvatar ? (
-                      <img src={comment.authorAvatar} alt="" className="w-full h-full object-cover" />
+                      <img src={comment.authorAvatar} alt="" className="w-full h-full object-cover object-top" />
                     ) : (
                       <span className="text-blue-600 font-bold text-xs">{comment.authorName.charAt(0)}</span>
                     )}

@@ -105,7 +105,7 @@ export default function EditProfileForm({ profile, isAdmin, canChangeCategory }:
         <div className="relative group">
           <div className="w-32 h-32 rounded-full overflow-hidden border-4 border-white shadow-xl bg-gray-100 relative">
             {avatarPreview ? (
-              <img src={avatarPreview} alt="Preview" className="w-full h-full object-cover" />
+              <img src={avatarPreview} alt="Preview" className="w-full h-full object-cover object-top" />
             ) : (
               <div className="w-full h-full flex items-center justify-center text-4xl font-bold text-gray-300">
                 {profile.fullName?.charAt(0)}

@@ -105,7 +105,7 @@ export default function StoryCarousel() {
             <div className={`relative rounded-full p-[2px] bg-gradient-to-tr from-yellow-400 to-blue-600`}>
               <div className="w-16 h-16 rounded-full bg-white p-[2px]">
                 <div className="w-full h-full rounded-full bg-gray-100 flex items-center justify-center overflow-hidden">
-                  <img src={story.authorAvatar || story.imageUrl} alt={story.authorName} className="w-full h-full object-cover" />
+                  <img src={story.authorAvatar || story.imageUrl} alt={story.authorName} className="w-full h-full object-cover object-top" />
                 </div>
               </div>
             </div>
@@ -128,7 +128,7 @@ export default function StoryCarousel() {
            <div className="absolute top-4 w-full px-4 flex justify-between items-center z-[102] pt-[env(safe-area-inset-top)]">
              <div className="flex items-center gap-3">
                <div className="w-10 h-10 rounded-full bg-gray-200 overflow-hidden border border-white/20">
-                 <img src={stories[viewingStoryIndex].authorAvatar || stories[viewingStoryIndex].imageUrl} alt="Avatar" className="w-full h-full object-cover" />
+                 <img src={stories[viewingStoryIndex].authorAvatar || stories[viewingStoryIndex].imageUrl} alt="Avatar" className="w-full h-full object-cover object-top" />
                </div>
                <span className="text-white font-medium drop-shadow-md">
                  {stories[viewingStoryIndex].authorName}

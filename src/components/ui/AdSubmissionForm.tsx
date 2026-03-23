@@ -151,7 +151,7 @@ export default function AdSubmissionForm() {
             {previews.map((preview, index) => (
               <div key={index} className="flex gap-4 p-3 bg-gray-50 rounded-2xl border border-gray-200">
                 <div className="relative w-24 h-24 rounded-xl overflow-hidden border border-gray-200 shrink-0">
-                  <img src={preview} alt="Preview" className="w-full h-full object-cover" />
+                  <img src={preview} alt="Preview" className="w-full h-full object-cover object-top" />
                   <button 
                     type="button" 
                     onClick={() => removeFile(index)}

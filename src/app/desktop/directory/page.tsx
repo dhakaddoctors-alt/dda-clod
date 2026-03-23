@@ -151,7 +151,7 @@ export default async function DirectoryPage(props: { searchParams?: Promise<{ q?
                   <div key={member.id} className="bg-white rounded-2xl p-6 border border-gray-200 shadow-sm hover:shadow-md transition-shadow flex flex-col items-center text-center">
                     <div className="w-24 h-24 rounded-full bg-gray-100 mb-4 overflow-hidden border-4 border-white shadow-sm flex-shrink-0">
                       {member.avatarUrl ? (
-                         <img src={member.avatarUrl} alt={member.name} className="w-full h-full object-cover" />
+                         <img src={member.avatarUrl} alt={member.name} className="w-full h-full object-cover object-top" />
                       ) : (
                          <div className="w-full h-full flex items-center justify-center text-3xl font-bold text-gray-400 bg-gray-100">
                            {member.name?.charAt(0) || 'U'}
