@@ -84,9 +84,12 @@ export async function getMergedProfileData(profileId: string) {
 
     // 6. Final Merge
     // Return a flat structure where all keys are accessible
+    // Ensure we don't overwrite the main profile ID and other core fields
+    const { id: _, profileId: __, ...safeCategoryDetails } = categoryDetails || {};
+    
     return {
       ...mergedProfileData,
-      ...categoryDetails,
+      ...safeCategoryDetails,
       ...metaData,
       ...jsonData,
       _original: {
