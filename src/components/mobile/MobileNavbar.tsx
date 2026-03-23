@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { Search, Bell, User, LogOut, LayoutDashboard, Megaphone } from 'lucide-react';
 import { useSession, signOut } from 'next-auth/react';
 import { useState, useRef, useEffect } from 'react';
+import InstallPWA from '@/components/ui/InstallPWA';
 
 export default function MobileNavbar() {
   const { data: session } = useSession();
@@ -35,6 +36,9 @@ export default function MobileNavbar() {
         
         {/* Right Side: Actions */}
         <div className="flex items-center gap-3">
+          {/* PWA Install Link at Top */}
+          <InstallPWA variant="minimal" />
+
           <button className="p-2 hover:bg-gray-100 rounded-full">
             <Search className="w-5 h-5 text-gray-600" />
           </button>

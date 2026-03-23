@@ -177,12 +177,6 @@ export default function Navbar() {
       </div>
     </nav>
 
-    {/* Mobile-only: Fixed bottom Install App bar */}
-    {session && (
-      <div className="lg:hidden fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-gray-100 px-4 py-2 shadow-md">
-        <InstallPWA />
-      </div>
-    )}
   </>
   );
 }
