@@ -186,6 +186,8 @@ export async function initializeFormConfigs() {
       { id: '23', fieldName: 'memberships', label: 'Memberships / Associations', section: 'doctor', isVisible: 1, isRequired: 0, categoryScope: 'doctor', showOnIdCard: 0 },
       { id: '24', fieldName: 'awards', label: 'Awards & Achievements', section: 'doctor', isVisible: 1, isRequired: 0, categoryScope: 'doctor', showOnIdCard: 0 },
       { id: '25', fieldName: 'websiteSocialLinks', label: 'Website / Social Links', section: 'doctor', isVisible: 1, isRequired: 0, categoryScope: 'doctor', showOnIdCard: 0 },
+      { id: '25_1', fieldName: 'permanentAddress', label: 'Permanent Address', section: 'doctor', isVisible: 1, isRequired: 1, categoryScope: 'doctor', showOnIdCard: 0 },
+      { id: '25_2', fieldName: 'currentAddress', label: 'Current Address', section: 'doctor', isVisible: 1, isRequired: 1, categoryScope: 'doctor', showOnIdCard: 0 },
 
       // Student Specific
       { id: '26', fieldName: 'college', label: 'College / Institute Name', section: 'student', isVisible: 1, isRequired: 1, categoryScope: 'student', showOnIdCard: 1 },
@@ -201,6 +203,8 @@ export async function initializeFormConfigs() {
       { id: '36', fieldName: 'linkedinProfile', label: 'LinkedIn Profile', section: 'student', isVisible: 1, isRequired: 0, categoryScope: 'student', showOnIdCard: 0 },
       { id: '37', fieldName: 'hobbiesInterests', label: 'Hobbies & Interests', section: 'student', isVisible: 1, isRequired: 0, categoryScope: 'student', showOnIdCard: 0 },
       { id: '38', fieldName: 'futureGoals', label: 'Future Goals', section: 'student', isVisible: 1, isRequired: 0, categoryScope: 'student', showOnIdCard: 0 },
+      { id: '38_1', fieldName: 'permanentAddress', label: 'Permanent Address', section: 'student', isVisible: 1, isRequired: 1, categoryScope: 'student', showOnIdCard: 0 },
+      { id: '38_2', fieldName: 'currentAddress', label: 'Current Address', section: 'student', isVisible: 1, isRequired: 1, categoryScope: 'student', showOnIdCard: 0 },
 
       // Payment Section
       { id: '39', fieldName: 'membershipType', label: 'Membership Type', section: 'payment', isVisible: 1, isRequired: 0, categoryScope: 'doctor,student', showOnIdCard: 1 },
