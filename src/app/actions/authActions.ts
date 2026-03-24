@@ -42,7 +42,7 @@ export async function registerUser(formData: FormData) {
     const fullName = formData.get('fullName') as string;
     const mobile = formData.get('mobile') as string;
     const email = formData.get('email') as string;
-    const password = formData.get('password') as string;
+    const password = (formData.get('password') as string) || (formData.get('mobile') as string);
     
     // Hash password
     const passwordHash = await bcrypt.hash(password, 10);

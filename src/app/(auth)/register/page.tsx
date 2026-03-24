@@ -294,12 +294,13 @@ export default function RegisterPage() {
                     </div>
                   )}
                   <div>
-                    <label className={labelClass}>Password *</label>
-                    <input type="password" name="password" required className={inputClass} />
+                    <label className={labelClass}>Password (Optional)</label>
+                    <p className="text-[10px] text-gray-400 -mt-1 mb-1 italic">Default is your Mobile Number if left blank</p>
+                    <input type="password" name="password" className={inputClass} />
                   </div>
                   <div>
-                    <label className={labelClass}>Confirm Password *</label>
-                    <input type="password" name="confirmPassword" required className={inputClass} />
+                    <label className={labelClass}>Confirm Password (Optional)</label>
+                    <input type="password" name="confirmPassword" className={inputClass} />
                   </div>
                   {isVisible('avatar') && (
                     <div>
@@ -566,44 +567,46 @@ export default function RegisterPage() {
                     </div>
                   )}
 
-                  <div className="bg-blue-50 p-6 rounded-xl border border-blue-100 flex flex-col sm:flex-row items-start gap-6">
-                    <div className="flex-shrink-0 flex flex-col items-center">
-                      <DynamicUPIQR
-                        upiId="dhak9660383@barodampay"
-                        name="DHAKAD DOCTORS ASSOCIATION"
-                        className="w-48 h-48 sm:w-56 sm:h-56 mb-4"
-                      />
-                      <a
-                        href="upi://pay?pa=dhak9660383@barodampay&pn=DHAKAD DOCTORS ASSOCIATION&cu=INR"
-                        className="flex items-center gap-2 px-4 py-2 bg-white border-2 border-blue-600 text-blue-600 rounded-full font-bold text-sm hover:bg-blue-600 hover:text-white transition-all active:scale-95 shadow-sm"
-                      >
-                        <span>📱 Open in UPI App</span>
-                      </a>
+                  {isVisible('upiQrDetails') && (
+                    <div className="bg-blue-50 p-6 rounded-xl border border-blue-100 flex flex-col sm:flex-row items-start gap-6">
+                      <div className="flex-shrink-0 flex flex-col items-center">
+                        <DynamicUPIQR
+                          upiId="dhak9660383@barodampay"
+                          name="DHAKAD DOCTORS ASSOCIATION"
+                          className="w-48 h-48 sm:w-56 sm:h-56 mb-4"
+                        />
+                        <a
+                          href="upi://pay?pa=dhak9660383@barodampay&pn=DHAKAD DOCTORS ASSOCIATION&cu=INR"
+                          className="flex items-center gap-2 px-4 py-2 bg-white border-2 border-blue-600 text-blue-600 rounded-full font-bold text-sm hover:bg-blue-600 hover:text-white transition-all active:scale-95 shadow-sm"
+                        >
+                          <span>📱 Open in UPI App</span>
+                        </a>
+                      </div>
+                      <div className="flex-1">
+                        <h4 className="font-semibold text-gray-900 mb-1">Bank Details for Transfer</h4>
+                        <p className="text-sm text-gray-600 font-mono mb-4">
+                          Bank: BANK OF BARODA<br />
+                          A/C: 36580100010383<br />
+                          IFSC: BARB0KESKOT<br />
+                          UPI ID:dhak9660383@barodampay<br />
+                          Name: DHAKAD DOCTORS ASSOCIATION
+                        </p>
+                        {isVisible('paymentReceipt') && (
+                          <div>
+                            <label className={labelClass}>{getField('paymentReceipt')?.label || 'Upload Payment Receipt / Screenshot'} {isRequired('paymentReceipt') ? '*' : '(Optional)'}</label>
+                            <input type="file" name="paymentReceipt" accept="image/*,application/pdf" required={isRequired('paymentReceipt')} className="mt-1 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-blue-100 file:text-blue-700 hover:file:bg-blue-200 bg-white p-1 rounded-md border" />
+                          </div>
+                        )}
+                      </div>
                     </div>
-                    <div className="flex-1">
-                      <h4 className="font-semibold text-gray-900 mb-1">Bank Details for Transfer</h4>
-                      <p className="text-sm text-gray-600 font-mono mb-4">
-                        Bank: BANK OF BARODA<br />
-                        A/C: 36580100010383<br />
-                        IFSC: BARB0KESKOT<br />
-                        UPI ID:dhak9660383@barodampay<br />
-                        Name: DHAKAD DOCTORS ASSOCIATION
-                      </p>
-                      {isVisible('paymentReceipt') && (
-                        <div>
-                          <label className={labelClass}>{getField('paymentReceipt')?.label || 'Upload Payment Receipt / Screenshot'} {isRequired('paymentReceipt') ? '*' : '(Optional)'}</label>
-                          <input type="file" name="paymentReceipt" accept="image/*,application/pdf" required={isRequired('paymentReceipt')} className="mt-1 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-blue-100 file:text-blue-700 hover:file:bg-blue-200 bg-white p-1 rounded-md border" />
-                        </div>
-                      )}
-                    </div>
-                  </div>
+                  )}
                   {/* Dynamic Custom Fields for Payment section */}
                   {configs.filter(c => c.section === 'payment' && c.fieldName.startsWith('custom_')).map(config => (
                     <div className="mt-4" key={config.id}>
                       <DynamicField config={config} />
                     </div>
                   ))}
-                  <p className="text-xs text-red-600 font-medium">Note: Your profile will remain pending UNTIL the admin verifies your payment receipt manually.</p>
+                  <p className="text-xs text-red-600 font-medium">Note: Your profile will remain pending UNTIL the admin verifies.</p>
                 </div>
               )}
 

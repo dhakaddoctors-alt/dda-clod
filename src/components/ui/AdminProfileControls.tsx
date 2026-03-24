@@ -1,8 +1,8 @@
 'use client';
 
 import { useTransition, useState } from 'react';
-import { softDeleteUser, restoreUser, changeUserRole, changeUserCategory } from '@/app/actions/adminActions';
-import { Trash2, UserPlus, ShieldAlert, GraduationCap, Stethoscope, User } from 'lucide-react';
+import { softDeleteUser, restoreUser, changeUserRole, changeUserCategory, adminResetPassword } from '@/app/actions/adminActions';
+import { Trash2, UserPlus, ShieldAlert, GraduationCap, Stethoscope, User, KeyRound } from 'lucide-react';
 
 interface AdminProfileControlsProps {
   profileId: string;
@@ -32,6 +32,15 @@ export default function AdminProfileControls({ profileId, isDeleted, currentRole
     
     startTransition(async () => {
       const res = await restoreUser(profileId);
+      setMessage(res.message);
+    });
+  };
+
+  const handleResetPassword = () => {
+    if (!confirm('Reset this member\'s password to their registered mobile number?')) return;
+    
+    startTransition(async () => {
+      const res = await adminResetPassword(profileId);
       setMessage(res.message);
     });
   };
@@ -128,6 +137,17 @@ export default function AdminProfileControls({ profileId, isDeleted, currentRole
       )}
 
       <div className="flex flex-col gap-2">
+        {isDeleted === 0 && (
+          <button 
+            onClick={handleResetPassword}
+            disabled={isPending}
+            className="w-full flex items-center justify-center gap-2 py-3 px-4 bg-white hover:bg-amber-50 text-amber-600 font-bold rounded-xl text-xs transition-all border border-amber-100 hover:border-amber-200 disabled:opacity-50 tracking-wider uppercase mb-2"
+          >
+            <KeyRound className="w-4 h-4" />
+            {isPending ? 'Processing...' : 'Reset Password to Mobile'}
+          </button>
+        )}
+        
         {isDeleted === 0 ? (
           <button 
             onClick={handleDelete}

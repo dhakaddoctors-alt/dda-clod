@@ -209,6 +209,7 @@ export async function initializeFormConfigs() {
       // Payment Section
       { id: '39', fieldName: 'membershipType', label: 'Membership Type', section: 'payment', isVisible: 1, isRequired: 0, categoryScope: 'doctor,student', showOnIdCard: 1 },
       { id: '40', fieldName: 'paymentReceipt', label: 'Payment Receipt Upload', section: 'payment', isVisible: 1, isRequired: 0, categoryScope: 'doctor,student', showOnIdCard: 0 },
+      { id: '44', fieldName: 'upiQrDetails', label: 'Payment Details (QR/UPI/Bank)', section: 'payment', isVisible: 1, isRequired: 0, categoryScope: 'doctor,student', showOnIdCard: 0 },
 
       // Category Visibility
       { id: '41', fieldName: 'category_guest', label: 'Category: Guest/Member', section: 'visibility', isVisible: 1, isRequired: 0, categoryScope: 'all', orderIndex: 1, showOnIdCard: 1 },

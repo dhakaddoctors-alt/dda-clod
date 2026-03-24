@@ -6,6 +6,7 @@ import { revalidatePath } from 'next/cache';
 import { getDb } from '@/db';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/app/api/auth/[...nextauth]/route';
+import bcrypt from 'bcryptjs';
 
 async function checkAdminAccess() {
   const session = await getServerSession(authOptions) as any;
@@ -187,6 +188,37 @@ export async function changeUserCategory(profileId: string, newCategory: string)
     return { success: true, message: `User identity category updated to ${newCategory}.` };
   } catch(error: any) {
     return { success: false, message: error.message || 'Failed to update user category.' };
+  }
+}
+
+export async function adminResetPassword(profileId: string) {
+  try {
+    if (!await checkAdminAccess()) throw new Error('Unauthorized');
+    const db = getDb();
+
+    // 1. Get user's mobile number
+    const userResults = await db.select({ mobile: profiles.mobile })
+      .from(profiles)
+      .where(eq(profiles.id, profileId))
+      .limit(1);
+
+    if (userResults.length === 0) throw new Error('User not found');
+    const mobile = userResults[0].mobile;
+    if (!mobile) throw new Error('Mobile number not found for this user');
+
+    // 2. Hash the mobile number
+    const newPasswordHash = await bcrypt.hash(mobile, 10);
+
+    // 3. Update password
+    await db.update(profiles)
+      .set({ passwordHash: newPasswordHash })
+      .where(eq(profiles.id, profileId));
+
+    console.log(`[DB] Admin reset password for ${profileId} to mobile: ${mobile}`);
+    return { success: true, message: 'Password reset to mobile number successfully.' };
+  } catch (error: any) {
+    console.error('Error in adminResetPassword:', error);
+    return { success: false, message: error.message || 'Failed to reset password.' };
   }
 }
 
