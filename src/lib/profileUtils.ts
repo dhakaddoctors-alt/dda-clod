@@ -90,6 +90,7 @@ export async function getMergedProfileData(profileId: string) {
     return {
       ...mergedProfileData,
       ...safeCategoryDetails,
+      details: categoryDetails, // Keep this for backward compatibility
       ...metaData,
       ...jsonData,
       _original: {

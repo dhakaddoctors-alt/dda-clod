@@ -17,6 +17,7 @@ export async function fetchDirectoryMembers(queryString?: string, filterRole?: s
       // Doctor fields
       specialty: doctorDetails.specialization,
       experience: doctorDetails.experience,
+      hospitalName: doctorDetails.hospitalName,
       clinicAddress: doctorDetails.clinicAddress,
       
       // Student fields
