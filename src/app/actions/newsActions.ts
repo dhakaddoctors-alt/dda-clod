@@ -20,6 +20,7 @@ export async function fetchAllNews() {
 export async function createNews(formData: FormData) {
   try {
     const title = formData.get('title') as string;
+    const description = formData.get('description') as string;
     const linkUrl = formData.get('linkUrl') as string;
     const imageFile = formData.get('imageFile') as File;
 
@@ -31,6 +32,7 @@ export async function createNews(formData: FormData) {
     await db.insert(news).values({
       id: randomUUID(),
       title,
+      description: description || null,
       imageUrl,
       linkUrl: linkUrl || null,
       isActive: 1,
@@ -66,5 +68,28 @@ export async function toggleNewsStatus(id: string, currentStatus: number) {
     return { success: true };
   } catch (error: any) {
     return { success: false, message: error.message || 'Failed to toggle status' };
+  }
+}
+
+export async function updateNews(id: string, formData: FormData) {
+  try {
+    const title = formData.get('title') as string;
+    const description = formData.get('description') as string;
+    const linkUrl = formData.get('linkUrl') as string;
+
+    if (!title) throw new Error('Title is required');
+
+    const db = getDb();
+    await db.update(news).set({
+      title,
+      description: description || null,
+      linkUrl: linkUrl || null,
+    }).where(eq(news.id, id));
+
+    revalidatePath('/admin');
+    revalidatePath('/');
+    return { success: true, message: 'News updated successfully' };
+  } catch (error: any) {
+    return { success: false, message: error.message || 'Failed to update news' };
   }
 }

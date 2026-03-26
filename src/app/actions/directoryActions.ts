@@ -4,15 +4,17 @@ import { profiles, doctorDetails, studentDetails, profileMetadata, formConfigs }
 import { eq, like, or, ne, inArray } from 'drizzle-orm';
 import { getDb } from '@/db'; 
 import { sql } from 'drizzle-orm';
-export async function fetchDirectoryMembers(queryString?: string, filterRole?: string) {
+export async function fetchDirectoryMembers(queryString?: string, filterRole?: string, page: number = 1, limit: number = 20) {
   try {
     const db = getDb();
+    const offset = (page - 1) * limit;
 
     let baseQuery = db.select({
       id: profiles.id,
       name: profiles.fullName,
       category: profiles.category,
       avatarUrl: profiles.avatarUrl,
+      customFields: profiles.customFields,
       
       // Doctor fields
       specialty: doctorDetails.specialization,
@@ -63,17 +65,24 @@ export async function fetchDirectoryMembers(queryString?: string, filterRole?: s
     }
 
     // 3. Apply WHERE limits safely extracting elements
+    let countQuery = db.select({ count: sql`count(*)` }).from(profiles)
+      .leftJoin(doctorDetails, eq(profiles.id, doctorDetails.profileId))
+      .leftJoin(studentDetails, eq(profiles.id, studentDetails.profileId));
+
     if (conditions.length === 1) {
         baseQuery = baseQuery.where(conditions[0]);
+        countQuery = countQuery.where(conditions[0]);
     } else {
-        // Use an AND clause requiring all pushed constraints to be met together
-        // e.g., (isDeleted == 0 AND paymentStatus == 'verified' AND role == filterRole AND (search conditions))
         const { and } = await import('drizzle-orm');
         baseQuery = baseQuery.where(and(...conditions)); 
+        countQuery = countQuery.where(and(...conditions));
     }
 
-    const results = await baseQuery.limit(50) as any[];
-    if (results.length === 0) return [];
+    const totalCountRes = await countQuery;
+    const totalCount = Number((totalCountRes[0] as any).count || 0);
+
+    const results = await baseQuery.limit(limit).offset(offset) as any[];
+    if (results.length === 0) return { members: [], totalCount: 0, totalPages: 0, currentPage: page };
 
     const memberIds = results.map(r => r.id);
     const configs = await db.select().from(formConfigs);
@@ -96,50 +105,64 @@ export async function fetchDirectoryMembers(queryString?: string, filterRole?: s
        });
 
        // Append JSON
-       const profileRaw = await db.select({ customFields: profiles.customFields })
-         .from(profiles)
-         .where(eq(profiles.id, member.id))
-         .limit(1);
-       if (profileRaw[0]?.customFields) {
+       if (member.customFields) {
           try {
-            const json = JSON.parse(profileRaw[0].customFields as string);
+            const json = JSON.parse(member.customFields as string);
             Object.assign(member, json);
           } catch(e) {}
        }
-       
-        // Handle Dynamic Columns (Fetch based on section)
-        if (columnFields.length > 0) {
-           const pCols = columnFields.filter(c => c.section !== 'doctor' && c.section !== 'student').map(c => c.fieldName);
-           if (pCols.length > 0) {
-              const res = await db.run(sql.raw(`SELECT ${pCols.join(', ')} FROM profiles WHERE id = '${member.id}'`));
-              const row = (res as any).rows?.[0] || [];
-              pCols.forEach((col, idx) => member[col] = row[idx]);
-           }
+    }
+        
+    // Optimization: Handle Dynamic Columns in BULK per table
+    if (columnFields.length > 0 && memberIds.length > 0) {
+        const pCols = columnFields.filter(c => c.section !== 'doctor' && c.section !== 'student').map(c => c.fieldName);
+        const dCols = columnFields.filter(c => c.section === 'doctor').map(c => c.fieldName);
+        const sCols = columnFields.filter(c => c.section === 'student').map(c => c.fieldName);
 
-           if (member.category === 'doctor') {
-             const dCols = columnFields.filter(c => c.section === 'doctor').map(c => c.fieldName);
-             if (dCols.length > 0) {
-                const res = await db.run(sql.raw(`SELECT ${dCols.join(', ')} FROM doctor_details WHERE profile_id = '${member.id}'`));
-                const row = (res as any).rows?.[0] || [];
-                dCols.forEach((col, idx) => member[col] = row[idx]);
-             }
-           }
+        // Map results for easy lookup
+        const memberMap = new Map();
+        results.forEach(m => memberMap.set(m.id, m));
 
-           if (member.category === 'student') {
-             const sCols = columnFields.filter(c => c.section === 'student').map(c => c.fieldName);
-             if (sCols.length > 0) {
-                const res = await db.run(sql.raw(`SELECT ${sCols.join(', ')} FROM student_details WHERE profile_id = '${member.id}'`));
-                const row = (res as any).rows?.[0] || [];
-                sCols.forEach((col, idx) => member[col] = row[idx]);
-             }
-           }
+        // Profile Bulk
+        if (pCols.length > 0) {
+            const res = await db.run(sql.raw(`SELECT id, ${pCols.join(', ')} FROM profiles WHERE id IN (${memberIds.map(id => `'${id}'`).join(',')})`));
+            const rows = (res as any).rows || [];
+            rows.forEach((row: any[]) => {
+                const m = memberMap.get(row[0]); // ID is always index 0
+                if (m) pCols.forEach((col, idx) => m[col] = row[idx + 1]);
+            });
+        }
+
+        // Doctor Bulk
+        if (dCols.length > 0) {
+            const res = await db.run(sql.raw(`SELECT profile_id, ${dCols.join(', ')} FROM doctor_details WHERE profile_id IN (${memberIds.map(id => `'${id}'`).join(',')})`));
+            const rows = (res as any).rows || [];
+            rows.forEach((row: any[]) => {
+                const m = memberMap.get(row[0]);
+                if (m) dCols.forEach((col, idx) => m[col] = row[idx + 1]);
+            });
+        }
+
+        // Student Bulk
+        if (sCols.length > 0) {
+            const res = await db.run(sql.raw(`SELECT profile_id, ${sCols.join(', ')} FROM student_details WHERE profile_id IN (${memberIds.map(id => `'${id}'`).join(',')})`));
+            const rows = (res as any).rows || [];
+            rows.forEach((row: any[]) => {
+                const m = memberMap.get(row[0]);
+                if (m) sCols.forEach((col, idx) => m[col] = row[idx + 1]);
+            });
         }
     }
 
-    return results;
+    return {
+      members: results,
+      totalCount,
+      totalPages: Math.ceil(totalCount / limit),
+      currentPage: page
+    };
 
   } catch (error) {
     console.error('Error fetching directory:', error);
-    return [];
+    return { members: [], totalCount: 0, totalPages: 0, currentPage: 1 };
   }
 }

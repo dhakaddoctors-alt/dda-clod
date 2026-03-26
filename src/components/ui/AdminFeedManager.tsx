@@ -14,6 +14,7 @@ interface Post {
   authorName: string | null;
   authorRole: string | null;
   authorAvatar: string | null;
+  commentsCount?: number;
 }
 
 export default function AdminFeedManager({ initialPosts }: { initialPosts: Post[] }) {
@@ -77,11 +78,18 @@ export default function AdminFeedManager({ initialPosts }: { initialPosts: Post[
                   </span>
                 </div>
                 <p className="text-sm text-gray-700 line-clamp-2">{post.content}</p>
-                <div className="flex items-center gap-3 mt-1.5 text-xs text-gray-400">
-                  <span className="flex items-center gap-1"><ThumbsUp className="w-3 h-3" /> {post.likesCount ?? 0} likes</span>
-                  {post.imageUrl && <span className="flex items-center gap-1"><ImageIcon className="w-3 h-3" /> Has image</span>}
+                <div className="flex items-center gap-4 mt-1.5 text-xs text-gray-500 font-medium">
+                  <span className="flex items-center gap-1 bg-gray-50 px-2 py-0.5 rounded-md border border-gray-100"><ThumbsUp className="w-3.5 h-3.5 text-blue-500" /> {post.likesCount ?? 0}</span>
+                  <span className="flex items-center gap-1 bg-gray-50 px-2 py-0.5 rounded-md border border-gray-100"><MessageSquare className="w-3.5 h-3.5 text-green-500" /> {post.commentsCount ?? 0}</span>
                 </div>
               </div>
+
+              {/* Image Thumbnail */}
+              {post.imageUrl && (
+                <div className="w-16 h-16 shrink-0 rounded-lg overflow-hidden border border-gray-200 bg-gray-50">
+                  <img src={post.imageUrl} alt="Post content" className="w-full h-full object-cover object-center hover:scale-110 transition-transform duration-300" />
+                </div>
+              )}
 
               {/* Delete Button */}
               <button

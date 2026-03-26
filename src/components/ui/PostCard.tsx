@@ -1,7 +1,7 @@
 'use client';
 import { useState, useTransition } from 'react';
-import { Heart, MessageCircle, Share2, MoreHorizontal, Send, Loader2 } from 'lucide-react';
-import { toggleLike, addComment } from '@/app/actions/postActions';
+import { Heart, MessageCircle, Share2, MoreVertical, Send, Loader2, Trash2 } from 'lucide-react';
+import { toggleLike, addComment, deletePost } from '@/app/actions/postActions';
 
 interface Comment {
   id: string;
@@ -22,10 +22,11 @@ interface PostProps {
   likes: number;
   hasLiked: boolean;
   commentsList: Comment[];
+  isOwner?: boolean;
 }
 
 export default function PostCard({ 
-  id, authorName, role, avatarUrl, timeAgo, content, imageUrl, likes, hasLiked, commentsList 
+  id, authorName, role, avatarUrl, timeAgo, content, imageUrl, likes, hasLiked, commentsList, isOwner 
 }: PostProps) {
   const [isLikedOptimistic, setIsLikedOptimistic] = useState(hasLiked);
   const [likesCountOptimistic, setLikesCountOptimistic] = useState(likes);
@@ -33,6 +34,8 @@ export default function PostCard({
   const [showComments, setShowComments] = useState(false);
   const [commentText, setCommentText] = useState('');
   const [isCommenting, startCommentTransition] = useTransition();
+  const [localComments, setLocalComments] = useState(commentsList);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const handleToggleLike = () => {
     // Optimistic UI update
@@ -53,15 +56,43 @@ export default function PostCard({
   const handlePostComment = () => {
     if (!commentText.trim()) return;
     
+    // Optimistic addition
+    const tempComment: Comment = {
+      id: 'temp-' + Date.now(),
+      content: commentText,
+      createdAt: new Date(),
+      authorName: 'You',
+      authorAvatar: null,
+    };
+    
+    setLocalComments([tempComment, ...localComments]);
+    const submittedText = commentText;
+    setCommentText('');
+    
     startCommentTransition(async () => {
-      const res = await addComment(id, commentText);
-      if (res.success) {
-        setCommentText('');
-      } else {
+      const res = await addComment(id, submittedText);
+      if (!res.success) {
+        // revert on failure
+        setLocalComments(localComments);
+        setCommentText(submittedText);
         alert(res.message);
       }
     });
   };
+
+  const handleDeletePost = () => {
+    if (!confirm('Are you sure you want to delete this post? This cannot be undone.')) return;
+    setIsDeleting(true);
+    startTransition(async () => {
+      const res = await deletePost(id);
+      if (!res.success) {
+        alert(res.message);
+        setIsDeleting(false);
+      }
+    });
+  };
+
+  if (isDeleting) return null;
 
   return (
     <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden mb-4">
@@ -83,9 +114,21 @@ export default function PostCard({
             </div>
           </div>
         </div>
-        <button className="text-gray-400 hover:text-gray-600 p-1 rounded-full hover:bg-gray-100 transition-colors">
-          <MoreHorizontal className="w-5 h-5" />
-        </button>
+        {isOwner && (
+          <div className="relative group">
+            <button className="text-gray-400 hover:text-gray-600 p-1 rounded-full hover:bg-gray-100 transition-colors">
+              <MoreVertical className="w-5 h-5" />
+            </button>
+            <div className="absolute right-0 top-full mt-1 bg-white border border-gray-100 shadow-lg rounded-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-10 w-32 overflow-hidden">
+               <button 
+                 onClick={handleDeletePost}
+                 className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 flex items-center gap-2"
+               >
+                 <Trash2 className="w-4 h-4" /> Delete
+               </button>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Post Content */}
@@ -110,7 +153,7 @@ export default function PostCard({
         </div>
         <div>
           <span className="select-none cursor-pointer hover:underline" onClick={() => setShowComments(!showComments)}>
-            {commentsList.length} Comments
+            {localComments.length} Comments
           </span>
         </div>
       </div>
@@ -147,10 +190,10 @@ export default function PostCard({
         <div className="px-4 pb-4 pt-2 border-t border-gray-100 bg-gray-50">
           
           <div className="space-y-4 mb-4">
-            {commentsList.length === 0 ? (
+            {localComments.length === 0 ? (
               <p className="text-xs text-gray-400 italic text-center py-2">No comments yet. Be the first to start the discussion!</p>
             ) : (
-              commentsList.map(comment => (
+              localComments.map(comment => (
                 <div key={comment.id} className="flex gap-2">
                   <div className="w-8 h-8 shrink-0 rounded-full bg-blue-100 flex flex-col items-center justify-center overflow-hidden">
                     {comment.authorAvatar ? (

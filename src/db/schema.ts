@@ -4,6 +4,7 @@ import { sqliteTable, text, integer } from 'drizzle-orm/sqlite-core';
 export const news = sqliteTable('news', {
   id: text('id').primaryKey(),
   title: text('title').notNull(),
+  description: text('description'),
   imageUrl: text('image_url').notNull(),
   linkUrl: text('link_url'), // Optional link when clicked
   isActive: integer('is_active').default(1), // 1 for shown, 0 for hidden

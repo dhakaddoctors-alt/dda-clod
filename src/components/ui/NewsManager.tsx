@@ -2,12 +2,13 @@
 
 import { useState, useTransition, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { Plus, Trash2, Image as ImageIcon, Loader2, ToggleLeft, ToggleRight, X } from 'lucide-react';
-import { createNews, deleteNews, toggleNewsStatus } from '@/app/actions/newsActions';
+import { Plus, Trash2, Image as ImageIcon, Loader2, ToggleLeft, ToggleRight, X, Edit2, Save } from 'lucide-react';
+import { createNews, deleteNews, toggleNewsStatus, updateNews } from '@/app/actions/newsActions';
 
 interface NewsItem {
   id: string;
   title: string;
+  description: string | null;
   imageUrl: string;
   linkUrl: string | null;
   isActive: number | null;
@@ -19,8 +20,12 @@ export default function NewsManager({ initialNews }: { initialNews: NewsItem[] }
   const [newsList, setNewsList] = useState(initialNews);
   const [isPending, startTransition] = useTransition();
   const [showAddModal, setShowAddModal] = useState(false);
-  const [formData, setFormData] = useState({ title: '', linkUrl: '' });
+  const [formData, setFormData] = useState({ title: '', description: '', linkUrl: '' });
   const [file, setFile] = useState<File | null>(null);
+
+  // Edit state
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editData, setEditData] = useState({ title: '', description: '', linkUrl: '' });
 
   // Sync state if initialNews changes
   useEffect(() => {
@@ -33,6 +38,7 @@ export default function NewsManager({ initialNews }: { initialNews: NewsItem[] }
 
     const data = new FormData();
     data.append('title', formData.title);
+    data.append('description', formData.description);
     data.append('linkUrl', formData.linkUrl);
     data.append('imageFile', file);
 
@@ -40,7 +46,7 @@ export default function NewsManager({ initialNews }: { initialNews: NewsItem[] }
       const res = await createNews(data);
       if (res.success) {
         setShowAddModal(false);
-        setFormData({ title: '', linkUrl: '' });
+        setFormData({ title: '', description: '', linkUrl: '' });
         setFile(null);
         router.refresh(); 
       } else {
@@ -68,6 +74,40 @@ export default function NewsManager({ initialNews }: { initialNews: NewsItem[] }
           item.id === id ? { ...item, isActive: current === 1 ? 0 : 1 } : item
         ));
         router.refresh();
+      }
+    });
+  };
+
+  const handleStartEdit = (item: NewsItem) => {
+    setEditingId(item.id);
+    setEditData({ 
+      title: item.title, 
+      description: item.description || '', 
+      linkUrl: item.linkUrl || '' 
+    });
+  };
+
+  const handleSaveEdit = async (id: string) => {
+    startTransition(async () => {
+      const data = new FormData();
+      data.append('title', editData.title);
+      data.append('description', editData.description);
+      data.append('linkUrl', editData.linkUrl);
+      
+      const res = await updateNews(id, data);
+      if (res.success) {
+        setNewsList(prev => prev.map(item => 
+          item.id === id ? { 
+            ...item, 
+            title: editData.title, 
+            description: editData.description || null, 
+            linkUrl: editData.linkUrl || null 
+          } : item
+        ));
+        setEditingId(null);
+        router.refresh();
+      } else {
+        alert(res.message);
       }
     });
   };
@@ -111,14 +151,56 @@ export default function NewsManager({ initialNews }: { initialNews: NewsItem[] }
                     >
                       <Trash2 className="w-5 h-5" />
                     </button>
+                    <button 
+                      onClick={() => handleStartEdit(item)}
+                      className="p-2 bg-white rounded-full text-blue-600 hover:scale-110 transition"
+                      title="Edit"
+                    >
+                      <Edit2 className="w-5 h-5" />
+                    </button>
                   </div>
                   {item.isActive === 0 && (
                     <div className="absolute top-2 right-2 bg-gray-900/80 text-white text-[10px] font-bold px-2 py-0.5 rounded uppercase">Hidden</div>
                   )}
                 </div>
                 <div className="p-3">
-                  <h3 className="font-semibold text-gray-900 text-sm line-clamp-1">{item.title}</h3>
-                  <p className="text-xs text-gray-500 mt-1 truncate">{item.linkUrl || 'No link'}</p>
+                  {editingId === item.id ? (
+                    <div className="space-y-2 relative z-10 bg-white">
+                      <input 
+                        type="text" 
+                        value={editData.title}
+                        onChange={e => setEditData({...editData, title: e.target.value})}
+                        className="w-full p-2 text-sm border border-gray-200 rounded outline-none" placeholder="Title"
+                      />
+                      <textarea 
+                        value={editData.description}
+                        onChange={e => setEditData({...editData, description: e.target.value})}
+                        className="w-full p-2 text-xs border border-gray-200 rounded outline-none resize-none" rows={2} placeholder="Description"
+                      />
+                      <input 
+                        type="url" 
+                        value={editData.linkUrl}
+                        onChange={e => setEditData({...editData, linkUrl: e.target.value})}
+                        className="w-full p-2 text-xs border border-gray-200 rounded outline-none" placeholder="Link URL"
+                      />
+                      <div className="flex gap-2">
+                        <button onClick={() => handleSaveEdit(item.id)} disabled={isPending} className="flex-1 bg-green-600 text-white text-xs py-1.5 rounded disabled:opacity-50 flex justify-center">
+                           {isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+                        </button>
+                        <button onClick={() => setEditingId(null)} className="flex-1 bg-gray-200 text-gray-700 text-xs py-1.5 rounded flex justify-center">
+                           <X className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <>
+                      <h3 className="font-semibold text-gray-900 text-sm line-clamp-1">{item.title}</h3>
+                      {item.description && <p className="text-xs text-gray-600 mt-1 line-clamp-2">{item.description}</p>}
+                      <p className="text-xs text-blue-500 mt-1 truncate hover:underline">
+                        {item.linkUrl ? <a href={item.linkUrl} target="_blank" rel="noreferrer">{item.linkUrl}</a> : 'No link'}
+                      </p>
+                    </>
+                  )}
                 </div>
               </div>
             ))}
@@ -161,6 +243,17 @@ export default function NewsManager({ initialNews }: { initialNews: NewsItem[] }
                     <input type="file" className="hidden" accept="image/*" onChangeCapture={e => setFile((e.target as any).files[0])} />
                   </label>
                 </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                <textarea 
+                  value={formData.description}
+                  onChange={e => setFormData({...formData, description: e.target.value})}
+                  className="w-full p-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500 outline-none resize-none"
+                  placeholder="Optional description or details..."
+                  rows={3}
+                />
               </div>
 
               <div>

@@ -8,6 +8,7 @@ import CreatePostModal from '@/components/ui/CreatePostModal';
 import { fetchFeedPosts } from '@/app/actions/postActions';
 import { fetchAllNews } from '@/app/actions/newsActions';
 import { fetchCommitteesWithMembers } from '@/app/actions/committeeActions';
+import { formatTimeAgo } from '@/lib/formatters';
 import GuestHeroBanner from '@/components/ui/GuestHeroBanner';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/app/api/auth/[...nextauth]/route';
@@ -25,8 +26,9 @@ export default async function Home() {
     level: c.level
   })));
 
-  const session = await getServerSession(authOptions);
+  const session = await getServerSession(authOptions) as any;
   const isAuthenticated = !!session;
+  const sessionUser = session?.user;
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
@@ -56,7 +58,10 @@ export default async function Home() {
             <StoryCarousel />
 
             {/* AI Moderated Create Post Modal */}
-            <CreatePostModal />
+            <CreatePostModal sessionUser={sessionUser ? {
+              name: sessionUser.name || 'You',
+              avatarUrl: sessionUser.image || null
+            } : undefined} />
 
             {/* Facebook-style Feed */}
             <div className="space-y-4 pb-20">
@@ -70,15 +75,16 @@ export default async function Home() {
                   <PostCard 
                     key={post.id}
                     id={post.id}
-                    authorName={post.authorName}
-                    role={post.authorRole}
+                    authorName={post.authorName || 'Unknown'}
+                    role={post.authorRole || 'member'}
                     avatarUrl={post.authorAvatar || undefined}
-                    timeAgo={new Date(post.createdAt).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                    timeAgo={formatTimeAgo(post.createdAt)}
                     content={post.content || ''}
                     imageUrl={post.imageUrl || undefined}
                     likes={post.likesCount || 0}
                     hasLiked={post.hasLiked}
                     commentsList={post.commentsList}
+                    isOwner={sessionUser?.id === post.authorId}
                   />
                 ))
               )}

@@ -2,7 +2,7 @@
 
 import { posts, comments, profiles, postLikes } from '@/db/schema';
 import { randomUUID } from 'crypto';
-import { eq, desc, and, sql } from 'drizzle-orm';
+import { eq, desc, and, sql, inArray } from 'drizzle-orm';
 import { getDb } from '@/db';
 import { uploadToSocialR2 } from '@/lib/storage';
 
@@ -169,6 +169,31 @@ export async function addComment(postId: string, content: string) {
   }
 }
 
+export async function deletePost(postId: string) {
+  try {
+    const session = await getServerSession(authOptions) as any;
+    if (!session?.user?.id) return { success: false, message: 'Unauthorized' };
+    
+    const db = getDb();
+    
+    // Verify post ownership
+    const post = await db.select().from(posts).where(eq(posts.id, postId)).limit(1);
+    if (post.length === 0) return { success: false, message: 'Post not found' };
+    if (post[0].authorId !== session.user.id) return { success: false, message: 'Unauthorized: Can only delete your own posts' };
+
+    // Delete comments, likes, then post
+    await db.delete(comments).where(eq(comments.postId, postId));
+    await db.delete(postLikes).where(eq(postLikes.postId, postId));
+    await db.delete(posts).where(eq(posts.id, postId));
+    
+    revalidatePath('/');
+    return { success: true, message: 'Post deleted successfully' };
+  } catch (error: any) {
+    console.error('Delete post error:', error);
+    return { success: false, message: error.message || 'Failed to delete post' };
+  }
+}
+
 // ===== ADMIN CONTROLS =====
 
 export async function adminFetchAllPosts() {
@@ -178,7 +203,7 @@ export async function adminFetchAllPosts() {
       throw new Error('Unauthorized');
     }
     const db = getDb();
-    return await db.select({
+    const fetchedPosts = await db.select({
       id: posts.id,
       content: posts.content,
       imageUrl: posts.imageUrl,
@@ -192,6 +217,18 @@ export async function adminFetchAllPosts() {
     .innerJoin(profiles, eq(posts.authorId, profiles.id))
     .orderBy(desc(posts.createdAt))
     .limit(50);
+
+    const postIds = fetchedPosts.map(p => p.id);
+    let commentCountsMap: Record<string, number> = {};
+    if (postIds.length > 0) {
+      const counts = await db.select({
+        postId: comments.postId,
+        count: sql<number>`count(${comments.id})`.mapWith(Number)
+      }).from(comments).where(inArray(comments.postId, postIds)).groupBy(comments.postId);
+      counts.forEach(c => commentCountsMap[c.postId] = c.count);
+    }
+
+    return fetchedPosts.map(p => ({ ...p, commentsCount: commentCountsMap[p.id] || 0 }));
   } catch(error) {
     console.error('Admin fetch posts error:', error);
     return [];

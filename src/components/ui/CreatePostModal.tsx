@@ -5,7 +5,14 @@ import { ImagePlus, X, AlertTriangle } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { compressImageTo1MB } from '@/lib/imageCompression';
 
-export default function CreatePostModal() {
+interface CreatePostModalProps {
+  sessionUser?: {
+    name: string;
+    avatarUrl: string | null;
+  };
+}
+
+export default function CreatePostModal({ sessionUser }: CreatePostModalProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState('');
@@ -50,8 +57,12 @@ export default function CreatePostModal() {
          onClick={() => setIsOpen(true)}
          className="bg-white p-4 rounded-xl border border-gray-200 shadow-sm mb-6 flex gap-3 items-center cursor-pointer hover:bg-gray-50 transition"
       >
-         <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center shrink-0">
-           <span className="text-blue-600 font-bold">U</span>
+         <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center shrink-0 overflow-hidden">
+           {sessionUser?.avatarUrl ? (
+             <img src={sessionUser.avatarUrl} alt={sessionUser.name} className="w-full h-full object-cover object-top" />
+           ) : (
+             <span className="text-blue-600 font-bold">{sessionUser?.name ? sessionUser.name.charAt(0).toUpperCase() : 'U'}</span>
+           )}
          </div>
          <div className="bg-gray-100 rounded-full h-10 flex-1 flex items-center px-4 text-gray-500">
            What's on your mind? Share an update or image...
@@ -82,11 +93,15 @@ export default function CreatePostModal() {
                 )}
 
                 <div className="flex gap-3 mb-4">
-                  <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center shrink-0">
-                    <span className="text-blue-600 font-bold">U</span>
+                  <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center shrink-0 overflow-hidden">
+                    {sessionUser?.avatarUrl ? (
+                      <img src={sessionUser.avatarUrl} alt={sessionUser.name} className="w-full h-full object-cover object-top" />
+                    ) : (
+                      <span className="text-blue-600 font-bold">{sessionUser?.name ? sessionUser.name.charAt(0).toUpperCase() : 'U'}</span>
+                    )}
                   </div>
                   <div className="flex flex-col">
-                     <span className="font-bold text-gray-900 text-sm">Your Name</span>
+                     <span className="font-bold text-gray-900 text-sm">{sessionUser?.name || 'Your Name'}</span>
                      <span className="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full w-fit capitalize font-medium">Public</span>
                   </div>
                 </div>

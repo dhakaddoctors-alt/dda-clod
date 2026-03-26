@@ -1,19 +1,20 @@
 import Link from 'next/link';
 import Navbar from '@/components/shared/Navbar';
-import { Search, Filter, MapPin, Briefcase, GraduationCap, Lock } from 'lucide-react';
+import { Search, Filter, MapPin, Briefcase, GraduationCap, Lock, ChevronLeft, ChevronRight } from 'lucide-react';
 import { fetchDirectoryMembers } from '@/app/actions/directoryActions';
 import { toTitleCase, toUpperCase } from '@/lib/formatters';
 
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/app/api/auth/[...nextauth]/route';
 
-export default async function DirectoryPage(props: { searchParams?: Promise<{ q?: string, filter?: string }> }) {
+export default async function DirectoryPage(props: { searchParams?: Promise<{ q?: string, filter?: string, page?: string }> }) {
   const searchParams = await props.searchParams;
   const q = searchParams?.q || '';
   const filter = searchParams?.filter || 'all';
+  const page = parseInt(searchParams?.page || '1', 10);
 
   // 1. Fetch DB records directly on the Server
-  const members = await fetchDirectoryMembers(q, filter);
+  const { members, totalCount, totalPages, currentPage } = await fetchDirectoryMembers(q, filter, page, 20);
   
   // 2. Auth Session Check
   const session = await getServerSession(authOptions);
@@ -169,10 +170,35 @@ export default async function DirectoryPage(props: { searchParams?: Promise<{ q?
                 ))}
               </div>
             )}
+
+            {/* Pagination Controls */}
+            {isAuthenticated && totalPages > 1 && (
+              <div className="mt-8 flex items-center justify-center gap-4">
+                <Link 
+                  href={`/directory?page=${currentPage - 1}${q ? `&q=${q}` : ''}${filter !== 'all' ? `&filter=${filter}` : ''}`}
+                  className={`p-2 rounded-lg border border-gray-200 bg-white hover:bg-gray-50 transition-colors ${currentPage <= 1 ? 'pointer-events-none opacity-50' : ''}`}
+                >
+                  <ChevronLeft className="w-5 h-5 text-gray-600" />
+                </Link>
+                
+                <div className="flex items-center gap-2">
+                  <span className="text-sm font-medium text-gray-900 border border-gray-200 bg-white px-4 py-2 rounded-lg shadow-sm">
+                    Page {currentPage} of {totalPages}
+                  </span>
+                </div>
+
+                <Link 
+                  href={`/directory?page=${currentPage + 1}${q ? `&q=${q}` : ''}${filter !== 'all' ? `&filter=${filter}` : ''}`}
+                  className={`p-2 rounded-lg border border-gray-200 bg-white hover:bg-gray-50 transition-colors ${currentPage >= totalPages ? 'pointer-events-none opacity-50' : ''}`}
+                >
+                  <ChevronRight className="w-5 h-5 text-gray-600" />
+                </Link>
+              </div>
+            )}
             
-            {!isAuthenticated && members.length > 6 && (
+            {!isAuthenticated && totalCount > 6 && (
               <div className="mt-8 text-center">
-                 <p className="text-gray-600 mb-4">You are viewing a limited preview. There are <strong>{members.length - 6}</strong> more members hidden.</p>
+                 <p className="text-gray-600 mb-4">You are viewing a limited preview. There are <strong>{totalCount - 6}</strong> more members hidden.</p>
                  <Link href="/login" className="inline-flex items-center gap-2 px-8 py-3 bg-gray-900 hover:bg-black text-white font-bold rounded-xl shadow-sm transition-transform hover:scale-105">
                    <Lock className="w-5 h-5" /> Log In to View All
                  </Link>
