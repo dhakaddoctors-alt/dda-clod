@@ -38,6 +38,14 @@ export default async function ProfilePage({ params }: { params: Promise<{ id: st
   const isOwner = session?.user?.id === profileId;
   const canEdit = isAdmin || isOwner;
 
+  // Helper to safely render values (handling Date objects from DB)
+  const formatVal = (val: any) => {
+    if (val === null || val === undefined) return '';
+    if (val instanceof Date) return val.toLocaleDateString();
+    if (typeof val === 'object') return JSON.stringify(val);
+    return val;
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
       <Navbar />
@@ -169,29 +177,29 @@ export default async function ProfilePage({ params }: { params: Promise<{ id: st
                     <div className="bg-gray-50 rounded-2xl p-6 border border-gray-100 grid grid-cols-1 sm:grid-cols-2 gap-y-6 gap-x-4">
                       <div>
                         <p className="text-xs text-gray-500 font-semibold uppercase">Degree</p>
-                        <p className="font-medium text-gray-900 mt-1">{toUpperCase(details.degree)}</p>
+                        <p className="font-medium text-gray-900 mt-1">{formatVal(toUpperCase(details.degree))}</p>
                       </div>
                       {details.batch && (
                         <div>
                           <p className="text-xs text-gray-500 font-semibold uppercase">Batch Year</p>
-                          <p className="font-medium text-gray-900 mt-1">{details.batch}</p>
+                          <p className="font-medium text-gray-900 mt-1">{formatVal(details.batch)}</p>
                         </div>
                       )}
                       <div>
                         <p className="text-xs text-gray-500 font-semibold uppercase">Specialization</p>
-                        <p className="font-medium text-gray-900 mt-1">{toTitleCase(details.specialization) || 'General'}</p>
+                        <p className="font-medium text-gray-900 mt-1">{formatVal(toTitleCase(details.specialization)) || 'General'}</p>
                       </div>
                       <div>
                         <p className="text-xs text-gray-500 font-semibold uppercase">Experience</p>
-                        <p className="font-medium text-gray-900 mt-1">{details.experience} Years</p>
+                        <p className="font-medium text-gray-900 mt-1">{formatVal(details.experience)} Years</p>
                       </div>
                       <div>
                         <p className="text-xs text-gray-500 font-semibold uppercase">Hospital/Clinic Name</p>
-                        <p className="font-medium text-gray-900 mt-1">{toTitleCase(details.hospitalName) || 'N/A'}</p>
+                        <p className="font-medium text-gray-900 mt-1">{formatVal(toTitleCase(details.hospitalName)) || 'N/A'}</p>
                       </div>
                       <div>
                         <p className="text-xs text-gray-500 font-semibold uppercase">Registration No.</p>
-                        <p className="font-medium text-gray-900 mt-1">{details.registrationNo}</p>
+                        <p className="font-medium text-gray-900 mt-1">{formatVal(details.registrationNo)}</p>
                       </div>
                       <div>
                         <p className="text-xs text-gray-500 font-semibold uppercase">Consultation Fee</p>
@@ -199,7 +207,7 @@ export default async function ProfilePage({ params }: { params: Promise<{ id: st
                       </div>
                       <div>
                         <p className="text-xs text-gray-500 font-semibold uppercase">Availability</p>
-                        <p className="font-medium text-gray-900 mt-1">{details.availabilityTimings || 'By Appointment'}</p>
+                        <p className="font-medium text-gray-900 mt-1">{formatVal(details.availabilityTimings) || 'By Appointment'}</p>
                       </div>
                       <div className="sm:col-span-2">
                         <p className="text-xs text-gray-500 font-semibold uppercase flex items-center gap-1"><MapPin className="w-3 h-3"/> Clinic Address</p>
@@ -208,13 +216,13 @@ export default async function ProfilePage({ params }: { params: Promise<{ id: st
                       {details.memberships && (
                         <div className="sm:col-span-2">
                           <p className="text-xs text-gray-500 font-semibold uppercase">Professional Memberships</p>
-                          <p className="font-medium text-gray-900 mt-1">{details.memberships}</p>
+                          <p className="font-medium text-gray-900 mt-1">{formatVal(details.memberships)}</p>
                         </div>
                       )}
                       {details.awards && (
                         <div className="sm:col-span-2">
                           <p className="text-xs text-gray-500 font-semibold uppercase">Awards & Recognition</p>
-                          <p className="font-medium text-gray-900 mt-1">{details.awards}</p>
+                          <p className="font-medium text-gray-900 mt-1">{formatVal(details.awards)}</p>
                         </div>
                       )}
                       {details.websiteSocialLinks && (
@@ -237,53 +245,53 @@ export default async function ProfilePage({ params }: { params: Promise<{ id: st
                     <div className="bg-gray-50 rounded-2xl p-6 border border-gray-100 grid grid-cols-1 sm:grid-cols-2 gap-y-6 gap-x-4">
                       <div className="sm:col-span-2">
                         <p className="text-xs text-gray-500 font-semibold uppercase">College / Institute</p>
-                        <p className="font-medium text-gray-900 mt-1">{details.college}</p>
+                        <p className="font-medium text-gray-900 mt-1">{formatVal(details.college)}</p>
                       </div>
                       {details.university && (
                          <div className="sm:col-span-2">
                            <p className="text-xs text-gray-500 font-semibold uppercase">University</p>
-                           <p className="font-medium text-gray-900 mt-1">{details.university}</p>
+                           <p className="font-medium text-gray-900 mt-1">{formatVal(details.university)}</p>
                          </div>
                       )}
                       <div>
                         <p className="text-xs text-gray-500 font-semibold uppercase">Course</p>
-                        <p className="font-medium text-gray-900 mt-1">{details.course}</p>
+                        <p className="font-medium text-gray-900 mt-1">{formatVal(details.course)}</p>
                       </div>
                       <div>
                         <p className="text-xs text-gray-500 font-semibold uppercase">Current Year</p>
-                        <p className="font-medium text-gray-900 mt-1">{details.year}</p>
+                        <p className="font-medium text-gray-900 mt-1">{formatVal(details.year)}</p>
                       </div>
                       {details.collegeEntryYear && (
                         <div>
                           <p className="text-xs text-gray-500 font-semibold uppercase">Entry Year</p>
-                          <p className="font-medium text-gray-900 mt-1">{details.collegeEntryYear}</p>
+                          <p className="font-medium text-gray-900 mt-1">{formatVal(details.collegeEntryYear)}</p>
                         </div>
                       )}
                       {details.internshipStatus && (
                         <div>
                           <p className="text-xs text-gray-500 font-semibold uppercase">Internship Status</p>
-                          <p className="font-medium text-gray-900 mt-1 capitalize">{details.internshipStatus.replace('_', ' ')}</p>
+                          <p className="font-medium text-gray-900 mt-1 capitalize">{formatVal(details.internshipStatus?.replace('_', ' '))}</p>
                         </div>
                       )}
                       <div>
                         <p className="text-xs text-gray-500 font-semibold uppercase">Father's Gotra</p>
-                        <p className="font-medium text-gray-900 mt-1">{details.gotraFather || 'Not Provided'}</p>
+                        <p className="font-medium text-gray-900 mt-1">{formatVal(details.gotraFather) || 'Not Provided'}</p>
                       </div>
                       <div>
                         <p className="text-xs text-gray-500 font-semibold uppercase">Mother's Gotra</p>
-                        <p className="font-medium text-gray-900 mt-1">{details.gotraMother || 'Not Provided'}</p>
+                        <p className="font-medium text-gray-900 mt-1">{formatVal(details.gotraMother) || 'Not Provided'}</p>
                       </div>
                       {details.gotraGrandmother && (
                         <div>
                           <p className="text-xs text-gray-500 font-semibold uppercase">Grandmother's Gotra</p>
-                          <p className="font-medium text-gray-900 mt-1">{details.gotraGrandmother}</p>
+                          <p className="font-medium text-gray-900 mt-1">{formatVal(details.gotraGrandmother)}</p>
                         </div>
                       )}
                       {details.bloodDonationWillingness && (
                         <div>
                           <p className="text-xs text-gray-500 font-semibold uppercase">Blood Donation</p>
                           <p className={`font-bold mt-1 ${details.bloodDonationWillingness === 'yes' ? 'text-red-600' : 'text-gray-900'}`}>
-                            {details.bloodDonationWillingness === 'yes' ? 'Willing to Donate ❤️' : details.bloodDonationWillingness.replace('_', ' ')}
+                            {details.bloodDonationWillingness === 'yes' ? 'Willing to Donate ❤️' : formatVal(details.bloodDonationWillingness?.replace('_', ' '))}
                           </p>
                         </div>
                       )}

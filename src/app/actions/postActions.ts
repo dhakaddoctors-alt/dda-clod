@@ -5,7 +5,7 @@ import { randomUUID } from 'crypto';
 import { eq, desc, and, sql } from 'drizzle-orm';
 import { getDb } from '@/db';
 import { uploadToSocialR2 } from '@/lib/storage';
-import { analyzePostContent } from '@/app/actions/aiActions';
+
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/app/api/auth/[...nextauth]/route';
 import { revalidatePath } from 'next/cache';
@@ -71,11 +71,7 @@ export async function createPost(formData: FormData) {
     const content = formData.get('content') as string;
     if (!content) throw new Error('Post content cannot be empty');
 
-    // AI Moderation Step
-    const moderationResult = await analyzePostContent(content);
-    if (!moderationResult.isSafe) {
-      throw new Error(`Content Blocked: ${moderationResult.flagReason}`);
-    }
+    // AI Moderation Step — REMOVED
 
     const session = await getServerSession(authOptions) as any;
     if (!session?.user?.id) throw new Error("Unauthorized");
@@ -154,11 +150,7 @@ export async function addComment(postId: string, content: string) {
     const session = await getServerSession(authOptions) as any;
     if (!session?.user?.id) return { success: false, message: "Unauthorized" };
 
-    // Optional AI Moderation on comments:
-    const moderationResult = await analyzePostContent(content);
-    if (!moderationResult.isSafe) {
-      return { success: false, message: `Blocked: ${moderationResult.flagReason}` };
-    }
+    // Optional AI Moderation on comments — REMOVED
 
     const db = getDb();
     await db.insert(comments).values({

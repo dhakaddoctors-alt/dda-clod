@@ -46,6 +46,14 @@ export default function IdCard({ id, name, role, category, membershipType, avata
     window.print();
   };
 
+  // Helper to safely stringify values (handling Date objects)
+  const stringifyValue = (val: any) => {
+    if (val === null || val === undefined) return '';
+    if (val instanceof Date) return val.toLocaleDateString();
+    if (typeof val === 'object') return JSON.stringify(val);
+    return String(val);
+  };
+
   // Get dynamic fields to show on the ID card
   const dynamicFields = configs 
     ? configs.filter(c => 
@@ -110,7 +118,7 @@ export default function IdCard({ id, name, role, category, membershipType, avata
                 return (
                   <div key={field.id}>
                     <p className="text-gray-500 uppercase font-semibold text-[10px]">{field.label}</p>
-                    <p className="font-medium text-gray-900 line-clamp-1 truncate">{value || (field.fieldName === 'bloodGroup' ? 'Not Specs' : 'N/A')}</p>
+                    <p className="font-medium text-gray-900 line-clamp-1 truncate">{stringifyValue(value) || (field.fieldName === 'bloodGroup' ? 'Not Specs' : 'N/A')}</p>
                   </div>
                 );
             })}

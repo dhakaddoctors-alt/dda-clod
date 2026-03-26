@@ -11,7 +11,7 @@ import { adminFetchAllPosts } from '@/app/actions/postActions';
 import { adminFetchAllStories } from '@/app/actions/storyActions';
 import { fetchAdsForAdmin } from '@/app/actions/adActions';
 import AdminDashboardTabs from '@/components/ui/AdminDashboardTabs';
-import AiAdminPanel from '@/components/ui/AiAdminPanel';
+
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/app/api/auth/[...nextauth]/route';
 
@@ -105,7 +105,7 @@ export default async function AdminDashboardPage() {
               <div className="space-y-6 w-full min-w-0">
                  
                 {/* Embedded AI Control Panel */}
-                <AiAdminPanel />
+                
 
                 <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6">
                   <h2 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">

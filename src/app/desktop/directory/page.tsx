@@ -1,9 +1,9 @@
 import Link from 'next/link';
 import Navbar from '@/components/shared/Navbar';
-import { Search, Filter, MapPin, Briefcase, GraduationCap, Sparkles, Lock } from 'lucide-react';
+import { Search, Filter, MapPin, Briefcase, GraduationCap, Lock } from 'lucide-react';
 import { fetchDirectoryMembers } from '@/app/actions/directoryActions';
 import { toTitleCase, toUpperCase } from '@/lib/formatters';
-import { generateSmartRecommendations } from '@/app/actions/aiActions';
+
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/app/api/auth/[...nextauth]/route';
 
@@ -24,12 +24,8 @@ export default async function DirectoryPage(props: { searchParams?: Promise<{ q?
 
   const currentUserId = (session?.user as any)?.id || '';
   const isStudent = (session?.user as any)?.category === 'student';
-  let aiMatches = null;
+  // AI Recommendations — REMOVED
 
-  if (isStudent && filter === 'doctor') {
-    const aiData = await generateSmartRecommendations(currentUserId);
-    aiMatches = aiData.matches;
-  }
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
@@ -111,35 +107,7 @@ export default async function DirectoryPage(props: { searchParams?: Promise<{ q?
               )}
             </div>
 
-            {/* Smart AI Matchmaking Banner (Visible only for Students browsing Doctors) */}
-            {aiMatches && aiMatches.length > 0 && (
-               <div className="bg-gradient-to-r from-purple-700 to-indigo-800 rounded-2xl p-6 shadow-sm border border-purple-200 mb-8 relative overflow-hidden">
-                 <Sparkles className="w-32 h-32 absolute -right-4 -top-8 opacity-10 text-white" />
-                 <h2 className="text-xl font-bold text-white mb-4 flex items-center gap-2 relative z-10">
-                   <Sparkles className="w-5 h-5 text-yellow-300" /> 
-                   AI Recommended Mentors for You
-                 </h2>
-                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 relative z-10">
-                    {aiMatches.map((match: any) => (
-                      <div key={match.id} className="bg-white/10 backdrop-blur-md rounded-xl p-4 border border-white/20 text-white flex gap-4 items-start">
-                         <div className="w-12 h-12 rounded-full bg-indigo-200 shrink-0 flex items-center justify-center font-bold text-indigo-700">
-                           {match.doctorName.charAt(0)}
-                         </div>
-                         <div>
-                           <h3 className="font-bold text-lg">{match.doctorName}</h3>
-                           <p className="text-indigo-200 text-xs font-medium mb-2">{match.specialty} • {match.matchScore}% Match Score</p>
-                           <p className="text-sm text-indigo-50 leading-relaxed italic border-l-2 border-purple-400 pl-2">{match.reason}</p>
-                           <Link href={`/directory/${match.doctorId}`} className="mt-3 inline-block px-4 py-1.5 bg-white text-indigo-700 rounded-lg text-sm font-bold shadow-sm hover:bg-indigo-50 transition-colors">
-                              Connect Mentor
-                           </Link>
-                         </div>
-                      </div>
-                    ))}
-                 </div>
-               </div>
-            )}
 
-            {/* Directory Grid */}
             {displayMembers.length === 0 ? (
                <div className="p-8 text-center bg-white rounded-2xl border border-gray-200">
                   <h3 className="text-lg font-medium text-gray-900">No members found matching your criteria.</h3>

@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 import './globals.css';
-import AiChatbot from '@/components/ui/AiChatbot';
+
 import MobileTabBar from '@/components/shared/MobileTabBar';
 import SessionProvider from '@/components/shared/SessionProvider';
 
@@ -49,7 +49,7 @@ export default function RootLayout({
       <body className={`${inter.className} bg-gray-50 text-gray-900 custom-scrollbar pb-16 lg:pb-0`}>
         <SessionProvider>
           {children}
-          <AiChatbot />
+          
           <MobileTabBar />
         </SessionProvider>
       </body>
