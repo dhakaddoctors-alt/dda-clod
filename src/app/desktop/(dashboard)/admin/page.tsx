@@ -6,7 +6,7 @@ import { fetchCommitteesWithMembers } from '@/app/actions/committeeActions';
 import { fetchLiveElectionAnalytics } from '@/app/actions/nominationActions';
 import { fetchAllNews } from '@/app/actions/newsActions';
 import DatabaseBackupButton from '@/components/ui/DatabaseBackupButton';
-import { fetchActiveElections } from '@/app/actions/electionActions';
+import { fetchActiveElections, adminFetchAllCandidates } from '@/app/actions/electionActions';
 import { adminFetchAllPosts } from '@/app/actions/postActions';
 import { adminFetchAllStories } from '@/app/actions/storyActions';
 import { fetchAdsForAdmin } from '@/app/actions/adActions';
@@ -45,9 +45,11 @@ export default async function AdminDashboardPage() {
 
   // Pre-fetch all analytics for existing elections so the client switches are instant
   const analyticsData: Record<string, any> = {};
+  const allCandidates: Record<string, any[]> = {};
   await Promise.all(
      activeElections.map(async (e) => {
         analyticsData[e.id] = await fetchLiveElectionAnalytics(e.id);
+        allCandidates[e.id] = await adminFetchAllCandidates(e.id);
      })
   );
 
@@ -96,6 +98,7 @@ export default async function AdminDashboardPage() {
                   adsList={adsList}
                   activeElections={activeElections}
                   analyticsData={analyticsData}
+                  allCandidates={allCandidates}
                   allPosts={allPosts}
                   allStories={allStories}
                 />

@@ -1,8 +1,8 @@
 'use client';
 
-import { useState, useTransition } from 'react';
+import { useState, useTransition, useEffect } from 'react';
 import { submitNomination } from '@/app/actions/nominationActions';
-import { UploadCloud, CheckCircle2, FileText, AlertCircle, CalendarClock, ArrowLeft } from 'lucide-react';
+import { UploadCloud, CheckCircle2, FileText, AlertCircle, CalendarClock, ArrowLeft, Info } from 'lucide-react';
 import Link from 'next/link';
 
 interface Election {
@@ -20,9 +20,10 @@ interface NominationFormProps {
   phaseStatus: string;
   nomStart: Date | null;
   nomEnd: Date | null;
+  existingNominations?: any[];
 }
 
-export default function NominationForm({ election, allElections, phaseStatus, nomStart, nomEnd }: NominationFormProps) {
+export default function NominationForm({ election, allElections, phaseStatus, nomStart, nomEnd, existingNominations = [] }: NominationFormProps) {
   const [isPending, startTransition] = useTransition();
   const [message, setMessage] = useState('');
   const [success, setSuccess] = useState(false);
@@ -32,6 +33,18 @@ export default function NominationForm({ election, allElections, phaseStatus, no
   const ongoingElectionId = selectedElectionId;
   const selectedElectionObj = allElections.find((e) => e.id === selectedElectionId) || election;
   const ongoingElectionTitle = selectedElectionObj?.title || 'National President Election';
+
+  const existingRecord = existingNominations.find((n: any) => n.electionId === ongoingElectionId);
+  const isUpdating = !!existingRecord;
+
+  // Pre-fill manifesto if there's an existing record
+  useEffect(() => {
+    if (existingRecord?.manifesto) {
+      setManifestoText(existingRecord.manifesto);
+    } else {
+      setManifestoText('');
+    }
+  }, [existingRecord]);
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -129,12 +142,17 @@ export default function NominationForm({ election, allElections, phaseStatus, no
                   <UploadCloud className="mx-auto h-10 w-10 text-gray-400" />
                   <div className="flex text-sm text-gray-600 justify-center">
                     <label htmlFor="posterFile" className="relative cursor-pointer bg-white rounded-md font-medium text-blue-600 hover:text-blue-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-blue-500">
-                      <span>Upload a poster</span>
-                      <input id="posterFile" name="posterFile" type="file" required className="sr-only" accept="image/*" />
+                      <span>{existingRecord?.posterUrl ? 'Change poster' : 'Upload a poster'}</span>
+                      <input id="posterFile" name="posterFile" type="file" required={!isUpdating} className="sr-only" accept="image/*" />
                     </label>
                     <p className="pl-1">or drag and drop</p>
                   </div>
                   <p className="text-xs text-gray-500">PNG, JPG up to 5MB</p>
+                  {existingRecord?.posterUrl && (
+                    <div className="mt-2 text-xs font-semibold text-green-600">
+                      Current poster is actively saved. You can upload a new one to replace it.
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
@@ -156,8 +174,21 @@ export default function NominationForm({ election, allElections, phaseStatus, no
               />
             </div>
 
+            {existingRecord && (
+              <div className="p-4 bg-blue-50/50 rounded-xl border border-blue-100 flex gap-3 text-sm text-blue-900">
+                <Info className="w-5 h-5 text-blue-600 shrink-0" />
+                <div>
+                  <p className="font-semibold mb-1">You have already submitted a nomination for this election.</p>
+                  <p className="text-blue-800">
+                    Current Status: <span className="font-bold uppercase tracking-wider">{existingRecord.status.replace('_', ' ')}</span>
+                  </p>
+                  <p className="text-blue-700/80 mt-1">Submitting this form will update your existing nomination details.</p>
+                </div>
+              </div>
+            )}
+
             {message && (
-              <div className="p-4 bg-red-50 text-red-600 rounded-xl text-sm font-medium border border-red-100">
+              <div className={`p-4 rounded-xl text-sm font-medium border ${success ? 'bg-green-50 text-green-700 border-green-200' : 'bg-red-50 text-red-600 border-red-100'}`}>
                  {message}
               </div>
             )}
@@ -171,7 +202,7 @@ export default function NominationForm({ election, allElections, phaseStatus, no
                  disabled={isPending}
                  className="px-8 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold shadow-sm transition-all active:scale-95 disabled:opacity-50 flex items-center gap-2"
                >
-                 {isPending ? 'Submitting...' : 'Submit Nomination'}
+                 {isPending ? (isUpdating ? 'Updating...' : 'Submitting...') : (isUpdating ? 'Update Nomination' : 'Submit Nomination')}
                </button>
             </div>
           </form>

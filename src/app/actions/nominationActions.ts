@@ -4,7 +4,7 @@ import { candidates, elections, profiles, voteTallies, votingRecords } from '@/d
 import { randomUUID } from 'crypto';
 import { revalidatePath } from 'next/cache';
 import { getDb } from '@/db';
-import { eq, sql } from 'drizzle-orm';
+import { eq, sql, and } from 'drizzle-orm';
 import { uploadToR2 } from '@/lib/storage';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/app/api/auth/[...nextauth]/route';
@@ -14,6 +14,11 @@ export async function submitNomination(formData: FormData) {
     const session = await getServerSession(authOptions) as any;
     if (!session?.user?.id) {
       throw new Error('You must be logged in to submit a nomination.');
+    }
+    
+    // Check if user is a doctor or student
+    if (session.user.category !== 'doctor' && session.user.category !== 'student') {
+       throw new Error('Only registered Doctors and Students are eligible to submit nominations.');
     }
 
     const electionId = formData.get('electionId') as string;
@@ -50,17 +55,39 @@ export async function submitNomination(formData: FormData) {
     }
     // National elections: open to all
 
-    await db.insert(candidates).values({
-      id: randomUUID(),
-      electionId,
-      profileId: candidateProfileId,
-      manifesto,
-      posterUrl,
-      status: 'pending_approval'
-    });
+    // check if nomination already exists
+    const existingCandidate = await db.select().from(candidates)
+       .where(and(eq(candidates.electionId, electionId), eq(candidates.profileId, candidateProfileId)))
+       .limit(1);
 
-    console.log(`[DB] Submitted nomination for ${candidateProfileId} in election ${electionId}`);
-    return { success: true, message: 'Nomination submitted successfully. Pending Admin approval.' };
+    if (existingCandidate.length > 0) {
+       // Update existing
+       const cId = existingCandidate[0].id;
+       await db.update(candidates)
+         .set({
+           manifesto,
+           ...(posterUrl && { posterUrl }), // only update poster if a new one is provided
+           // We do NOT change the status back to pending_approval if they just edit an approved one,
+           // unless the admins prefer edits to re-trigger approval. Let's keep the existing status.
+         })
+         .where(eq(candidates.id, cId));
+         
+       revalidatePath('/elections/nominate');
+       return { success: true, message: 'Your existing nomination has been updated successfully.' };
+    } else {
+       // Insert new
+       await db.insert(candidates).values({
+         id: randomUUID(),
+         electionId,
+         profileId: candidateProfileId,
+         manifesto,
+         posterUrl,
+         status: 'pending_approval'
+       });
+       console.log(`[DB] Submitted new nomination for ${candidateProfileId} in election ${electionId}`);
+       revalidatePath('/elections/nominate');
+       return { success: true, message: 'Nomination submitted successfully. Pending Admin approval.' };
+    }
   } catch (error: any) {
     console.error('Error submitting nomination:', error);
     return { success: false, message: error.message || 'Failed to submit nomination.' };
@@ -116,5 +143,22 @@ export async function fetchLiveElectionAnalytics(electionId: string) {
     } catch (error) {
         console.error('Analytics Error:', error);
         return null;
+    }
+}
+
+export async function fetchUserNominations() {
+    try {
+        const session = await getServerSession(authOptions) as any;
+        if (!session?.user?.id) return [];
+
+        const db = getDb();
+        const userCandidates = await db.select()
+            .from(candidates)
+            .where(eq(candidates.profileId, session.user.id));
+            
+        return userCandidates;
+    } catch (error) {
+        console.error('Error fetching user nominations:', error);
+        return [];
     }
 }

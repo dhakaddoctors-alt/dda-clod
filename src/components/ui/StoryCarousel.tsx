@@ -146,7 +146,7 @@ export default function StoryCarousel() {
            <img 
              src={stories[viewingStoryIndex].imageUrl} 
              alt="Story" 
-             className="w-full h-screen object-cover sm:object-contain relative z-[100]" 
+             className="w-full h-screen object-contain relative z-[100]" 
            />
 
            {/* Caption Overlay */}
@@ -202,7 +202,7 @@ export default function StoryCarousel() {
            <img 
              src={previewUrl} 
              alt="Preview" 
-             className="w-full h-screen object-cover sm:object-contain opacity-90" 
+             className="w-full h-screen object-contain opacity-90" 
            />
 
            {/* Caption Input and Upload Button */}

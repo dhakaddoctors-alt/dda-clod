@@ -134,6 +134,82 @@ export async function fetchCandidates(electionId: string) {
   }
 }
 
+// === ADMIN CANDIDATE MANAGEMENT ===
+
+export async function adminFetchAllCandidates(electionId: string) {
+  try {
+     const session = await getServerSession(authOptions) as any;
+     if (!session?.user || (session.user.role !== 'admin' && session.user.role !== 'super_admin')) {
+       throw new Error('Unauthorized');
+     }
+     
+     const db = getDb();
+     const allCandidates = await db.select({
+        id: candidates.id,
+        electionId: candidates.electionId,
+        manifesto: candidates.manifesto,
+        posterUrl: candidates.posterUrl,
+        status: candidates.status,
+        name: profiles.fullName,
+        designation: doctorDetails.specialization,
+        avatarUrl: profiles.avatarUrl,
+        state: profiles.state,
+        district: profiles.district
+     })
+     .from(candidates)
+     .innerJoin(profiles, eq(candidates.profileId, profiles.id))
+     .leftJoin(doctorDetails, eq(doctorDetails.profileId, profiles.id))
+     .where(eq(candidates.electionId, electionId));
+     
+     return allCandidates;
+  } catch(error) {
+    console.error('Error fetching all candidates:', error);
+    return [];
+  }
+}
+
+export async function adminUpdateCandidateStatus(candidateId: string, status: 'approved' | 'rejected') {
+  try {
+     const session = await getServerSession(authOptions) as any;
+     if (!session?.user || (session.user.role !== 'admin' && session.user.role !== 'super_admin')) {
+       throw new Error('Unauthorized');
+     }
+
+     const db = getDb();
+     await db.update(candidates)
+       .set({ status })
+       .where(eq(candidates.id, candidateId));
+
+     revalidatePath('/admin');
+     revalidatePath('/elections');
+     return { success: true, message: `Candidate ${status} successfully.` };
+  } catch(error: any) {
+    console.error('Error updating candidate:', error);
+    return { success: false, message: error.message || 'Failed to update candidate status.' };
+  }
+}
+
+export async function adminDeleteCandidate(candidateId: string) {
+  try {
+     const session = await getServerSession(authOptions) as any;
+     if (!session?.user || (session.user.role !== 'admin' && session.user.role !== 'super_admin')) {
+       throw new Error('Unauthorized');
+     }
+
+     const db = getDb();
+     // If candidate is deleted, we should also delete their vote tallies to maintain integrity
+     await db.delete(voteTallies).where(eq(voteTallies.candidateId, candidateId));
+     await db.delete(candidates).where(eq(candidates.id, candidateId));
+
+     revalidatePath('/admin');
+     revalidatePath('/elections');
+     return { success: true, message: 'Candidate completely deleted.' };
+  } catch(error: any) {
+    console.error('Error deleting candidate:', error);
+    return { success: false, message: error.message || 'Failed to delete candidate.' };
+  }
+}
+
 export async function castVote(formData: FormData) {
   try {
     const session = await getServerSession(authOptions) as any;

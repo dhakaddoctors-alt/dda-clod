@@ -5,19 +5,24 @@ import { PlusCircle, BarChart2, Edit, CheckCircle } from 'lucide-react';
 import ElectionAnalyticsPanel from '@/components/ui/ElectionAnalyticsPanel';
 import ElectionConfigPanel from '@/components/ui/ElectionConfigPanel';
 import CreateElectionModal from '@/components/ui/CreateElectionModal';
+import AdminCandidateManager from '@/components/ui/AdminCandidateManager';
 
 export default function AdminElectionManager({ 
   elections,
-  analyticsData
+  analyticsData,
+  allCandidates
 }: { 
   elections: any[],
-  analyticsData: any // Dict mapping electionId to its AnalyticsData
+  analyticsData: any, // Dict mapping electionId to its AnalyticsData
+  allCandidates: Record<string, any[]>
 }) {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [selectedElectionId, setSelectedElectionId] = useState<string | null>(elections[0]?.id || null);
+  const [detailTab, setDetailTab] = useState<'overview' | 'candidates'>('overview');
 
   const selectedElection = elections.find(e => e.id === selectedElectionId) || null;
   const selectedAnalytics = selectedElectionId ? analyticsData[selectedElectionId] : null;
+  const selectedCandidates = selectedElectionId ? allCandidates[selectedElectionId] : [];
 
   return (
     <div className="mb-10 border border-gray-200 bg-white shadow-sm rounded-2xl overflow-hidden">
@@ -70,6 +75,12 @@ export default function AdminElectionManager({
                               }`}>
                                  {election.status.charAt(0).toUpperCase() + election.status.slice(1)}
                               </span>
+                              {allCandidates[election.id] && allCandidates[election.id].some((c: any) => c.status === 'pending_approval') && (
+                                 <span className="bg-orange-100 text-orange-700 px-2 py-0.5 rounded flex items-center gap-1">
+                                    <span className="w-1.5 h-1.5 bg-orange-500 rounded-full"></span>
+                                    Pending Review
+                                 </span>
+                              )}
                            </div>
                         </button>
                      ))}
@@ -80,19 +91,47 @@ export default function AdminElectionManager({
             {/* Main Detail View */}
             <div className="flex-1 bg-white p-6 h-[500px] overflow-y-auto">
                {selectedElection ? (
-                  <div className="space-y-8 animate-in fade-in slide-in-from-bottom-2 duration-300">
-                     <div>
-                        <h3 className="text-2xl font-bold text-gray-900 mb-2">{selectedElection.title}</h3>
-                        <p className="text-gray-600">{selectedElection.description}</p>
+                  <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
+                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                        <div>
+                           <h3 className="text-2xl font-bold text-gray-900 mb-1">{selectedElection.title}</h3>
+                           <p className="text-gray-600 text-sm">{selectedElection.description}</p>
+                        </div>
+                        <div className="flex bg-gray-100 p-1 rounded-lg shrink-0 w-max">
+                           <button 
+                              onClick={() => setDetailTab('overview')}
+                              className={`px-4 py-2 text-sm font-semibold rounded-md transition-all ${detailTab === 'overview' ? 'bg-white shadow-sm text-blue-600' : 'text-gray-500 hover:text-gray-900'}`}
+                           >
+                              Overview
+                           </button>
+                           <button 
+                              onClick={() => setDetailTab('candidates')}
+                              className={`px-4 py-2 text-sm font-semibold rounded-md transition-all flex items-center gap-1.5 ${detailTab === 'candidates' ? 'bg-white shadow-sm text-blue-600' : 'text-gray-500 hover:text-gray-900'}`}
+                           >
+                              Candidates
+                              {selectedCandidates?.some((c: any) => c.status === 'pending_approval') && (
+                                 <span className="w-2 h-2 bg-red-500 rounded-full"></span>
+                              )}
+                           </button>
+                        </div>
                      </div>
 
-                     {/* Analytics (if any exist) */}
-                     {selectedAnalytics && selectedAnalytics.totalVotesCast > 0 && (
-                        <ElectionAnalyticsPanel data={selectedAnalytics} />
-                     )}
+                     {detailTab === 'overview' ? (
+                        <>
+                           {/* Analytics (if any exist) */}
+                           {selectedAnalytics && selectedAnalytics.totalVotesCast > 0 && (
+                              <ElectionAnalyticsPanel data={selectedAnalytics} />
+                           )}
 
-                     {/* Configuration Form */}
-                     <ElectionConfigPanel election={selectedElection} />
+                           {/* Configuration Form */}
+                           <ElectionConfigPanel election={selectedElection} />
+                        </>
+                     ) : (
+                        <AdminCandidateManager 
+                           electionId={selectedElection.id} 
+                           candidates={selectedCandidates || []} 
+                        />
+                     )}
                   </div>
                ) : (
                   <div className="h-full flex flex-col items-center justify-center text-gray-400">

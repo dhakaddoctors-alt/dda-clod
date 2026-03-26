@@ -1,6 +1,7 @@
 import Navbar from '@/components/shared/Navbar';
 import NominationForm from '@/components/ui/NominationForm';
 import { fetchActiveElections } from '@/app/actions/electionActions';
+import { fetchUserNominations } from '@/app/actions/nominationActions';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/app/api/auth/[...nextauth]/route';
 import Link from 'next/link';
@@ -18,7 +19,7 @@ export default async function NominationPage({ searchParams }: { searchParams: {
            <div className="bg-white rounded-2xl p-12 text-center shadow-sm border border-gray-200 max-w-md w-full">
              <Lock className="w-16 h-16 text-gray-300 mx-auto mb-4" />
              <h2 className="text-2xl font-bold text-gray-900 mb-2">Login Required</h2>
-             <p className="text-gray-500 mb-6">You must be logged in as a verified member to file an election nomination.</p>
+             <p className="text-gray-500 mb-6">You must be logged in to file an election nomination.</p>
              <Link href="/login" className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-medium transition-colors">
                Login to Continue
              </Link>
@@ -28,7 +29,27 @@ export default async function NominationPage({ searchParams }: { searchParams: {
     );
   }
 
+  // Must be a doctor or student
+  if (session.user.category !== 'doctor' && session.user.category !== 'student') {
+    return (
+       <div className="min-h-screen bg-gray-50 flex flex-col">
+         <Navbar />
+         <div className="flex flex-1 pt-16 items-center justify-center p-4">
+           <div className="bg-white rounded-2xl p-12 text-center shadow-sm border border-gray-200 max-w-md w-full">
+             <Lock className="w-16 h-16 text-red-300 mx-auto mb-4" />
+             <h2 className="text-2xl font-bold text-gray-900 mb-2">Access Denied</h2>
+             <p className="text-gray-500 mb-6">Only registered Doctors and Students are eligible to contest elections.</p>
+             <Link href="/elections" className="px-6 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl font-medium transition-colors">
+               Return to Elections
+             </Link>
+           </div>
+         </div>
+       </div>
+    );
+  }
+
   const allElections = await fetchActiveElections();
+  const existingNominations = await fetchUserNominations();
   
   // Filter to only elections the user is eligible for based on their location
   const userState = session.user.state as string | null;
@@ -73,6 +94,7 @@ export default async function NominationPage({ searchParams }: { searchParams: {
                phaseStatus={phaseStatus}
                nomStart={nomStart}
                nomEnd={nomEnd}
+               existingNominations={existingNominations as any}
             />
           </div>
         </main>

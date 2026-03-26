@@ -28,6 +28,7 @@ interface AdminDashboardTabsProps {
   adsList: any[];
   activeElections: any[];
   analyticsData: Record<string, any>;
+  allCandidates: Record<string, any[]>;
   allPosts: any[];
   allStories: any[];
 }
@@ -40,6 +41,7 @@ export default function AdminDashboardTabs({
   adsList,
   activeElections,
   analyticsData,
+  allCandidates,
   allPosts,
   allStories
 }: AdminDashboardTabsProps) {
@@ -79,6 +81,7 @@ export default function AdminDashboardTabs({
           <AdminElectionManager 
             elections={activeElections} 
             analyticsData={analyticsData} 
+            allCandidates={allCandidates}
           />
         );
       default:

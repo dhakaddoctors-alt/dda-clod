@@ -138,8 +138,8 @@ export default function PostCard({
 
       {/* Post Image (Optional) */}
       {imageUrl && (
-        <div className="w-full h-auto max-h-[500px] overflow-hidden bg-gray-100 mt-2">
-          <img src={imageUrl} alt="Post content" className="w-full h-full object-cover object-top" />
+        <div className="w-full h-auto max-h-[70vh] flex items-center justify-center overflow-hidden bg-black/5 mt-2">
+          <img src={imageUrl} alt="Post content" className="max-w-full max-h-[70vh] w-auto h-auto object-contain" />
         </div>
       )}
 

@@ -48,11 +48,11 @@ export default function AdWall() {
 
           return (
             <div key={ad.id} className="bg-white rounded-2xl border border-gray-200 overflow-hidden shadow-sm hover:shadow-md transition-shadow group">
-              <div className="relative aspect-video bg-gray-100 overflow-hidden">
+              <div className="relative aspect-video bg-black/5 flex items-center justify-center overflow-hidden">
                 <img 
                   src={images[0].url} 
                   alt={ad.businessName} 
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                  className="max-w-full max-h-full object-contain group-hover:scale-105 transition-transform duration-500"
                 />
                 
                 {/* Image Description Overlay */}
