@@ -2,8 +2,10 @@
 
 import { useState, useTransition, useEffect } from 'react';
 import { submitNomination } from '@/app/actions/nominationActions';
-import { UploadCloud, CheckCircle2, FileText, AlertCircle, CalendarClock, ArrowLeft, Info } from 'lucide-react';
+import { UploadCloud, CheckCircle2, FileText, AlertCircle, CalendarClock, ArrowLeft, Info, Users } from 'lucide-react';
 import Link from 'next/link';
+import MemberSearchSelect from '@/components/ui/MemberSearchSelect';
+import { useSession } from 'next-auth/react';
 
 interface Election {
   id: string;
@@ -29,6 +31,9 @@ export default function NominationForm({ election, allElections, phaseStatus, no
   const [success, setSuccess] = useState(false);
   const [manifestoText, setManifestoText] = useState('');
   const [selectedElectionId, setSelectedElectionId] = useState(election?.id || '');
+  
+  const { data: session } = useSession();
+  const currentUserId = (session?.user as any)?.id;
 
   const ongoingElectionId = selectedElectionId;
   const selectedElectionObj = allElections.find((e) => e.id === selectedElectionId) || election;
@@ -48,10 +53,6 @@ export default function NominationForm({ election, allElections, phaseStatus, no
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    if (!manifestoText.trim()) {
-      setMessage('Manifesto cannot be empty.');
-      return;
-    }
     if (!ongoingElectionId) {
       setMessage('Please select an election first.');
       return;
@@ -142,8 +143,8 @@ export default function NominationForm({ election, allElections, phaseStatus, no
                   <UploadCloud className="mx-auto h-10 w-10 text-gray-400" />
                   <div className="flex text-sm text-gray-600 justify-center">
                     <label htmlFor="posterFile" className="relative cursor-pointer bg-white rounded-md font-medium text-blue-600 hover:text-blue-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-blue-500">
-                      <span>{existingRecord?.posterUrl ? 'Change poster' : 'Upload a poster'}</span>
-                      <input id="posterFile" name="posterFile" type="file" required={!isUpdating} className="sr-only" accept="image/*" />
+                      <span>{existingRecord?.posterUrl ? 'Change poster' : 'Upload a poster (Optional)'}</span>
+                      <input id="posterFile" name="posterFile" type="file" className="sr-only" accept="image/*" />
                     </label>
                     <p className="pl-1">or drag and drop</p>
                   </div>
@@ -157,16 +158,39 @@ export default function NominationForm({ election, allElections, phaseStatus, no
               </div>
             </div>
 
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 bg-blue-50/50 p-6 rounded-xl border border-blue-100">
+               <div className="md:col-span-2">
+                 <h3 className="text-lg font-bold text-gray-900 flex items-center gap-2 mb-1">
+                    <Users className="w-5 h-5 text-blue-600" />
+                    Nomination References
+                 </h3>
+                 <p className="text-sm text-gray-600 mb-4">You require two verified members to propose and second your nomination.</p>
+               </div>
+               
+               <MemberSearchSelect 
+                 name="proposerId" 
+                 label="Proposer" 
+                 excludeId={currentUserId}
+                 defaultValue={existingRecord?.proposerId}
+               />
+               
+               <MemberSearchSelect 
+                 name="seconderId" 
+                 label="Seconder" 
+                 excludeId={currentUserId}
+                 defaultValue={existingRecord?.seconderId}
+               />
+            </div>
+
             <div>
               <label htmlFor="manifesto" className="block text-sm font-semibold text-gray-900 mb-2 flex items-center gap-2">
                 <FileText className="w-4 h-4 text-blue-600" />
-                Election Manifesto (Promises &amp; Vision)
+                Election Manifesto (Promises & Vision) (Optional)
               </label>
               <textarea 
                 id="manifesto" 
                 name="manifesto"
                 rows={6}
-                required
                 value={manifestoText}
                 onChange={(e) => setManifestoText(e.target.value)}
                 placeholder="Detail your vision for the association. This will be publicly visible to voters."

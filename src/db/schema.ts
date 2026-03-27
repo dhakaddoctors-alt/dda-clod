@@ -131,6 +131,7 @@ export const elections = sqliteTable('elections', {
   id: text('id').primaryKey(),
   title: text('title').notNull(),
   description: text('description'),
+  postName: text('post_name').default('General').notNull(),
   level: text('level').default('national').notNull(), // national, state, district
   locationName: text('location_name'), // e.g., 'Rajasthan', 'Indore'
   status: text('status').default('upcoming').notNull(), // upcoming, active, completed
@@ -146,7 +147,11 @@ export const candidates = sqliteTable('candidates', {
   profileId: text('profile_id').references(() => profiles.id).notNull(),
   manifesto: text('manifesto'),
   posterUrl: text('poster_url'),
-  status: text('status').default('pending_approval').notNull(), // pending_approval, approved, rejected
+  proposerId: text('proposer_id').references(() => profiles.id),
+  seconderId: text('seconder_id').references(() => profiles.id),
+  proposerStatus: text('proposer_status').default('pending').notNull(), // pending, approved, rejected
+  seconderStatus: text('seconder_status').default('pending').notNull(), // pending, approved, rejected
+  status: text('status').default('pending_references').notNull(), // pending_references, pending_approval, approved, rejected
 });
 
 // Since it's anonymous ballot, we DO NOT store who voted for whom.

@@ -52,8 +52,13 @@ export default function CreateElectionModal({ isOpen, onClose }: { isOpen: boole
           </div>
 
           <div>
-             <label className="block text-sm font-semibold text-gray-700 mb-1">Description</label>
+             <label className="block text-sm font-semibold text-gray-700 mb-1">Description (Optional)</label>
              <textarea name="description" rows={3} placeholder="Briefly describe the purpose of this election..." className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500" />
+          </div>
+
+          <div>
+             <label className="block text-sm font-semibold text-gray-700 mb-1">Post / Position Name <span className="text-red-500">*</span></label>
+             <input type="text" name="postName" required placeholder="e.g. President, Secretary, Member" className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500" />
           </div>
 
           <div>

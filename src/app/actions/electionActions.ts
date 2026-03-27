@@ -22,7 +22,7 @@ export async function fetchActiveElections() {
           description: 'Select the next National President to lead the Dhakad Doctors Association.',
           level: 'national',
           status: 'upcoming',
-       });
+       }).onConflictDoNothing();
        activeElections = await db.select().from(elections);
     }
 
@@ -42,10 +42,12 @@ export async function createNewElection(formData: FormData) {
 
     const title = formData.get('title') as string;
     const description = formData.get('description') as string;
+    const postName = formData.get('postName') as string || 'General';
     const level = formData.get('level') as 'national' | 'state' | 'district';
     const locationName = formData.get('locationName') as string || null;
 
     if (!title) throw new Error('Election Title is required.');
+    if (!postName) throw new Error('Post Name is required.');
 
     const db = getDb();
     const newElectionId = `election_${randomUUID()}`;
@@ -54,6 +56,7 @@ export async function createNewElection(formData: FormData) {
        id: newElectionId,
        title,
        description,
+       postName,
        level,
        locationName: level === 'national' ? null : locationName,
        status: 'upcoming'
@@ -112,6 +115,60 @@ export async function updateElectionSchedule(
   }
 }
 
+export async function adminUpdateElectionDetails(electionId: string, payload: { title: string, description: string, level: string, locationName: string | null, postName?: string }) {
+  try {
+    const session = await getServerSession(authOptions) as any;
+    if (!session?.user || (session.user.role !== 'admin' && session.user.role !== 'super_admin')) {
+      throw new Error('Unauthorized');
+    }
+
+    if (!payload.title) throw new Error('Election Title is required.');
+
+    const db = getDb();
+    await db.update(elections)
+      .set({
+        title: payload.title,
+        description: payload.description,
+        postName: payload.postName || '',
+        level: payload.level,
+        locationName: payload.level === 'national' ? null : payload.locationName
+      })
+      .where(eq(elections.id, electionId));
+
+    revalidatePath('/admin');
+    revalidatePath('/elections');
+    
+    return { success: true, message: 'Election details updated successfully.' };
+  } catch (error: any) {
+    console.error('Error updating election details:', error);
+    return { success: false, message: error.message || 'Failed to update election properties.' };
+  }
+}
+
+export async function adminDeleteElection(electionId: string) {
+  try {
+    const session = await getServerSession(authOptions) as any;
+    if (!session?.user || (session.user.role !== 'admin' && session.user.role !== 'super_admin')) {
+      throw new Error('Unauthorized');
+    }
+
+    const db = getDb();
+    // Cascade delete related records to maintain integrity
+    await db.delete(voteTallies).where(eq(voteTallies.electionId, electionId));
+    await db.delete(votingRecords).where(eq(votingRecords.electionId, electionId));
+    await db.delete(candidates).where(eq(candidates.electionId, electionId));
+    await db.delete(elections).where(eq(elections.id, electionId));
+
+    revalidatePath('/admin');
+    revalidatePath('/elections');
+    
+    return { success: true, message: 'Election and all related data completely deleted.' };
+  } catch (error: any) {
+    console.error('Error deleting election:', error);
+    return { success: false, message: error.message || 'Failed to delete election.' };
+  }
+}
+
 export async function fetchCandidates(electionId: string) {
   try {
      const db = getDb();
@@ -154,7 +211,11 @@ export async function adminFetchAllCandidates(electionId: string) {
         designation: doctorDetails.specialization,
         avatarUrl: profiles.avatarUrl,
         state: profiles.state,
-        district: profiles.district
+        district: profiles.district,
+        proposerId: candidates.proposerId,
+        seconderId: candidates.seconderId,
+        proposerStatus: candidates.proposerStatus,
+        seconderStatus: candidates.seconderStatus
      })
      .from(candidates)
      .innerJoin(profiles, eq(candidates.profileId, profiles.id))

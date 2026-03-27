@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from 'react';
 import { adminUpdateCandidateStatus, adminDeleteCandidate } from '@/app/actions/electionActions';
-import { Check, X, Trash2, ExternalLink, ShieldAlert, FileText, UserCircle } from 'lucide-react';
+import { Check, X, Trash2, ExternalLink, ShieldAlert, FileText, UserCircle, Users } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import Image from 'next/image';
 
@@ -76,6 +76,7 @@ export default function AdminCandidateManager({
                       <span className={`px-3 py-1 rounded-full text-xs font-bold ${
                         c.status === 'approved' ? 'bg-green-100 text-green-700' :
                         c.status === 'rejected' ? 'bg-red-100 text-red-700' :
+                        c.status === 'pending_references' ? 'bg-orange-100 text-orange-700 border border-orange-200' :
                         'bg-yellow-100 text-yellow-700'
                       }`}>
                          {c.status.replace('_', ' ').toUpperCase()}
@@ -97,13 +98,37 @@ export default function AdminCandidateManager({
                      </a>
                   </div>
                 )}
+
+                {(c.proposerId || c.seconderId) && (
+                  <div className="bg-white border text-sm border-gray-100 rounded-xl p-4 flex flex-col sm:flex-row gap-4">
+                     <div className="flex-1">
+                       <h4 className="font-bold text-gray-700 flex items-center gap-1.5 mb-1"><Users className="w-4 h-4 text-blue-500"/> Proposer</h4>
+                       <div className="flex items-center gap-2">
+                         <span className="text-gray-900">{c.proposerId || 'None'}</span>
+                         <span className={`px-2 py-0.5 rounded text-[10px] uppercase font-bold ${c.proposerStatus === 'approved' ? 'bg-green-100 text-green-700' : c.proposerStatus === 'rejected' ? 'bg-red-100 text-red-700' : 'bg-yellow-100 text-yellow-700'}`}>
+                            {c.proposerStatus || 'PENDING'}
+                         </span>
+                       </div>
+                     </div>
+                     <div className="flex-1">
+                       <h4 className="font-bold text-gray-700 flex items-center gap-1.5 mb-1"><Users className="w-4 h-4 text-blue-500"/> Seconder</h4>
+                       <div className="flex items-center gap-2">
+                         <span className="text-gray-900">{c.seconderId || 'None'}</span>
+                         <span className={`px-2 py-0.5 rounded text-[10px] uppercase font-bold ${c.seconderStatus === 'approved' ? 'bg-green-100 text-green-700' : c.seconderStatus === 'rejected' ? 'bg-red-100 text-red-700' : 'bg-yellow-100 text-yellow-700'}`}>
+                            {c.seconderStatus || 'PENDING'}
+                         </span>
+                       </div>
+                     </div>
+                  </div>
+                )}
              </div>
 
              <div className="xl:w-48 flex xl:flex-col gap-2 shrink-0 border-t xl:border-t-0 xl:border-l border-gray-100 pt-4 xl:pt-0 xl:pl-6 justify-center">
                  {c.status !== 'approved' && (
                     <button 
                       onClick={() => handleStatusChange(c.id, 'approved')}
-                      disabled={isPending}
+                      disabled={isPending || c.status === 'pending_references'}
+                      title={c.status === 'pending_references' ? 'Waiting for proposer and seconder to approve first' : 'Approve Candidate'}
                       className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-green-50 hover:bg-green-100 text-green-700 rounded-xl font-medium transition-colors border border-green-200 disabled:opacity-50"
                     >
                       <Check className="w-4 h-4" /> Approve

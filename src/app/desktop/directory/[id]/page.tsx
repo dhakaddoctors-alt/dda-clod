@@ -10,6 +10,8 @@ import AdminProfileControls from '@/components/ui/AdminProfileControls';
 import { toTitleCase, toUpperCase } from '@/lib/formatters';
 import { fetchFormConfigs } from '@/app/actions/formActions';
 import { Layers } from 'lucide-react';
+import { fetchPendingReferencesForUser } from '@/app/actions/nominationActions';
+import PendingReferencesClient from '@/components/ui/PendingReferencesClient';
 
 export default async function ProfilePage({ params }: { params: Promise<{ id: string }> }) {
   const resolvedParams = await params;
@@ -38,6 +40,11 @@ export default async function ProfilePage({ params }: { params: Promise<{ id: st
   const isOwner = session?.user?.id === profileId;
   const canEdit = isAdmin || isOwner;
 
+  let pendingRequests: any[] = [];
+  if (isOwner) {
+    pendingRequests = await fetchPendingReferencesForUser();
+  }
+
   // Helper to safely render values (handling Date objects from DB)
   const formatVal = (val: any) => {
     if (val === null || val === undefined) return '';
@@ -53,6 +60,10 @@ export default async function ProfilePage({ params }: { params: Promise<{ id: st
       <div className="flex flex-1 pt-16">
         <main className="flex-1 p-4 lg:p-8 w-full max-w-6xl mx-auto">
           
+          {isOwner && pendingRequests.length > 0 && (
+             <PendingReferencesClient requests={pendingRequests} />
+          )}
+
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             {/* Left Column - ID Card & Actions */}
             <div className="lg:col-span-1 space-y-6">

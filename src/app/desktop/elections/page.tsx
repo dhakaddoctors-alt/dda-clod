@@ -1,5 +1,5 @@
 import Navbar from '@/components/shared/Navbar';
-import { Vote, CalendarClock, ChevronRight, TrendingUp, AlertCircle, MapPin } from 'lucide-react';
+import { Vote, CalendarClock, ChevronRight, TrendingUp, AlertCircle, MapPin, UserPlus } from 'lucide-react';
 import { fetchActiveElections } from '@/app/actions/electionActions';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/app/api/auth/[...nextauth]/route';
@@ -41,13 +41,23 @@ export default async function ElectionsHubPage() {
                   </h1>
                   <p className="text-gray-600 mt-2">Your eligible elections based on your registered address.</p>
                </div>
-               
-               {(userState || userDistrict) && (
-                  <div className="bg-blue-50 text-blue-800 text-sm font-semibold px-4 py-2 rounded-xl border border-blue-100 flex items-center gap-2">
-                     <MapPin className="w-4 h-4" />
-                     {userDistrict ? `${userDistrict}, ` : ''}{userState || 'India'}
-                  </div>
-               )}
+               <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+                  {(userState || userDistrict) && (
+                     <div className="bg-blue-50 text-blue-800 text-sm font-semibold px-4 py-2 rounded-xl border border-blue-100 flex items-center gap-2">
+                        <MapPin className="w-4 h-4" />
+                        {userDistrict ? `${userDistrict}, ` : ''}{userState || 'India'}
+                     </div>
+                  )}
+                  {session?.user && (session.user.category === 'doctor' || session.user.category === 'student') && (
+                     <Link 
+                        href="/elections/nominate" 
+                        className="bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold px-5 py-2.5 rounded-xl transition-colors shadow-sm flex items-center gap-2"
+                     >
+                        <UserPlus className="w-4 h-4" />
+                        Enroll / Nominate
+                     </Link>
+                  )}
+               </div>
             </div>
 
             {eligibleElections.length === 0 ? (
@@ -92,6 +102,9 @@ export default async function ElectionsHubPage() {
                                     {statusTag}
                                     <span className={`text-xs font-bold px-2.5 py-1 rounded-md ${election.level === 'national' ? 'bg-purple-100 text-purple-700' : 'bg-amber-100 text-amber-700'}`}>
                                        {election.level === 'national' ? 'National' : election.locationName}
+                                    </span>
+                                    <span className={`text-xs font-bold px-2.5 py-1 rounded-md bg-blue-100 text-blue-800 border border-blue-200`}>
+                                       Position: {election.postName || 'General'}
                                     </span>
                                  </div>
                               </div>

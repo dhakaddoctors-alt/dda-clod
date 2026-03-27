@@ -4,7 +4,7 @@ import { candidates, elections, profiles, voteTallies, votingRecords } from '@/d
 import { randomUUID } from 'crypto';
 import { revalidatePath } from 'next/cache';
 import { getDb } from '@/db';
-import { eq, sql, and } from 'drizzle-orm';
+import { eq, sql, and, like, or, inArray } from 'drizzle-orm';
 import { uploadToR2 } from '@/lib/storage';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/app/api/auth/[...nextauth]/route';
@@ -23,6 +23,8 @@ export async function submitNomination(formData: FormData) {
 
     const electionId = formData.get('electionId') as string;
     const manifesto = formData.get('manifesto') as string;
+    const proposerId = formData.get('proposerId') as string;
+    const seconderId = formData.get('seconderId') as string;
     let posterUrl = formData.get('posterUrl') as string || null;
     const posterFile = formData.get('posterFile') as File | null;
     if (posterFile && posterFile.size > 0) {
@@ -31,8 +33,20 @@ export async function submitNomination(formData: FormData) {
     
     const candidateProfileId = session.user.id;
 
-    if (!electionId || !manifesto) {
-      throw new Error('Election ID and Manifesto are required.');
+    if (!electionId) {
+      throw new Error('Election ID is required.');
+    }
+    
+    if (!proposerId || !seconderId) {
+      throw new Error('A Proposer and a Seconder are required for nomination.');
+    }
+    
+    if (proposerId === candidateProfileId || seconderId === candidateProfileId) {
+      throw new Error('You cannot propose or second your own nomination.');
+    }
+    
+    if (proposerId === seconderId) {
+       throw new Error('The Proposer and Seconder must be different members.');
     }
 
     // === GEOGRAPHY ELIGIBILITY CHECK ===
@@ -60,6 +74,19 @@ export async function submitNomination(formData: FormData) {
        .where(and(eq(candidates.electionId, electionId), eq(candidates.profileId, candidateProfileId)))
        .limit(1);
 
+    // Verify Proposer & Seconder are valid active members
+    const [proposer, seconder] = await Promise.all([
+      db.select().from(profiles).where(eq(profiles.id, proposerId)).limit(1),
+      db.select().from(profiles).where(eq(profiles.id, seconderId)).limit(1)
+    ]);
+
+    if (!proposer[0] || (proposer[0].category !== 'doctor' && proposer[0].category !== 'student') || proposer[0].paymentStatus !== 'verified') {
+       throw new Error('Invalid Proposer selected. They must be a verified Member.');
+    }
+    if (!seconder[0] || (seconder[0].category !== 'doctor' && seconder[0].category !== 'student') || seconder[0].paymentStatus !== 'verified') {
+       throw new Error('Invalid Seconder selected. They must be a verified Member.');
+    }
+
     if (existingCandidate.length > 0) {
        // Update existing
        const cId = existingCandidate[0].id;
@@ -67,8 +94,11 @@ export async function submitNomination(formData: FormData) {
          .set({
            manifesto,
            ...(posterUrl && { posterUrl }), // only update poster if a new one is provided
-           // We do NOT change the status back to pending_approval if they just edit an approved one,
-           // unless the admins prefer edits to re-trigger approval. Let's keep the existing status.
+           proposerId,
+           seconderId,
+           proposerStatus: 'pending',
+           seconderStatus: 'pending',
+           status: 'pending_references'
          })
          .where(eq(candidates.id, cId));
          
@@ -82,7 +112,11 @@ export async function submitNomination(formData: FormData) {
          profileId: candidateProfileId,
          manifesto,
          posterUrl,
-         status: 'pending_approval'
+         proposerId,
+         seconderId,
+         proposerStatus: 'pending',
+         seconderStatus: 'pending',
+         status: 'pending_references'
        });
        console.log(`[DB] Submitted new nomination for ${candidateProfileId} in election ${electionId}`);
        revalidatePath('/elections/nominate');
@@ -94,19 +128,20 @@ export async function submitNomination(formData: FormData) {
   }
 }
 
-export async function fetchLiveElectionAnalytics(electionId: string) {
-    try {
-        const db = getDb();
-        
-        // 1. Fetch total eligible voters (All verified profiles)
-        const totalVotersQuery = await db.select({ count: sql<number>`count(*)` })
-          .from(profiles).where(eq(profiles.paymentStatus, 'verified'));
-        const totalEligibleVoters = Number(totalVotersQuery[0]?.count || 0);
+    export async function fetchLiveElectionAnalytics(electionId: string) {
+        try {
+            const db = getDb();
+            
+            // 1. Fetch total eligible voters (All verified profiles)
+            let totalVotersQuery: any = await db.select({ count: sql`count(*)` })
+              .from(profiles).where(eq(profiles.paymentStatus, 'verified'));
+            const totalEligibleVoters = Number(totalVotersQuery[0]?.count || 0);
+    
+            // 2. Fetch total votes cast in this election
+            let totalVotesQuery: any = await db.select({ count: sql`count(*)` })
+              .from(votingRecords).where(eq(votingRecords.electionId, electionId));
+            const totalVotesCast = Number(totalVotesQuery[0]?.count || 0);
 
-        // 2. Fetch total votes cast in this election
-        const totalVotesQuery = await db.select({ count: sql<number>`count(*)` })
-          .from(votingRecords).where(eq(votingRecords.electionId, electionId));
-        const totalVotesCast = Number(totalVotesQuery[0]?.count || 0);
 
         const participationRate = totalEligibleVoters > 0 
            ? ((totalVotesCast / totalEligibleVoters) * 100).toFixed(1) + '%' 
@@ -160,5 +195,127 @@ export async function fetchUserNominations() {
     } catch (error) {
         console.error('Error fetching user nominations:', error);
         return [];
+    }
+}
+
+export async function searchMembersForReference(query: string) {
+    if (!query || query.length < 3) return [];
+    
+    try {
+        const db = getDb();
+        const searchPattern = `%${query}%`;
+        const results = await db.select({
+            id: profiles.id,
+            fullName: profiles.fullName,
+            category: profiles.category,
+            district: profiles.district,
+            mobile: profiles.mobile
+        })
+        .from(profiles)
+        .where(
+            and(
+                inArray(profiles.category, ['doctor', 'student']),
+                eq(profiles.paymentStatus, 'verified'),
+                or(
+                    like(profiles.fullName, searchPattern),
+                    like(profiles.mobile, searchPattern)
+                )
+            )
+        )
+        .limit(10);
+        
+        return results;
+    } catch (error) {
+        console.error('Error searching members:', error);
+        return [];
+    }
+}
+
+export async function fetchPendingReferencesForUser() {
+    try {
+        const session = await getServerSession(authOptions) as any;
+        if (!session?.user?.id) return [];
+
+        const db = getDb();
+        const userId = session.user.id;
+
+        // Fetch nominations where the current user is either the proposer or seconder
+        const pendingRefs = await db.select({
+            id: candidates.id,
+            electionId: candidates.electionId,
+            electionTitle: elections.title,
+            electionLevel: elections.level,
+            electionPost: elections.postName,
+            candidateId: candidates.profileId,
+            candidateName: profiles.fullName,
+            candidatePhone: profiles.mobile,
+            candidateCategory: profiles.category,
+            roleAs: sql<string>`CASE WHEN ${candidates.proposerId} = ${userId} THEN 'Proposer' ELSE 'Seconder' END`,
+            refStatus: sql<string>`CASE WHEN ${candidates.proposerId} = ${userId} THEN ${candidates.proposerStatus} ELSE ${candidates.seconderStatus} END`
+        })
+        .from(candidates)
+        .innerJoin(elections, eq(candidates.electionId, elections.id))
+        .innerJoin(profiles, eq(candidates.profileId, profiles.id))
+        .where(
+            and(
+                eq(candidates.status, 'pending_references'),
+                or(
+                    and(eq(candidates.proposerId, userId), eq(candidates.proposerStatus, 'pending')),
+                    and(eq(candidates.seconderId, userId), eq(candidates.seconderStatus, 'pending'))
+                )
+            )
+        );
+
+        return pendingRefs;
+    } catch (error) {
+        console.error('Error fetching pending references:', error);
+        return [];
+    }
+}
+
+export async function respondToReference(candidateId: string, role: 'Proposer' | 'Seconder', action: 'approve' | 'reject') {
+    try {
+        const session = await getServerSession(authOptions) as any;
+        if (!session?.user?.id) throw new Error('Unauthorized');
+        
+        const db = getDb();
+        const userId = session.user.id;
+        
+        // Fetch current candidate details
+        const candData = await db.select().from(candidates).where(eq(candidates.id, candidateId)).limit(1);
+        if (candData.length === 0) throw new Error('Nomination not found');
+        const cand = candData[0];
+        
+        // Verify this user is actually the assigned reference
+        if (role === 'Proposer' && cand.proposerId !== userId) throw new Error('Not authorized as Proposer');
+        if (role === 'Seconder' && cand.seconderId !== userId) throw new Error('Not authorized as Seconder');
+        
+        const newRefStatus = action === 'approve' ? 'approved' : 'rejected';
+        
+        // Execute the targeted update
+        await db.update(candidates)
+            .set(role === 'Proposer' ? { proposerStatus: newRefStatus } : { seconderStatus: newRefStatus })
+            .where(eq(candidates.id, candidateId));
+            
+        // If rejected, the candidate stays in pending_references but with a rejected slot, so they know to change it.
+        // If approved, we need to check if BOTH are now approved.
+        if (action === 'approve') {
+            const isOtherApproved = role === 'Proposer' 
+                ? cand.seconderStatus === 'approved' 
+                : cand.proposerStatus === 'approved';
+                
+            if (isOtherApproved) {
+                // Both are approved! Move candidate's main status to pending_approval for Admin review.
+                await db.update(candidates)
+                    .set({ status: 'pending_approval' })
+                    .where(eq(candidates.id, candidateId));
+            }
+        }
+        
+        revalidatePath('/dashboard');
+        return { success: true, message: `Successfully ${newRefStatus} the nomination reference.` };
+    } catch (error: any) {
+        console.error('Error responding to reference:', error);
+        return { success: false, message: error.message || 'Failed to process response.' };
     }
 }

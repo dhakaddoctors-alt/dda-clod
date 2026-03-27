@@ -3,8 +3,13 @@ import { Vote, AlertCircle, PlusCircle, ArrowLeft } from 'lucide-react';
 import { fetchActiveElections, fetchCandidates } from '@/app/actions/electionActions';
 import VoteButton from '@/components/ui/VoteButton';
 import Link from 'next/link';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/app/api/auth/[...nextauth]/route';
 
 export default async function ElectionDetailPage({ params }: { params: { id: string } }) {
+  const session = await getServerSession(authOptions) as any;
+  const isEligibleRole = session?.user && (session.user.category === 'doctor' || session.user.category === 'student');
+
   const activeElections = await fetchActiveElections();
   const ongoingElection = activeElections.find(e => e.id === params.id) || null;
   const candidatesList = ongoingElection ? await fetchCandidates(ongoingElection.id) : [];
@@ -41,6 +46,10 @@ export default async function ElectionDetailPage({ params }: { params: { id: str
   } else if (now > voteEnd) {
      votingStatus = 'completed';
   }
+
+  const nomStart = ongoingElection?.nominationStartDate ? new Date(ongoingElection.nominationStartDate) : null;
+  const nomEnd = ongoingElection?.nominationEndDate ? new Date(ongoingElection.nominationEndDate) : null;
+  const isNominationOpen = nomStart && nomEnd && now >= nomStart && now <= nomEnd;
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
@@ -83,15 +92,25 @@ export default async function ElectionDetailPage({ params }: { params: { id: str
                    <span className="bg-white/20 backdrop-blur-sm border border-white/20 text-white text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider inline-block shadow-sm">
                      {ongoingElection.level === 'national' ? 'National Tier' : `${ongoingElection.locationName} Tier`}
                    </span>
+                   <span className="bg-blue-600/50 backdrop-blur-sm border border-blue-400/30 text-white text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider inline-block shadow-sm">
+                     Position: {ongoingElection.postName || 'General'}
+                   </span>
                 </div>
 
                 <h1 className="text-3xl md:text-4xl font-bold mb-2">{ongoingElection.title}</h1>
                 <p className="text-blue-100 text-lg mb-6 max-w-2xl">{ongoingElection.description}</p>
                 
                 <div className="flex flex-col sm:flex-row gap-4 mb-6">
-                   <Link href={`/elections/nominate?electionId=${ongoingElection.id}`} className="inline-flex items-center justify-center gap-2 px-6 py-2.5 bg-white text-gray-900 rounded-xl font-bold shadow-sm hover:bg-gray-100 transition-colors">
-                     <PlusCircle className="w-5 h-5 text-gray-700" /> File Nomination Here
-                   </Link>
+                   {isEligibleRole && isNominationOpen && (
+                      <Link href={`/elections/nominate?electionId=${ongoingElection.id}`} className="inline-flex items-center justify-center gap-2 px-6 py-2.5 bg-white text-gray-900 rounded-xl font-bold shadow-sm hover:bg-gray-100 transition-colors">
+                        <PlusCircle className="w-5 h-5 text-gray-700" /> Enroll / Nominate Now
+                      </Link>
+                   )}
+                   {isEligibleRole && !isNominationOpen && nomEnd && now > nomEnd && (
+                      <span className="inline-flex items-center justify-center gap-2 px-6 py-2.5 bg-white/20 text-white rounded-xl font-bold">
+                        Nominations Closed
+                      </span>
+                   )}
                 </div>
                 
                 <div className="bg-white/10 border border-white/20 p-4 rounded-xl flex items-start gap-3 backdrop-blur-sm">
