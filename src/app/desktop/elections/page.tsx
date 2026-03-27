@@ -7,11 +7,13 @@ import Link from 'next/link';
 
 function isEligible(election: any, userState?: string | null, userDistrict?: string | null): boolean {
   if (election.level === 'national') return true;
+  const targetLoc = (election.locationName || '').trim().toLowerCase();
+  
   if (election.level === 'state') {
-    return !!(userState && userState.toLowerCase() === (election.locationName || '').toLowerCase());
+    return !!(userState && userState.trim().toLowerCase() === targetLoc);
   }
   if (election.level === 'district') {
-    return !!(userDistrict && userDistrict.toLowerCase() === (election.locationName || '').toLowerCase());
+    return !!(userDistrict && userDistrict.trim().toLowerCase() === targetLoc);
   }
   return false;
 }
@@ -45,10 +47,10 @@ export default async function ElectionsHubPage() {
                   {(userState || userDistrict) && (
                      <div className="bg-blue-50 text-blue-800 text-sm font-semibold px-4 py-2 rounded-xl border border-blue-100 flex items-center gap-2">
                         <MapPin className="w-4 h-4" />
-                        {userDistrict ? `${userDistrict}, ` : ''}{userState || 'India'}
+                        {userDistrict ? `${userDistrict.trim()}, ` : ''}{userState?.trim() || 'India'}
                      </div>
                   )}
-                  {session?.user && (session.user.category === 'doctor' || session.user.category === 'student') && (
+                  {session?.user && (session.user.role === 'admin' || session.user.role === 'super_admin' || session.user.category === 'doctor' || session.user.category === 'student') && (
                      <Link 
                         href="/elections/nominate" 
                         className="bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold px-5 py-2.5 rounded-xl transition-colors shadow-sm flex items-center gap-2"
@@ -104,7 +106,7 @@ export default async function ElectionsHubPage() {
                                        {election.level === 'national' ? 'National' : election.locationName}
                                     </span>
                                     <span className={`text-xs font-bold px-2.5 py-1 rounded-md bg-blue-100 text-blue-800 border border-blue-200`}>
-                                       Position: {election.postName || 'General'}
+                                       {election.positions?.length || 0} {election.positions?.length === 1 ? 'Position' : 'Positions'} Contested
                                     </span>
                                  </div>
                               </div>
