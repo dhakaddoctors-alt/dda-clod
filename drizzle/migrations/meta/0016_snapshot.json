@@ -1,7 +1,7 @@
 {
   "version": "6",
   "dialect": "sqlite",
-  "id": "c2d3af39-2584-4a50-a994-dc3a5aa8eacb",
+  "id": "7921f380-5f62-4b8f-b7be-79d975b0e961",
   "prevId": "01f24cfb-e85f-45ab-aea3-9a973e522202",
   "tables": {
     "advertisements": {
@@ -88,6 +88,13 @@
           "notNull": true,
           "autoincrement": false
         },
+        "post_id": {
+          "name": "post_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
         "profile_id": {
           "name": "profile_id",
           "type": "text",
@@ -156,6 +163,19 @@
           "tableTo": "elections",
           "columnsFrom": [
             "election_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "candidates_post_id_election_posts_id_fk": {
+          "name": "candidates_post_id_election_posts_id_fk",
+          "tableFrom": "candidates",
+          "tableTo": "election_posts",
+          "columnsFrom": [
+            "post_id"
           ],
           "columnsTo": [
             "id"
@@ -522,6 +542,59 @@
           "tableTo": "profiles",
           "columnsFrom": [
             "profile_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
+    "election_posts": {
+      "name": "election_posts",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "election_id": {
+          "name": "election_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "name": {
+          "name": "name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "status": {
+          "name": "status",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "'active'"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "election_posts_election_id_elections_id_fk": {
+          "name": "election_posts_election_id_elections_id_fk",
+          "tableFrom": "election_posts",
+          "tableTo": "elections",
+          "columnsFrom": [
+            "election_id"
           ],
           "columnsTo": [
             "id"
@@ -1433,6 +1506,13 @@
           "notNull": true,
           "autoincrement": false
         },
+        "post_id": {
+          "name": "post_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
         "count": {
           "name": "count",
           "type": "integer",
@@ -1469,6 +1549,19 @@
           ],
           "onDelete": "no action",
           "onUpdate": "no action"
+        },
+        "vote_tallies_post_id_election_posts_id_fk": {
+          "name": "vote_tallies_post_id_election_posts_id_fk",
+          "tableFrom": "vote_tallies",
+          "tableTo": "election_posts",
+          "columnsFrom": [
+            "post_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
         }
       },
       "compositePrimaryKeys": {},
@@ -1490,6 +1583,13 @@
           "type": "text",
           "primaryKey": false,
           "notNull": true,
+          "autoincrement": false
+        },
+        "post_id": {
+          "name": "post_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
           "autoincrement": false
         },
         "profile_id": {
@@ -1515,6 +1615,19 @@
           "tableTo": "elections",
           "columnsFrom": [
             "election_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "voting_records_post_id_election_posts_id_fk": {
+          "name": "voting_records_post_id_election_posts_id_fk",
+          "tableFrom": "voting_records",
+          "tableTo": "election_posts",
+          "columnsFrom": [
+            "post_id"
           ],
           "columnsTo": [
             "id"

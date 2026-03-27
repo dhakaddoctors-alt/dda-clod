@@ -65,7 +65,6 @@ export default function AdminElectionManager({
       const res = await adminUpdateElectionDetails(selectedElectionId, {
          title: formData.get('title') as string,
          description: formData.get('description') as string,
-         postName: formData.get('postName') as string,
          level: formData.get('level') as string,
          locationName: formData.get('locationName') as string || null
       });
@@ -105,7 +104,7 @@ export default function AdminElectionManager({
 
         <div className="flex flex-col md:flex-row">
             {/* Sidebar list of elections */}
-            <div className="w-full md:w-80 border-r border-gray-200 bg-gray-50/50 flex shrink-0 flex-col h-[500px] overflow-y-auto">
+            <div className="w-full md:w-80 border-r border-gray-200 bg-gray-50/50 flex shrink-0 flex-col h-[600px] overflow-y-auto">
                {elections.length === 0 ? (
                   <div className="p-6 text-center text-gray-500">No elections found.</div>
                ) : (
@@ -151,7 +150,7 @@ export default function AdminElectionManager({
             </div>
 
             {/* Main Detail View */}
-            <div className="flex-1 bg-white p-6 h-[500px] overflow-y-auto">
+            <div className="flex-1 bg-white p-6 h-[600px] overflow-y-auto">
                {selectedElection ? (
                   <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -167,23 +166,18 @@ export default function AdminElectionManager({
                                  </button>
                                </div>
                              </div>
-                            <div className="flex items-center gap-2 mb-2 text-sm">
-                               <span className="font-semibold text-gray-700 bg-gray-100 px-2 py-0.5 rounded-md border border-gray-200">
-                                  Position: {selectedElection.postName || 'General'}
-                               </span>
-                            </div>
-                            <p className="text-gray-600 text-sm">{selectedElection.description}</p>
+                            <p className="text-gray-600 text-sm whitespace-pre-wrap">{selectedElection.description}</p>
                          </div>
                          <div className="flex flex-col gap-2 shrink-0">
                            <button 
                               onClick={() => setDetailTab('overview')}
-                              className={`px-4 py-2 text-sm font-semibold rounded-md transition-all ${detailTab === 'overview' ? 'bg-white shadow-sm text-blue-600' : 'text-gray-500 hover:text-gray-900'}`}
+                              className={`px-4 py-2 text-sm font-semibold rounded-md transition-all ${detailTab === 'overview' ? 'bg-white shadow-sm text-blue-600' : 'text-gray-500 hover:text-gray-900 hover:bg-gray-50'}`}
                            >
                               Overview
                            </button>
                            <button 
                               onClick={() => setDetailTab('candidates')}
-                              className={`px-4 py-2 text-sm font-semibold rounded-md transition-all flex items-center gap-1.5 ${detailTab === 'candidates' ? 'bg-white shadow-sm text-blue-600' : 'text-gray-500 hover:text-gray-900'}`}
+                              className={`px-4 py-2 text-sm font-semibold rounded-md transition-all flex items-center gap-1.5 ${detailTab === 'candidates' ? 'bg-white shadow-sm text-blue-600' : 'text-gray-500 hover:text-gray-900 hover:bg-gray-50'}`}
                            >
                               Candidates
                               {selectedCandidates?.some((c: any) => c.status === 'pending_approval') && (
@@ -195,6 +189,17 @@ export default function AdminElectionManager({
 
                      {detailTab === 'overview' ? (
                         <>
+                           {/* Step 2: Manage Positions */}
+                           <div className="p-5 border border-blue-100 bg-blue-50/30 rounded-2xl">
+                              <h4 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
+                                 <CheckCircle className="w-5 h-5 text-blue-600" />
+                                 Step 2: Manage Contested Positions
+                              </h4>
+                              <PositionManager election={selectedElection} />
+                           </div>
+
+                           <div className="h-px bg-gray-100 my-6"></div>
+
                            {/* Analytics (if any exist) */}
                            {selectedAnalytics && selectedAnalytics.totalVotesCast > 0 && (
                               <ElectionAnalyticsPanel data={selectedAnalytics} />
@@ -249,10 +254,7 @@ export default function AdminElectionManager({
                    <textarea name="description" defaultValue={selectedElection.description || ''} rows={3} className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500" />
                 </div>
       
-                <div>
-                   <label className="block text-sm font-semibold text-gray-700 mb-1">Post / Position Name <span className="text-red-500">*</span></label>
-                   <input type="text" name="postName" defaultValue={selectedElection.postName || 'General'} required className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500" />
-                </div>
+
 
                 <div>
                    <label className="block text-sm font-semibold text-gray-700 mb-1">Organizational Level</label>
@@ -285,6 +287,88 @@ export default function AdminElectionManager({
             </div>
           </div>
         )}
+    </div>
+  );
+}
+
+function PositionManager({ election }: { election: any }) {
+  const [newPos, setNewPos] = useState('');
+  const [isAdding, setIsAdding] = useState(false);
+  const [isPending, startTransition] = useTransition();
+  const router = useRouter();
+
+  const handleAdd = async () => {
+    if (!newPos.trim()) return;
+    setIsAdding(true);
+    try {
+      const res = await (await import('@/app/actions/electionActions')).addPositionToElection(election.id, newPos);
+      if (res.success) {
+        toast.success(res.message);
+        setNewPos('');
+        startTransition(() => {
+          router.refresh();
+        });
+      } else {
+        toast.error(res.message);
+      }
+    } finally {
+      setIsAdding(false);
+    }
+  };
+
+  const handleDeletePos = async (postId: string) => {
+    if (!window.confirm('Delete this position?')) return;
+    try {
+      const res = await (await import('@/app/actions/electionActions')).deletePosition(postId);
+      if (res.success) {
+        toast.success(res.message);
+        startTransition(() => {
+          router.refresh();
+        });
+      }
+    } catch (e) {
+      toast.error('Failed to delete position.');
+    }
+  };
+
+  return (
+    <div className="space-y-4">
+      <div className="flex gap-2">
+        <input 
+          type="text" 
+          value={newPos}
+          onChange={(e) => setNewPos(e.target.value)}
+          placeholder="New Post Name (e.g. Treasurer)"
+          className="flex-1 px-4 py-2 bg-white border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+        />
+        <button 
+          onClick={handleAdd}
+          disabled={isAdding || !newPos.trim()}
+          className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-xl text-sm font-medium transition-colors disabled:opacity-50 flex items-center gap-2"
+        >
+          {isAdding ? <Loader2 className="w-4 h-4 animate-spin" /> : <PlusCircle className="w-4 h-4" />}
+          Add Post
+        </button>
+      </div>
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        {(!election.positions || election.positions.length === 0) ? (
+          <p className="col-span-2 text-sm text-gray-500 italic p-4 text-center border-2 border-dashed border-gray-100 rounded-xl">No positions added yet. Please add at least one position for this election.</p>
+        ) : (
+          election.positions.map((pos: any) => (
+            <div key={pos.id} className="flex items-center justify-between p-3 bg-white border border-gray-100 rounded-xl shadow-sm hover:border-blue-200 transition-all">
+              <span className="font-semibold text-gray-800 text-sm">{pos.name}</span>
+              <button 
+                onClick={() => handleDeletePos(pos.id)}
+                className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                title="Delete Position"
+              >
+                <Trash2 className="w-4 h-4" />
+              </button>
+            </div>
+          ))
+        )}
+      </div>
     </div>
   );
 }

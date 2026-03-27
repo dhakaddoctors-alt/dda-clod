@@ -1,8 +1,8 @@
 'use client';
 
 import { useState, useTransition, useEffect } from 'react';
-import { submitNomination } from '@/app/actions/nominationActions';
-import { UploadCloud, CheckCircle2, FileText, AlertCircle, CalendarClock, ArrowLeft, Info, Users } from 'lucide-react';
+import { submitNomination, withdrawNomination } from '@/app/actions/nominationActions';
+import { UploadCloud, CheckCircle2, FileText, AlertCircle, CalendarClock, ArrowLeft, Info, Users, Trash2 } from 'lucide-react';
 import Link from 'next/link';
 import MemberSearchSelect from '@/components/ui/MemberSearchSelect';
 import { useSession } from 'next-auth/react';
@@ -14,57 +14,111 @@ interface Election {
   locationName: string | null;
   nominationStartDate: Date | null;
   nominationEndDate: Date | null;
+  positions: { id: string, name: string }[];
 }
 
 interface NominationFormProps {
   election: Election | null;
   allElections: Election[];
+  eligibleElectionIds?: string[];
   phaseStatus: string;
   nomStart: Date | null;
   nomEnd: Date | null;
   existingNominations?: any[];
 }
 
-export default function NominationForm({ election, allElections, phaseStatus, nomStart, nomEnd, existingNominations = [] }: NominationFormProps) {
+export default function NominationForm({ 
+  election, 
+  allElections, 
+  eligibleElectionIds = [], 
+  phaseStatus, 
+  nomStart, 
+  nomEnd, 
+  existingNominations = [] 
+}: NominationFormProps) {
   const [isPending, startTransition] = useTransition();
   const [message, setMessage] = useState('');
   const [success, setSuccess] = useState(false);
   const [manifestoText, setManifestoText] = useState('');
   const [selectedElectionId, setSelectedElectionId] = useState(election?.id || '');
+  const [selectedPostId, setSelectedPostId] = useState('');
   
   const { data: session } = useSession();
   const currentUserId = (session?.user as any)?.id;
 
-  const ongoingElectionId = selectedElectionId;
-  const selectedElectionObj = allElections.find((e) => e.id === selectedElectionId) || election;
-  const ongoingElectionTitle = selectedElectionObj?.title || 'National President Election';
+  const selectedElectionObj = (allElections.find((e) => e.id === selectedElectionId) || election) as Election | null;
+  const ongoingElectionTitle = selectedElectionObj?.title || 'Election';
+  const selectedLevel = selectedElectionObj?.level;
 
-  const existingRecord = existingNominations.find((n: any) => n.electionId === ongoingElectionId);
+  // Find if there's an existing nomination at THIS level
+  const existingRecordAtLevel = existingNominations?.find((n: any) => n.level === selectedLevel);
+  
+  // Is the user updating the nomination for the SPECIFIC position currently selected?
+  const existingRecord = !!selectedPostId ? existingNominations?.find((n: any) => n.postId === selectedPostId) : null;
   const isUpdating = !!existingRecord;
+  
+  // Does the user have a nomination for a DIFFERENT position/election at this same tier?
+  const hasOtherInLevel = !!existingRecordAtLevel && (!selectedPostId || existingRecordAtLevel.postId !== selectedPostId);
 
-  // Pre-fill manifesto if there's an existing record
+  // Pre-fill when election/position changes
   useEffect(() => {
-    if (existingRecord?.manifesto) {
-      setManifestoText(existingRecord.manifesto);
-    } else {
-      setManifestoText('');
+    if (selectedElectionId) {
+      const currentElection = allElections.find(e => e.id === selectedElectionId);
+      // If user has an existing nomination at this tier, default to that position if it's in this election
+      if (existingRecordAtLevel && existingRecordAtLevel.electionId === selectedElectionId) {
+        setSelectedPostId(existingRecordAtLevel.postId);
+        setManifestoText(existingRecordAtLevel.manifesto || '');
+      } else {
+        // If they switched to a new election at the same level (rare but possible), or just cleared
+        setSelectedPostId('');
+        setManifestoText('');
+      }
     }
-  }, [existingRecord]);
+  }, [selectedElectionId, existingRecordAtLevel, allElections]);
+
+  // If user selects a specific post, load its manifesto if it's their existing one
+  useEffect(() => {
+    if (selectedPostId && existingRecordAtLevel?.postId === selectedPostId) {
+      setManifestoText(existingRecordAtLevel.manifesto || '');
+    }
+  }, [selectedPostId, existingRecordAtLevel]);
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    if (!ongoingElectionId) {
-      setMessage('Please select an election first.');
+    if (!selectedElectionId || !selectedPostId) {
+      setMessage('Please select both a Tier and a specific Position.');
       return;
     }
 
+    if (hasOtherInLevel) {
+       setMessage(`You already have an active nomination for '${existingRecordAtLevel.positionName}' (${existingRecordAtLevel.electionTitle}) at the ${selectedLevel?.toUpperCase()} level. You can only contest for one position per level.`);
+       return;
+    }
+    
     const formData = new FormData(e.currentTarget);
-    formData.append('electionId', ongoingElectionId);
+    formData.set('electionId', selectedElectionId);
+    formData.set('postId', selectedPostId); 
     
     startTransition(async () => {
       const res = await submitNomination(formData);
       setMessage(res.message);
       setSuccess(res.success);
+    });
+  };
+
+  const handleWithdraw = () => {
+    if (!existingRecord) return;
+    if (!confirm('Are you sure you want to withdraw your nomination? This action cannot be undone.')) return;
+
+    startTransition(async () => {
+      const res = await withdrawNomination(existingRecord.id);
+      setMessage(res.message);
+      setSuccess(res.success);
+      if (res.success) {
+        // Clear local state if withdrawn
+        setSelectedPostId('');
+        setManifestoText('');
+      }
     });
   };
 
@@ -120,20 +174,57 @@ export default function NominationForm({ election, allElections, phaseStatus, no
        ) : (
           <form onSubmit={handleSubmit} className="space-y-6">
             <div>
-              <label className="block text-sm font-semibold text-gray-900 mb-2">Select Election Tier <span className="text-red-500">*</span></label>
+              <label className="block text-sm font-semibold text-gray-900 mb-1">1. Select Election Tier <span className="text-red-500">*</span></label>
+              <p className="text-xs text-gray-500 mb-2">Each member can contest for **one position per level** (National, State, & District).</p>
               <select 
                  value={selectedElectionId}
                  onChange={(e) => setSelectedElectionId(e.target.value)}
-                 className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                 className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 mb-4"
                  required
               >
-                 <option value="" disabled>Select the election you are contesting for...</option>
-                 {allElections.map((e) => (
-                    <option key={e.id} value={e.id}>
-                       {e.title} ({e.level === 'national' ? 'National Tier' : `${e.locationName} Tier`})
-                    </option>
-                 ))}
+                 <option value="" disabled>Choose National, State, or District tier...</option>
+                 {allElections.map((e) => {
+                    const isEligible = eligibleElectionIds.includes(e.id);
+                    return (
+                       <option key={e.id} value={e.id} disabled={!isEligible} className={!isEligible ? 'text-gray-400' : ''}>
+                          {e.title} ({e.level === 'national' ? 'National Tier' : `${e.locationName} Tier`}) {!isEligible ? ' (Not Eligible)' : ''}
+                       </option>
+                    );
+                 })}
               </select>
+
+              {selectedElectionId && (
+                <div className="animate-in fade-in slide-in-from-top-1 duration-200 mt-4">
+                  <label className="block text-sm font-semibold text-gray-900 mb-1">2. Select Contested Position <span className="text-red-500">*</span></label>
+                  <select
+                    value={selectedPostId}
+                    onChange={(e) => setSelectedPostId(e.target.value)}
+                    className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    required
+                  >
+                    <option value="" disabled>Select a post (e.g. President, Secretary)...</option>
+                    {selectedElectionObj?.positions?.map((p) => (
+                      <option key={p.id} value={p.id}>{p.name}</option>
+                    ))}
+                  </select>
+                </div>
+              )}
+
+              {isUpdating && (
+                 <p className="mt-2 text-xs text-blue-600 font-medium flex items-center gap-1">
+                    <Info className="w-3 h-3" /> You are editing your current nomination for this position.
+                 </p>
+              )}
+              {hasOtherInLevel && (
+                 <p className="mt-2 text-xs text-red-600 font-medium flex items-center gap-1">
+                    <AlertCircle className="w-3 h-3" /> Warning: You already have a nomination for '{existingRecordAtLevel.positionName}' at this level. You cannot nominate for multiple positions in the same tier.
+                 </p>
+              )}
+              {!eligibleElectionIds.includes(selectedElectionId) && selectedElectionId && (
+                 <p className="mt-2 text-xs text-red-600 font-medium">
+                    You are not eligible for this election tier based on your registered location.
+                 </p>
+              )}
             </div>
 
             <div>
@@ -169,14 +260,14 @@ export default function NominationForm({ election, allElections, phaseStatus, no
                
                <MemberSearchSelect 
                  name="proposerId" 
-                 label="Proposer" 
+                 label="First Proposer" 
                  excludeId={currentUserId}
                  defaultValue={existingRecord?.proposerId}
                />
                
                <MemberSearchSelect 
                  name="seconderId" 
-                 label="Seconder" 
+                 label="Second Proposer" 
                  excludeId={currentUserId}
                  defaultValue={existingRecord?.seconderId}
                />
@@ -217,17 +308,32 @@ export default function NominationForm({ election, allElections, phaseStatus, no
               </div>
             )}
 
-            <div className="pt-4 border-t border-gray-100 flex justify-end gap-3">
-               <Link href="/elections" className="px-6 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl font-medium transition-colors">
-                 Cancel
-               </Link>
-               <button 
-                 type="submit" 
-                 disabled={isPending}
-                 className="px-8 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold shadow-sm transition-all active:scale-95 disabled:opacity-50 flex items-center gap-2"
-               >
-                 {isPending ? (isUpdating ? 'Updating...' : 'Submitting...') : (isUpdating ? 'Update Nomination' : 'Submit Nomination')}
-               </button>
+            <div className="pt-4 border-t border-gray-100 flex flex-col md:flex-row justify-between gap-4">
+               <div>
+                  {isUpdating && (
+                    <button
+                      type="button"
+                      onClick={handleWithdraw}
+                      disabled={isPending}
+                      className="px-6 py-3 bg-red-50 hover:bg-red-100 text-red-600 rounded-xl font-medium transition-colors flex items-center gap-2"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                      Withdraw Nomination
+                    </button>
+                  )}
+               </div>
+               <div className="flex gap-3 justify-end leading-none">
+                 <Link href="/elections" className="px-6 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl font-medium transition-colors">
+                   Cancel
+                 </Link>
+                 <button 
+                   type="submit" 
+                   disabled={isPending}
+                   className="px-8 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold shadow-sm transition-all active:scale-95 disabled:opacity-50 flex items-center gap-2"
+                 >
+                   {isPending ? (isUpdating ? 'Updating...' : 'Submitting...') : (isUpdating ? 'Update Nomination' : 'Submit Nomination')}
+                 </button>
+               </div>
             </div>
           </form>
          )}

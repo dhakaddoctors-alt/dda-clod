@@ -1,7 +1,7 @@
 'use server';
 
-import { elections, candidates, doctorDetails, voteTallies, votingRecords, profiles } from '@/db/schema';
-import { eq, and } from 'drizzle-orm';
+import { elections, electionPosts, candidates, doctorDetails, voteTallies, votingRecords, profiles } from '@/db/schema';
+import { eq, and, sql } from 'drizzle-orm';
 import { randomUUID } from 'crypto';
 import { getDb } from '@/db';
 import { getServerSession } from 'next-auth';
@@ -11,22 +11,17 @@ import { revalidatePath } from 'next/cache';
 export async function fetchActiveElections() {
   try {
     const db = getDb();
-    // Return all elections
-    let activeElections = await db.select().from(elections);
+    // Return all elections with their associated positions
+    const allElections = await db.select().from(elections);
+    const allPositions = await db.select().from(electionPosts);
 
-    // Auto-create default National Election if the table is completely empty
-    if (activeElections.length === 0) {
-       await db.insert(elections).values({
-          id: 'election_1',
-          title: 'National President Election',
-          description: 'Select the next National President to lead the Dhakad Doctors Association.',
-          level: 'national',
-          status: 'upcoming',
-       }).onConflictDoNothing();
-       activeElections = await db.select().from(elections);
-    }
+    // Group positions by electionId
+    const electionsWithPositions = allElections.map(election => ({
+      ...election,
+      positions: allPositions.filter(p => p.electionId === election.id)
+    }));
 
-    return activeElections;
+    return electionsWithPositions;
   } catch (error) {
     console.error('Error fetching elections:', error);
     return [];
@@ -42,12 +37,10 @@ export async function createNewElection(formData: FormData) {
 
     const title = formData.get('title') as string;
     const description = formData.get('description') as string;
-    const postName = formData.get('postName') as string || 'General';
     const level = formData.get('level') as 'national' | 'state' | 'district';
     const locationName = formData.get('locationName') as string || null;
 
     if (!title) throw new Error('Election Title is required.');
-    if (!postName) throw new Error('Post Name is required.');
 
     const db = getDb();
     const newElectionId = `election_${randomUUID()}`;
@@ -56,19 +49,63 @@ export async function createNewElection(formData: FormData) {
        id: newElectionId,
        title,
        description,
-       postName,
        level,
        locationName: level === 'national' ? null : locationName,
-       status: 'upcoming'
+       status: 'draft'
     });
 
     revalidatePath('/admin');
     revalidatePath('/elections');
 
-    return { success: true, message: 'New election created successfully.' };
+    return { success: true, electionId: newElectionId, message: 'Step 1 complete: Election created. Now please add positions.' };
   } catch (error: any) {
     console.error('Error creating election:', error);
     return { success: false, message: error.message || 'Failed to create election.' };
+  }
+}
+
+export async function addPositionToElection(electionId: string, name: string) {
+  try {
+    const session = await getServerSession(authOptions) as any;
+    if (!session?.user || (session.user.role !== 'admin' && session.user.role !== 'super_admin')) {
+      throw new Error('Unauthorized');
+    }
+
+    if (!name) throw new Error('Position name is required.');
+
+    const db = getDb();
+    const newPostId = `post_${randomUUID()}`;
+
+    await db.insert(electionPosts).values({
+      id: newPostId,
+      electionId,
+      name,
+      status: 'active'
+    });
+
+    revalidatePath('/admin');
+    return { success: true, postId: newPostId, message: 'Position added successfully.' };
+  } catch (error: any) {
+    console.error('Error adding position:', error);
+    return { success: false, message: error.message || 'Failed to add position.' };
+  }
+}
+
+export async function deletePosition(postId: string) {
+  try {
+    const session = await getServerSession(authOptions) as any;
+    if (!session?.user || (session.user.role !== 'admin' && session.user.role !== 'super_admin')) {
+      throw new Error('Unauthorized');
+    }
+
+    const db = getDb();
+    await db.delete(electionPosts).where(eq(electionPosts.id, postId));
+
+    revalidatePath('/admin');
+    return { success: true, message: 'Position deleted successfully.' };
+  } catch (error: any) {
+    console.error('Error deleting position:', error);
+    return { success: false, message: error.message || 'Failed to delete position.' };
   }
 }
 
@@ -115,7 +152,7 @@ export async function updateElectionSchedule(
   }
 }
 
-export async function adminUpdateElectionDetails(electionId: string, payload: { title: string, description: string, level: string, locationName: string | null, postName?: string }) {
+export async function adminUpdateElectionDetails(electionId: string, payload: { title: string, description: string, level: string, locationName: string | null }) {
   try {
     const session = await getServerSession(authOptions) as any;
     if (!session?.user || (session.user.role !== 'admin' && session.user.role !== 'super_admin')) {
@@ -129,7 +166,6 @@ export async function adminUpdateElectionDetails(electionId: string, payload: { 
       .set({
         title: payload.title,
         description: payload.description,
-        postName: payload.postName || '',
         level: payload.level,
         locationName: payload.level === 'national' ? null : payload.locationName
       })
@@ -153,10 +189,11 @@ export async function adminDeleteElection(electionId: string) {
     }
 
     const db = getDb();
-    // Cascade delete related records to maintain integrity
+    // Cascade delete related records
     await db.delete(voteTallies).where(eq(voteTallies.electionId, electionId));
     await db.delete(votingRecords).where(eq(votingRecords.electionId, electionId));
     await db.delete(candidates).where(eq(candidates.electionId, electionId));
+    await db.delete(electionPosts).where(eq(electionPosts.electionId, electionId));
     await db.delete(elections).where(eq(elections.id, electionId));
 
     revalidatePath('/admin');
@@ -176,6 +213,7 @@ export async function fetchCandidates(electionId: string) {
         id: candidates.id,
         manifesto: candidates.manifesto,
         posterUrl: candidates.posterUrl,
+        positionName: electionPosts.name,
         name: profiles.fullName,
         designation: doctorDetails.specialization,
         avatarUrl: profiles.avatarUrl
@@ -183,6 +221,7 @@ export async function fetchCandidates(electionId: string) {
      .from(candidates)
      .innerJoin(profiles, eq(candidates.profileId, profiles.id))
      .leftJoin(doctorDetails, eq(doctorDetails.profileId, profiles.id))
+     .leftJoin(electionPosts, eq(candidates.postId, electionPosts.id))
      .where(and(eq(candidates.electionId, electionId), eq(candidates.status, 'approved')));
      return electionCandidates;
   } catch(error) {
@@ -204,6 +243,8 @@ export async function adminFetchAllCandidates(electionId: string) {
      const allCandidates = await db.select({
         id: candidates.id,
         electionId: candidates.electionId,
+        postId: candidates.postId,
+        positionName: electionPosts.name,
         manifesto: candidates.manifesto,
         posterUrl: candidates.posterUrl,
         status: candidates.status,
@@ -220,6 +261,7 @@ export async function adminFetchAllCandidates(electionId: string) {
      .from(candidates)
      .innerJoin(profiles, eq(candidates.profileId, profiles.id))
      .leftJoin(doctorDetails, eq(doctorDetails.profileId, profiles.id))
+     .leftJoin(electionPosts, eq(candidates.postId, electionPosts.id))
      .where(eq(candidates.electionId, electionId));
      
      return allCandidates;
@@ -280,9 +322,10 @@ export async function castVote(formData: FormData) {
 
     const electionId = formData.get('electionId') as string;
     const candidateId = formData.get('candidateId') as string;
+    const postId = formData.get('postId') as string;
     const voterId = session.user.id;
 
-    if (!electionId || !candidateId) {
+    if (!electionId || !candidateId || !postId) {
        throw new Error('Missing voting information.');
     }
 
@@ -293,6 +336,10 @@ export async function castVote(formData: FormData) {
     if (electionRows.length === 0) throw new Error('Election not found.');
     const election = electionRows[0];
 
+    // Status Check
+    if (election.status !== 'active') throw new Error('This election is not currently open for voting.');
+
+    // Geography Logic
     const userState = session.user.state as string | null;
     const userDistrict = session.user.district as string | null;
 
@@ -306,30 +353,35 @@ export async function castVote(formData: FormData) {
       }
     }
 
-    // === 1-PERSON-1-VOTE CHECK ===
+    // === 1-PERSON-1-VOTE CHECK (PER POSITION) ===
     const existingVote = await db.select()
       .from(votingRecords)
-      .where(and(eq(votingRecords.electionId, electionId), eq(votingRecords.profileId, voterId)))
+      .where(and(
+        eq(votingRecords.electionId, electionId), 
+        eq(votingRecords.postId, postId),
+        eq(votingRecords.profileId, voterId)
+      ))
       .limit(1);
 
     if (existingVote.length > 0) {
-      throw new Error('You have already cast your vote in this election.');
+      throw new Error('You have already cast your vote for this position.');
     }
 
     // === CAST ANONYMOUS BALLOT ===
-    const tally = await db.select().from(voteTallies)
-      .where(and(eq(voteTallies.candidateId, candidateId), eq(voteTallies.electionId, electionId)))
+    const tallyRows = await db.select().from(voteTallies)
+      .where(and(eq(voteTallies.candidateId, candidateId), eq(voteTallies.postId, postId)))
       .limit(1);
 
-    if (tally.length > 0) {
+    if (tallyRows.length > 0) {
        await db.update(voteTallies)
-               .set({ count: (tally[0].count ?? 0) + 1 })
-               .where(eq(voteTallies.id, tally[0].id));
+               .set({ count: (tallyRows[0].count ?? 0) + 1 })
+               .where(eq(voteTallies.id, tallyRows[0].id));
     } else {
        await db.insert(voteTallies).values({
          id: randomUUID(),
          candidateId,
          electionId,
+         postId,
          count: 1
        });
     }
@@ -338,9 +390,13 @@ export async function castVote(formData: FormData) {
     await db.insert(votingRecords).values({
       id: randomUUID(),
       electionId,
+      postId,
       profileId: voterId,
       votedAt: new Date()
     });
+
+    revalidatePath('/elections');
+    revalidatePath(`/elections/${electionId}`);
 
     return { success: true, message: 'Your vote has been securely and anonymously recorded! Thank you for participating.' };
 

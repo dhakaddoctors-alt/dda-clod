@@ -90,7 +90,8 @@ export default async function NominationPage({ searchParams }: { searchParams: {
             </Link>
             <NominationForm 
                election={currentElection as any}
-               allElections={eligibleElections as any}
+               allElections={allElections as any}
+               eligibleElectionIds={eligibleElections.map((e: any) => e.id)}
                phaseStatus={phaseStatus}
                nomStart={nomStart}
                nomEnd={nomEnd}

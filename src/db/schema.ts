@@ -131,19 +131,27 @@ export const elections = sqliteTable('elections', {
   id: text('id').primaryKey(),
   title: text('title').notNull(),
   description: text('description'),
-  postName: text('post_name').default('General').notNull(),
+  postName: text('post_name').default('General').notNull(), // To be deprecated after migration
   level: text('level').default('national').notNull(), // national, state, district
   locationName: text('location_name'), // e.g., 'Rajasthan', 'Indore'
-  status: text('status').default('upcoming').notNull(), // upcoming, active, completed
+  status: text('status').default('upcoming').notNull(), // upcoming, active, completed, draft
   nominationStartDate: integer('nomination_start_date', { mode: 'timestamp' }),
   nominationEndDate: integer('nomination_end_date', { mode: 'timestamp' }),
   startDate: integer('start_date', { mode: 'timestamp' }),
   endDate: integer('end_date', { mode: 'timestamp' }),
 });
 
+export const electionPosts = sqliteTable('election_posts', {
+  id: text('id').primaryKey(),
+  electionId: text('election_id').references(() => elections.id).notNull(),
+  name: text('name').notNull(),
+  status: text('status').default('active').notNull(), // active, inactive
+});
+
 export const candidates = sqliteTable('candidates', {
   id: text('id').primaryKey(),
   electionId: text('election_id').references(() => elections.id).notNull(),
+  postId: text('post_id').references(() => electionPosts.id), // New link
   profileId: text('profile_id').references(() => profiles.id).notNull(),
   manifesto: text('manifesto'),
   posterUrl: text('poster_url'),
@@ -160,6 +168,7 @@ export const voteTallies = sqliteTable('vote_tallies', {
   id: text('id').primaryKey(),
   candidateId: text('candidate_id').references(() => candidates.id).notNull(),
   electionId: text('election_id').references(() => elections.id).notNull(),
+  postId: text('post_id').references(() => electionPosts.id), // New link
   count: integer('count').default(0).notNull(),
 });
 
@@ -167,6 +176,7 @@ export const voteTallies = sqliteTable('vote_tallies', {
 export const votingRecords = sqliteTable('voting_records', {
   id: text('id').primaryKey(),
   electionId: text('election_id').references(() => elections.id).notNull(),
+  postId: text('post_id').references(() => electionPosts.id), // New link
   profileId: text('profile_id').references(() => profiles.id).notNull(),
   votedAt: integer('voted_at', { mode: 'timestamp' }).notNull(),
 });

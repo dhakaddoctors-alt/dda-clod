@@ -4,7 +4,17 @@ import { useState, useTransition } from 'react';
 import { castVote } from '@/app/actions/electionActions';
 import { CheckCircle2 } from 'lucide-react';
 
-export default function VoteButton({ candidateId, electionId, candidateName }: { candidateId: string, electionId: string, candidateName: string }) {
+export default function VoteButton({ 
+  candidateId, 
+  electionId, 
+  candidateName,
+  postId 
+}: { 
+  candidateId: string, 
+  electionId: string, 
+  candidateName: string,
+  postId: string
+}) {
   const [isPending, startTransition] = useTransition();
   const [message, setMessage] = useState('');
   const [success, setSuccess] = useState(false);
@@ -14,6 +24,7 @@ export default function VoteButton({ candidateId, electionId, candidateName }: {
       const formData = new FormData();
       formData.append('candidateId', candidateId);
       formData.append('electionId', electionId);
+      formData.append('postId', postId);
       
       startTransition(async () => {
         const res = await castVote(formData);

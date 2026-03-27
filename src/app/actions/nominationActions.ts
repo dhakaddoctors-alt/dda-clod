@@ -1,6 +1,6 @@
 'use server';
 
-import { candidates, elections, profiles, voteTallies, votingRecords } from '@/db/schema';
+import { candidates, elections, electionPosts, profiles, voteTallies, votingRecords } from '@/db/schema';
 import { randomUUID } from 'crypto';
 import { revalidatePath } from 'next/cache';
 import { getDb } from '@/db';
@@ -22,6 +22,7 @@ export async function submitNomination(formData: FormData) {
     }
 
     const electionId = formData.get('electionId') as string;
+    const postId = formData.get('postId') as string; // NEW: The specific position being contested
     const manifesto = formData.get('manifesto') as string;
     const proposerId = formData.get('proposerId') as string;
     const seconderId = formData.get('seconderId') as string;
@@ -33,8 +34,8 @@ export async function submitNomination(formData: FormData) {
     
     const candidateProfileId = session.user.id;
 
-    if (!electionId) {
-      throw new Error('Election ID is required.');
+    if (!electionId || !postId) {
+      throw new Error('Election and Position selection are required.');
     }
     
     if (!proposerId || !seconderId) {
@@ -67,12 +68,34 @@ export async function submitNomination(formData: FormData) {
         throw new Error(`Only residents of ${election.locationName} district can nominate for this election.`);
       }
     }
-    // National elections: open to all
 
-    // check if nomination already exists
-    const existingCandidate = await db.select().from(candidates)
-       .where(and(eq(candidates.electionId, electionId), eq(candidates.profileId, candidateProfileId)))
-       .limit(1);
+    // === Level-based Nomination Limit check ===
+    const currentLevel = election.level;
+
+    // Fetch existing nominations of the user at the same tier (National/State/District)
+    const userNominationsAtLevel = await db.select({
+       id: candidates.id,
+       electionId: candidates.electionId,
+       postId: candidates.postId,
+       electionTitle: elections.title,
+       positionName: electionPosts.name,
+       level: elections.level
+    })
+    .from(candidates)
+    .innerJoin(elections, eq(candidates.electionId, elections.id))
+    .leftJoin(electionPosts, eq(candidates.postId, electionPosts.id))
+    .where(and(eq(candidates.profileId, candidateProfileId), eq(elections.level, currentLevel)));
+
+    if (userNominationsAtLevel.length > 0) {
+       const existingNominationAtLevel = userNominationsAtLevel[0];
+       // If the user already has a nomination at this level, it MUST be for the SAME position ID to allow editing.
+       // If it's for a DIFFERENT position (even in the same election or a different one at the same level), they are blocked.
+       if (existingNominationAtLevel.postId !== postId) {
+          throw new Error(`You have already filed a nomination for '${existingNominationAtLevel.positionName}' (${existingNominationAtLevel.electionTitle}) at the ${currentLevel.toUpperCase()} level. You can only contest for one position per level.`);
+       }
+    }
+
+    const existingCandidate = userNominationsAtLevel.find(n => n.postId === postId);
 
     // Verify Proposer & Seconder are valid active members
     const [proposer, seconder] = await Promise.all([
@@ -87,9 +110,9 @@ export async function submitNomination(formData: FormData) {
        throw new Error('Invalid Seconder selected. They must be a verified Member.');
     }
 
-    if (existingCandidate.length > 0) {
+    if (existingCandidate) {
        // Update existing
-       const cId = existingCandidate[0].id;
+       const cId = existingCandidate.id;
        await db.update(candidates)
          .set({
            manifesto,
@@ -102,13 +125,14 @@ export async function submitNomination(formData: FormData) {
          })
          .where(eq(candidates.id, cId));
          
-       revalidatePath('/elections/nominate');
+       revalidatePath('/desktop/elections/nominate');
        return { success: true, message: 'Your existing nomination has been updated successfully.' };
     } else {
        // Insert new
        await db.insert(candidates).values({
          id: randomUUID(),
          electionId,
+         postId,
          profileId: candidateProfileId,
          manifesto,
          posterUrl,
@@ -118,8 +142,8 @@ export async function submitNomination(formData: FormData) {
          seconderStatus: 'pending',
          status: 'pending_references'
        });
-       console.log(`[DB] Submitted new nomination for ${candidateProfileId} in election ${electionId}`);
-       revalidatePath('/elections/nominate');
+       console.log(`[DB] Submitted new nomination for ${candidateProfileId} for position ${postId} in election ${electionId}`);
+       revalidatePath('/desktop/elections/nominate');
        return { success: true, message: 'Nomination submitted successfully. Pending Admin approval.' };
     }
   } catch (error: any) {
@@ -187,8 +211,22 @@ export async function fetchUserNominations() {
         if (!session?.user?.id) return [];
 
         const db = getDb();
-        const userCandidates = await db.select()
+        const userCandidates = await db.select({
+            id: candidates.id,
+            electionId: candidates.electionId,
+            postId: candidates.postId,
+            positionName: electionPosts.name,
+            manifesto: candidates.manifesto,
+            posterUrl: candidates.posterUrl,
+            status: candidates.status,
+            level: elections.level,
+            proposerId: candidates.proposerId,
+            seconderId: candidates.seconderId,
+            electionTitle: elections.title
+        })
             .from(candidates)
+            .innerJoin(elections, eq(candidates.electionId, elections.id))
+            .leftJoin(electionPosts, eq(candidates.postId, electionPosts.id))
             .where(eq(candidates.profileId, session.user.id));
             
         return userCandidates;
@@ -318,4 +356,27 @@ export async function respondToReference(candidateId: string, role: 'Proposer' |
         console.error('Error responding to reference:', error);
         return { success: false, message: error.message || 'Failed to process response.' };
     }
+}
+
+export async function withdrawNomination(candidateId: string) {
+  try {
+    const session = await getServerSession(authOptions) as any;
+    if (!session?.user?.id) throw new Error('Unauthorized');
+    
+    const db = getDb();
+    // Verify ownership
+    const candRows = await db.select().from(candidates).where(eq(candidates.id, candidateId)).limit(1);
+    if (candRows.length === 0) throw new Error('Nomination not found');
+    if (candRows[0].profileId !== session.user.id) throw new Error('Unauthorized');
+
+    // Delete the nomination
+    await db.delete(candidates).where(eq(candidates.id, candidateId));
+    
+    revalidatePath('/desktop/elections/nominate');
+    revalidatePath('/elections');
+    return { success: true, message: 'Your nomination has been withdrawn successfully.' };
+  } catch (error: any) {
+    console.error('Error withdrawing nomination:', error);
+    return { success: false, message: error.message || 'Failed to withdraw nomination.' };
+  }
 }
